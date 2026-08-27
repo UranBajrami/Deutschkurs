@@ -3662,28 +3662,16 @@ function germanWhole(n) {
 }
 
 // Numri dhjetor -> tekst gjermanisht për shqiptim, p.sh. 12.49 -> "zwölf Komma neunundvierzig"
-function germanDecimalWords(whole, decStr) {
-  let s = germanWhole(whole);
-  if (!decStr) return s;
-  s += " Komma ";
-  if (decStr.length === 1) {
-    s += GERMAN_ONES[parseInt(decStr)];
-  } else {
-    const d1 = parseInt(decStr[0]), d2 = parseInt(decStr[1]);
-    if (d1 === 0) {
-      // p.sh. 05 -> "null fünf", jo "fünf" e vetme (do të humbte zeron)
-      s += "null " + GERMAN_ONES[d2];
-    } else {
-      s += germanUnder100(parseInt(decStr));
-    }
-  }
-  return s;
-}
+// Lexohet si shumë parash: "12,49" -> "zwölf Euro neunundvierzig Cent"
+function germanEuroWords(whole, decStr) {
+  const euroPart = whole > 0 ? germanWhole(whole) + " Euro" : "";
+  const centsNum = decStr ? parseInt(decStr, 10) : 0;
 
-// Për t'u dëgjuar: "Komma" NUK shqiptohet si fjalë — vetëm një pauzë e natyrshme
-// (presje reale), që tingëllon si numër i vërtetë, jo si fjalë e lexuar fjalë-për-fjalë.
-function germanDecimalSpeech(words) {
-  return words.replace(" Komma ", ", ");
+  if (!decStr || centsNum === 0) {
+    return euroPart || "null Euro";
+  }
+  const centWord = germanUnder100(centsNum) + " Cent";
+  return euroPart ? euroPart + " " + centWord : centWord;
 }
 
 let numberTask = null;
@@ -3691,18 +3679,14 @@ let numberScore = 0, numberRound = 0;
 
 function generateNumberTask() {
   const whole = Math.floor(Math.random() * 101); // 0–100
-  const roll = Math.random();
-  let decDigits = 2;
-  if (roll < 0.15) decDigits = 0;
-  else if (roll < 0.3) decDigits = 1;
-  if (whole === 100) decDigits = 0; // 100,00 tingëllon çuditshëm — mbaje të thjeshtë
 
   let decStr = "";
-  if (decDigits === 1) decStr = String(Math.floor(Math.random() * 10));
-  if (decDigits === 2) decStr = String(Math.floor(Math.random() * 100)).padStart(2, "0");
+  if (whole < 100 && Math.random() < 0.78) {
+    decStr = String(Math.floor(Math.random() * 100)).padStart(2, "0");
+  }
 
-  const display = decStr ? whole + "," + decStr : String(whole);
-  const words = germanDecimalWords(whole, decStr);
+  const display = (decStr ? whole + "," + decStr : String(whole)) + " €";
+  const words = germanEuroWords(whole, decStr);
   return { whole, decStr, display, words };
 }
 
@@ -3718,13 +3702,13 @@ function buildNumberDistractors(task) {
       // ndrysho pjesën e plotë pak
       w2 = Math.max(0, Math.min(100, task.whole + (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 9))));
     } else if (mode === 1 && dec2) {
-      // ndrysho pjesën dhjetore
-      const val = (parseInt(dec2) + 1 + Math.floor(Math.random() * 20)) % Math.pow(10, dec2.length);
-      dec2 = String(val).padStart(dec2.length, "0");
+      // ndrysho centët
+      const val = (parseInt(dec2) + 1 + Math.floor(Math.random() * 20)) % 100;
+      dec2 = String(val).padStart(2, "0");
     } else {
       w2 = Math.floor(Math.random() * 101);
     }
-    const words2 = germanDecimalWords(w2, dec2);
+    const words2 = germanEuroWords(w2, dec2);
     if (!seen.has(words2)) { seen.add(words2); opts.push(words2); }
   }
   return shuffle(opts);
@@ -3783,12 +3767,12 @@ function renderNumberTask() {
   });
 
   // Dëgjo automatikisht një herë, që të lidhet numri me tingullin që në fillim
-  setTimeout(() => speak(germanDecimalSpeech(numberTask.words)), 300);
+  setTimeout(() => speak(numberTask.words), 300);
 }
 
 document.getElementById("btnStartNumbers").addEventListener("click", startNumberPractice);
 document.getElementById("btnNextNumber").addEventListener("click", renderNumberTask);
-document.getElementById("btnSpeakNumber").addEventListener("click", () => { if (numberTask) speak(germanDecimalSpeech(numberTask.words)); });
+document.getElementById("btnSpeakNumber").addEventListener("click", () => { if (numberTask) speak(numberTask.words); });
 document.getElementById("btnRestartNumbers").addEventListener("click", startNumberPractice);
 
 /* ============ NAVIGATION ============ */
