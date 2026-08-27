@@ -806,6 +806,25 @@
     text-align: center; font-size: .72rem; font-weight: 800; letter-spacing: .06em;
     text-transform: uppercase; color: var(--blue); margin-bottom: 10px;
   }
+
+  /* ---- Numrat me presje ---- */
+  .number-display-card {
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    background: var(--surface); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 30px 20px;
+    margin-bottom: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    animation: fadeSlideIn .3s cubic-bezier(.2,.8,.2,1);
+  }
+  .number-display {
+    font-size: 2.6rem; font-weight: 800; font-variant-numeric: tabular-nums;
+    letter-spacing: -.01em; color: var(--ink);
+  }
+  .number-speak-btn {
+    width: 52px; height: 52px; border-radius: 50%; border: none; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--blue), #7aa2ff); color: #fff;
+    font-size: 1.4rem; cursor: pointer; box-shadow: 0 6px 18px var(--blue-glow);
+  }
+  .number-speak-btn:active { transform: scale(.92); }
   .practice-prompt {
     background: var(--surface); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
     border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 24px 20px;
@@ -1362,6 +1381,7 @@
 
 <nav>
   <button class="tab-btn active" data-view="cards"><span class="tab-icon">🗂️</span><span class="tab-label">Karta</span></button>
+  <button class="tab-btn" data-view="numbers"><span class="tab-icon">🔢</span><span class="tab-label">Numrat</span></button>
   <button class="tab-btn" data-view="quiz"><span class="tab-icon">❓</span><span class="tab-label">Kuiz</span></button>
   <button class="tab-btn" data-view="imagequiz"><span class="tab-icon">🖼️</span><span class="tab-label">Foto</span></button>
   <button class="tab-btn" data-view="grammar"><span class="tab-icon">📐</span><span class="tab-label">Gramatikë</span></button>
@@ -1634,6 +1654,35 @@
       <div class="sub" style="margin-bottom:8px;">Zgjidh nivelin që dëshiron të ushtrosh:</div>
       <div class="level-picker" id="levelPicker"></div>
       <button class="btn btn-secondary" id="btnRetakePlacement" style="width:100%;margin-top:14px;font-size:.82rem;">↺ Përsërit testin e vlerësimit</button>
+    </div>
+  </div>
+</div>
+
+<!-- NUMRAT: numra me presje dhjetore, me shqiptim -->
+<div class="view hidden" id="view-numbers">
+  <div id="numberIntro">
+    <div class="practice-hero">
+      <div style="font-size:3rem;margin-bottom:10px;">🔢</div>
+      <h2>Numrat me presje</h2>
+      <p>Numra të rastësishëm nga 0 deri 100, me deri në dy shifra pas presjes (p.sh. "12,49"). Dëgjo shqiptimin dhe zgjidh formën e saktë me fjalë.</p>
+    </div>
+    <button class="btn btn-primary" id="btnStartNumbers" style="width:100%;padding:16px;font-size:1rem;">Fillo ushtrimin</button>
+  </div>
+
+  <div class="hidden" id="numberRunner">
+    <div class="stats-bar">
+      <span id="numberProgress">Raundi 0</span>
+      <span id="numberScore">Saktë: 0</span>
+    </div>
+    <div class="number-display-card">
+      <div class="number-display" id="numberDisplay">0,00</div>
+      <button class="number-speak-btn" id="btnSpeakNumber" title="Dëgjo">🔊</button>
+    </div>
+    <div class="quiz-options" id="numberOptions"></div>
+    <div class="grammar-explain hidden" id="numberExplain"></div>
+    <div class="controls" style="margin-top:10px;">
+      <button class="btn btn-primary hidden" id="btnNextNumber">Vazhdo →</button>
+      <button class="btn btn-secondary" id="btnRestartNumbers">↺ Fillo nga e para</button>
     </div>
   </div>
 </div>
@@ -3249,6 +3298,7 @@ const DEFAULT_STATS = {
   imagequiz: { total: 0, correct: 0 },
   practice:  { total: 0, correct: 0 },
   grammar:   { total: 0, correct: 0 },
+  numbers:   { total: 0, correct: 0 },
   cards:     { known: 0, unknown: 0 },
   exams:     { taken: 0, passed: 0, best: 0, bestModules: {} },
   words:     {},   // "al|de": { c: saktë, w: gabim }
@@ -3591,8 +3641,158 @@ function speak(text) {
   window.speechSynthesis.speak(u);
 }
 
+/* ============ NUMRAT: numra me presje dhjetore, me shqiptim ============ */
+const GERMAN_ONES = ["null","eins","zwei","drei","vier","fünf","sechs","sieben","acht","neun",
+  "zehn","elf","zwölf","dreizehn","vierzehn","fünfzehn","sechzehn","siebzehn","achtzehn","neunzehn"];
+const GERMAN_TENS = ["","","zwanzig","dreißig","vierzig","fünfzig","sechzig","siebzig","achtzig","neunzig"];
+
+// Kthen 0–99 në fjalë gjermanisht (p.sh. 49 -> "neunundvierzig")
+function germanUnder100(n) {
+  if (n < 20) return GERMAN_ONES[n];
+  const tens = Math.floor(n / 10), ones = n % 10;
+  if (ones === 0) return GERMAN_TENS[tens];
+  const onesWord = ones === 1 ? "ein" : GERMAN_ONES[ones];   // "einundzwanzig", jo "einsundzwanzig"
+  return onesWord + "und" + GERMAN_TENS[tens];
+}
+
+// Kthen numrin e plotë 0–100 në fjalë (100 = "einhundert")
+function germanWhole(n) {
+  if (n === 100) return "einhundert";
+  return germanUnder100(n);
+}
+
+// Numri dhjetor -> tekst gjermanisht për shqiptim, p.sh. 12.49 -> "zwölf Komma neunundvierzig"
+function germanDecimalWords(whole, decStr) {
+  let s = germanWhole(whole);
+  if (!decStr) return s;
+  s += " Komma ";
+  if (decStr.length === 1) {
+    s += GERMAN_ONES[parseInt(decStr)];
+  } else {
+    const d1 = parseInt(decStr[0]), d2 = parseInt(decStr[1]);
+    if (d1 === 0) {
+      // p.sh. 05 -> "null fünf", jo "fünf" e vetme (do të humbte zeron)
+      s += "null " + GERMAN_ONES[d2];
+    } else {
+      s += germanUnder100(parseInt(decStr));
+    }
+  }
+  return s;
+}
+
+// Për t'u dëgjuar: "Komma" NUK shqiptohet si fjalë — vetëm një pauzë e natyrshme
+// (presje reale), që tingëllon si numër i vërtetë, jo si fjalë e lexuar fjalë-për-fjalë.
+function germanDecimalSpeech(words) {
+  return words.replace(" Komma ", ", ");
+}
+
+let numberTask = null;
+let numberScore = 0, numberRound = 0;
+
+function generateNumberTask() {
+  const whole = Math.floor(Math.random() * 101); // 0–100
+  const roll = Math.random();
+  let decDigits = 2;
+  if (roll < 0.15) decDigits = 0;
+  else if (roll < 0.3) decDigits = 1;
+  if (whole === 100) decDigits = 0; // 100,00 tingëllon çuditshëm — mbaje të thjeshtë
+
+  let decStr = "";
+  if (decDigits === 1) decStr = String(Math.floor(Math.random() * 10));
+  if (decDigits === 2) decStr = String(Math.floor(Math.random() * 100)).padStart(2, "0");
+
+  const display = decStr ? whole + "," + decStr : String(whole);
+  const words = germanDecimalWords(whole, decStr);
+  return { whole, decStr, display, words };
+}
+
+function buildNumberDistractors(task) {
+  const opts = [task.words];
+  const seen = new Set([task.words]);
+  let guard = 0;
+  while (opts.length < 4 && guard < 40) {
+    guard++;
+    let w2 = task.whole, dec2 = task.decStr;
+    const mode = Math.floor(Math.random() * 3);
+    if (mode === 0) {
+      // ndrysho pjesën e plotë pak
+      w2 = Math.max(0, Math.min(100, task.whole + (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 9))));
+    } else if (mode === 1 && dec2) {
+      // ndrysho pjesën dhjetore
+      const val = (parseInt(dec2) + 1 + Math.floor(Math.random() * 20)) % Math.pow(10, dec2.length);
+      dec2 = String(val).padStart(dec2.length, "0");
+    } else {
+      w2 = Math.floor(Math.random() * 101);
+    }
+    const words2 = germanDecimalWords(w2, dec2);
+    if (!seen.has(words2)) { seen.add(words2); opts.push(words2); }
+  }
+  return shuffle(opts);
+}
+
+function startNumberPractice() {
+  numberScore = 0; numberRound = 0;
+  document.getElementById("numberIntro").classList.add("hidden");
+  document.getElementById("numberRunner").classList.remove("hidden");
+  renderNumberTask();
+}
+
+function renderNumberTask() {
+  numberRound++;
+  numberTask = generateNumberTask();
+  document.getElementById("numberProgress").textContent = "Raundi " + numberRound;
+  document.getElementById("numberScore").textContent = "Saktë: " + numberScore;
+  document.getElementById("numberDisplay").textContent = numberTask.display;
+  document.getElementById("numberExplain").classList.add("hidden");
+  document.getElementById("btnNextNumber").classList.add("hidden");
+
+  const opts = buildNumberDistractors(numberTask);
+  const box = document.getElementById("numberOptions");
+  box.innerHTML = "";
+  let answered = false;
+  opts.forEach(opt => {
+    const el = document.createElement("button");
+    el.className = "quiz-option";
+    el.textContent = opt;
+    el.addEventListener("click", () => {
+      if (answered) return;
+      answered = true;
+      const correct = opt === numberTask.words;
+      box.querySelectorAll(".quiz-option").forEach(o => {
+        if (o.textContent === numberTask.words) o.classList.add("correct");
+        else if (o === el) o.classList.add("wrong");
+        else o.classList.add("faded");
+      });
+      el.classList.add("picked");
+      const expl = document.getElementById("numberExplain");
+      expl.textContent = "🔊 " + numberTask.display + " = " + numberTask.words;
+      expl.classList.remove("hidden");
+      if (correct) {
+        numberScore++;
+        awardPoints(10, "numbers");
+        registerAnswer(true);
+        recordStat("numbers", true, null);
+      } else {
+        registerAnswer(false);
+        recordStat("numbers", false, null);
+      }
+      document.getElementById("numberScore").textContent = "Saktë: " + numberScore;
+      document.getElementById("btnNextNumber").classList.remove("hidden");
+    });
+    box.appendChild(el);
+  });
+
+  // Dëgjo automatikisht një herë, që të lidhet numri me tingullin që në fillim
+  setTimeout(() => speak(germanDecimalSpeech(numberTask.words)), 300);
+}
+
+document.getElementById("btnStartNumbers").addEventListener("click", startNumberPractice);
+document.getElementById("btnNextNumber").addEventListener("click", renderNumberTask);
+document.getElementById("btnSpeakNumber").addEventListener("click", () => { if (numberTask) speak(germanDecimalSpeech(numberTask.words)); });
+document.getElementById("btnRestartNumbers").addEventListener("click", startNumberPractice);
+
 /* ============ NAVIGATION ============ */
-const views = ["cards","quiz","imagequiz","grammar","homework","practice","exam","stats","list","add","account"];
+const views = ["cards","quiz","imagequiz","grammar","homework","practice","exam","stats","numbers","list","add","account"];
 function goToView(t) {
   document.querySelectorAll(".tab-btn").forEach(b => {
     const isActive = b.dataset.view === t;
@@ -3614,6 +3814,10 @@ function goToView(t) {
   if (t === "exam") renderExamMenu();
   if (t === "stats") renderFarmView();
   if (t === "account") { renderProfileView(); renderStatsView(); }
+  if (t === "numbers") {
+    document.getElementById("numberIntro").classList.remove("hidden");
+    document.getElementById("numberRunner").classList.add("hidden");
+  }
   if (t === "grammar") { fillGrammarCats(); startGrammar(); }
   if (t === "homework") renderHomework();
   window.scrollTo(0,0);
