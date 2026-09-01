@@ -552,6 +552,9 @@
   .auth-msg.err { color: var(--red); }
   .auth-msg.ok { color: var(--green); }
   .auth-toggle { text-align: center; margin-top: 14px; font-size: .84rem; color: var(--muted); font-weight: 600; }
+  .auth-forgot-row { text-align: center; margin-top: 10px; }
+  .auth-forgot-row a { color: var(--blue); font-size: .8rem; font-weight: 700; cursor: pointer; }
+  .auth-toggle a, .auth-toggle-link { color: var(--blue); font-weight: 800; cursor: pointer; }
   .auth-toggle a { color: var(--blue); font-weight: 800; cursor: pointer; text-decoration: none; }
   .sync-note { font-size: .76rem; color: var(--muted); text-align: center; margin-top: 14px; line-height: 1.5; font-weight: 600; }
 
@@ -1663,7 +1666,30 @@
       <input type="email" id="authEmail" placeholder="E-mail" autocomplete="email" autocapitalize="off" autocorrect="off" data-i18n-placeholder="auth.email">
       <input type="password" id="authPassword" placeholder="Fjalëkalimi" autocomplete="current-password" data-i18n-placeholder="auth.password">
       <button class="btn btn-primary" id="btnAuthSubmit" style="width:100%;" data-i18n="auth.title">Identifikohu</button>
+      <div class="auth-forgot-row" id="authForgotRow">
+        <a id="authForgotLink" data-i18n="auth.forgot">Ke harruar fjalëkalimin?</a>
+      </div>
       <div class="auth-toggle" id="authToggle"><span data-i18n="auth.noaccount">Nuk ke llogari?</span> <a id="authToggleLink" data-i18n="auth.registernow">Regjistrohu tani</a></div>
+    </div>
+
+    <!-- KËRKO LIDHJE PËR RIVENDOSJE -->
+    <div class="hidden" id="authForgotView">
+      <h3 data-i18n="auth.forgot.title">Rivendos fjalëkalimin</h3>
+      <div class="sub" data-i18n="auth.forgot.subtitle">Shkruaj email-in tënd. Do të marrësh një lidhje për të vendosur një fjalëkalim të ri.</div>
+      <div class="auth-msg" id="forgotMsg"></div>
+      <input type="email" id="forgotEmail" placeholder="E-mail" autocomplete="email" autocapitalize="off" autocorrect="off" data-i18n-placeholder="auth.email">
+      <button class="btn btn-primary" id="btnForgotSubmit" style="width:100%;" data-i18n="auth.forgot.send">Dërgo lidhjen</button>
+      <div class="auth-toggle"><a id="authBackToLogin" data-i18n="auth.forgot.back">← Kthehu te identifikimi</a></div>
+    </div>
+
+    <!-- VENDOS FJALËKALIM TË RI (pas klikimit të lidhjes në email) -->
+    <div class="hidden" id="authResetView">
+      <h3 data-i18n="auth.reset.title">Vendos fjalëkalim të ri</h3>
+      <div class="sub" data-i18n="auth.reset.subtitle">Shkruaj fjalëkalimin e ri për llogarinë tënde.</div>
+      <div class="auth-msg" id="resetMsg"></div>
+      <input type="password" id="resetPassword1" placeholder="Fjalëkalimi i ri" autocomplete="new-password" data-i18n-placeholder="auth.reset.new">
+      <input type="password" id="resetPassword2" placeholder="Përsërit fjalëkalimin" autocomplete="new-password" data-i18n-placeholder="auth.reset.repeat">
+      <button class="btn btn-primary" id="btnResetSubmit" style="width:100%;" data-i18n="auth.reset.save">Ruaj fjalëkalimin e ri</button>
     </div>
     <div class="hidden" id="authLoggedIn">
       <h3 data-i18n="auth.loggedin">I identifikuar ✓</h3>
@@ -3951,6 +3977,18 @@ const UI_STRINGS = {
   "auth.logout":       { sq: "🚪 Dil nga llogaria", de: "🚪 Abmelden" },
   "auth.syncnote":     { sq: "Pikët dhe fjalët e shtuara vetë ruhen automatikisht online dhe ngarkohen përsëri herën tjetër që identifikohesh (edhe në një pajisje tjetër). Ushtrimet me karta dhe kuiz funksionojnë edhe offline, pa identifikim.",
                          de: "Punkte und selbst hinzugefügte Wörter werden automatisch online gespeichert und beim nächsten Anmelden wieder geladen (auch auf einem anderen Gerät). Karten- und Quiz-Übungen funktionieren auch offline, ohne Anmeldung." },
+
+  "auth.forgot":          { sq: "Ke harruar fjalëkalimin?", de: "Passwort vergessen?" },
+  "auth.forgot.title":    { sq: "Rivendos fjalëkalimin", de: "Passwort zurücksetzen" },
+  "auth.forgot.subtitle": { sq: "Shkruaj email-in tënd. Do të marrësh një lidhje për të vendosur një fjalëkalim të ri.",
+                            de: "Gib deine E-Mail-Adresse ein. Du erhältst einen Link, um ein neues Passwort festzulegen." },
+  "auth.forgot.send":     { sq: "Dërgo lidhjen", de: "Link senden" },
+  "auth.forgot.back":     { sq: "← Kthehu te identifikimi", de: "← Zurück zur Anmeldung" },
+  "auth.reset.title":     { sq: "Vendos fjalëkalim të ri", de: "Neues Passwort festlegen" },
+  "auth.reset.subtitle":  { sq: "Shkruaj fjalëkalimin e ri për llogarinë tënde.", de: "Gib das neue Passwort für dein Konto ein." },
+  "auth.reset.new":       { sq: "Fjalëkalimi i ri", de: "Neues Passwort" },
+  "auth.reset.repeat":    { sq: "Përsërit fjalëkalimin", de: "Passwort wiederholen" },
+  "auth.reset.save":      { sq: "Ruaj fjalëkalimin e ri", de: "Neues Passwort speichern" },
 
   "account.prestige.title":     { sq: "🏝️ Prestigo", de: "🏝️ Prestige" },
   "account.learn.title":        { sq: "📚 Si ke mësuar", de: "📚 Wie du gelernt hast" },
@@ -6716,6 +6754,8 @@ function setAccountBar(loggedIn, email) {
 
 function showAuthView(loggedIn, email) {
   document.getElementById("authLoggedOut").classList.toggle("hidden", loggedIn);
+  document.getElementById("authForgotView").classList.add("hidden");
+  document.getElementById("authResetView").classList.add("hidden");
   document.getElementById("authLoggedIn").classList.toggle("hidden", !loggedIn);
   document.getElementById("leaderboardCard").classList.toggle("hidden", !loggedIn);
   if (loggedIn) document.getElementById("authUserEmail").textContent = email;
@@ -6801,6 +6841,74 @@ document.getElementById("btnLogout").addEventListener("click", async () => {
   clearTimeout(syncTimer);
   await saveProgress();
   if (sb) await sb.auth.signOut();
+});
+
+/* ============ RIVENDOSJA E FJALËKALIMIT (harruar) ============ */
+function showAuthPanel(panel) {
+  // panel: "login" | "forgot" | "reset"
+  document.getElementById("authLoggedOut").classList.toggle("hidden", panel !== "login");
+  document.getElementById("authForgotView").classList.toggle("hidden", panel !== "forgot");
+  document.getElementById("authResetView").classList.toggle("hidden", panel !== "reset");
+}
+
+document.getElementById("authForgotLink").addEventListener("click", () => {
+  document.getElementById("forgotEmail").value = document.getElementById("authEmail").value.trim();
+  document.getElementById("forgotMsg").textContent = "";
+  document.getElementById("forgotMsg").className = "auth-msg";
+  showAuthPanel("forgot");
+});
+
+document.getElementById("authBackToLogin").addEventListener("click", () => showAuthPanel("login"));
+
+document.getElementById("btnForgotSubmit").addEventListener("click", async () => {
+  const msgEl = document.getElementById("forgotMsg");
+  if (!sb) { msgEl.textContent = "Identifikimi nuk është i disponueshëm tani."; msgEl.className = "auth-msg err"; return; }
+  const email = document.getElementById("forgotEmail").value.trim();
+  if (!email || !email.includes("@")) {
+    msgEl.textContent = "Ju lutem shkruaj një adresë email të vlefshme.";
+    msgEl.className = "auth-msg err";
+    return;
+  }
+  const btn = document.getElementById("btnForgotSubmit");
+  btn.disabled = true;
+  msgEl.textContent = "Po dërgohet…"; msgEl.className = "auth-msg";
+  try {
+    // redirectTo: kthehet pikërisht te kjo faqe, që Supabase të krijojë sesionin e rivendosjes këtu
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname
+    });
+    if (error) throw error;
+    msgEl.textContent = "U dërgua! Kontrollo email-in tënd (edhe dosjen spam) dhe kliko lidhjen për të vendosur fjalëkalim të ri.";
+    msgEl.className = "auth-msg ok";
+  } catch (err) {
+    msgEl.textContent = err.message || "Diçka shkoi keq. Provo përsëri.";
+    msgEl.className = "auth-msg err";
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById("btnResetSubmit").addEventListener("click", async () => {
+  const msgEl = document.getElementById("resetMsg");
+  const p1 = document.getElementById("resetPassword1").value;
+  const p2 = document.getElementById("resetPassword2").value;
+  if (p1.length < 6) { msgEl.textContent = "Fjalëkalimi duhet të ketë të paktën 6 shkronja."; msgEl.className = "auth-msg err"; return; }
+  if (p1 !== p2) { msgEl.textContent = "Fjalëkalimet nuk përputhen."; msgEl.className = "auth-msg err"; return; }
+  const btn = document.getElementById("btnResetSubmit");
+  btn.disabled = true;
+  msgEl.textContent = "Po ruhet…"; msgEl.className = "auth-msg";
+  try {
+    const { error } = await sb.auth.updateUser({ password: p1 });
+    if (error) throw error;
+    msgEl.textContent = "Fjalëkalimi u ndryshua! Je i identifikuar tani.";
+    msgEl.className = "auth-msg ok";
+    setTimeout(() => { showAuthPanel("login"); goToView("account"); }, 1400);
+  } catch (err) {
+    msgEl.textContent = err.message || "Diçka shkoi keq. Provo përsëri.";
+    msgEl.className = "auth-msg err";
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 async function loadProgress() {
@@ -6899,6 +7007,16 @@ _origBtnAddWord.addEventListener("click", queueSave);
 
 if (sb) {
   sb.auth.onAuthStateChange((event, session) => {
+    if (event === "PASSWORD_RECOVERY") {
+      // Përdoruesi erdhi nga lidhja e email-it — trego formularin e fjalëkalimit të ri,
+      // pa e çuar direkt te llogaria, edhe pse teknikisht ka një sesion të përkohshëm.
+      goToView("account");
+      showAuthPanel("reset");
+      document.getElementById("resetPassword1").value = "";
+      document.getElementById("resetPassword2").value = "";
+      document.getElementById("resetMsg").textContent = "";
+      return;
+    }
     currentUser = session ? session.user : null;
     if (currentUser) {
       const displayName = (currentUser.user_metadata && currentUser.user_metadata.username)
