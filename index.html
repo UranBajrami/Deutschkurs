@@ -6736,6 +6736,15 @@ try {
 // Supabase përdor dy formate lidhjesh sipas konfigurimit: ose #access_token=...&type=recovery
 // (format i vjetër), ose ?code=... (PKCE, më i ri). I trajtojmë të dyja, që të mos varemi
 // vetëm nga event-i automatik i librarisë, i cili ndonjëherë nuk arrin dëgjuesin tonë me kohë.
+//
+// window.__pendingPasswordRecovery: shënues global. Sapo shohim NGA VETË URL-JA se ky është
+// një lidhje rivendosjeje, e vendosim në true — dhe onAuthStateChange më poshtë e respekton këtë
+// shënues gjithmonë, PA marrë parasysh çfarë event-i raporton Supabase (PASSWORD_RECOVERY,
+// SIGNED_IN, apo çfarëdo tjetër). Kështu përdoruesi nuk "identifikohet thjesht", por sheh
+// gjithmonë formularin e fjalëkalimit të ri, edhe nëse libraria e Supabase-it sillet ndryshe
+// se pritej në ndonjë version.
+window.__pendingPasswordRecovery = false;
+
 (function handlePasswordRecoveryLink() {
   if (!sb) return;
   const hash = window.location.hash || "";
@@ -6759,16 +6768,18 @@ try {
 
   if (isRecoveryHash) {
     console.log("Rivendosje e zbuluar (format hash) — po pres sesionin nga Supabase…");
-    // supabase-js e lexon vetë hash-in dhe do të nxjerrë PASSWORD_RECOVERY te onAuthStateChange më poshtë.
+    window.__pendingPasswordRecovery = true;
     return;
   }
 
   if (code) {
     console.log("Rivendosje e zbuluar (format kod/PKCE) — po shkëmbej kodin…");
+    window.__pendingPasswordRecovery = true;
     sb.auth.exchangeCodeForSession(window.location.href).then(({ data, error }) => {
       history.replaceState(null, "", window.location.pathname); // hiq kodin nga URL, s'ripërdoret
       if (error) {
         console.warn("Gabim gjatë shkëmbimit të kodit të rivendosjes:", error);
+        window.__pendingPasswordRecovery = false;
         setTimeout(() => {
           goToView("account");
           showAuthPanel("login");
@@ -6951,11 +6962,25 @@ document.getElementById("btnResetSubmit").addEventListener("click", async () => 
   btn.disabled = true;
   msgEl.textContent = "Po ruhet…"; msgEl.className = "auth-msg";
   try {
-    const { error } = await sb.auth.updateUser({ password: p1 });
+    const { data, error } = await sb.auth.updateUser({ password: p1 });
     if (error) throw error;
     msgEl.textContent = "Fjalëkalimi u ndryshua! Je i identifikuar tani.";
     msgEl.className = "auth-msg ok";
-    setTimeout(() => { showAuthPanel("login"); goToView("account"); }, 1400);
+    window.__pendingPasswordRecovery = false; // rivendosja mbaroi — vazhdo si identifikim normal
+    const user = data && data.user;
+    if (user) {
+      currentUser = user;
+      const displayName = (user.user_metadata && user.user_metadata.username)
+        || (user.email ? user.email.split("@")[0] : "Përdorues");
+      setTimeout(() => {
+        setAccountBar(true, displayName);
+        showAuthView(true, user.email || displayName);
+        loadProgress();
+        loadLeaderboard();
+      }, 1000);
+    } else {
+      setTimeout(() => { showAuthPanel("login"); }, 1400);
+    }
   } catch (err) {
     msgEl.textContent = err.message || "Diçka shkoi keq. Provo përsëri.";
     msgEl.className = "auth-msg err";
@@ -7060,6 +7085,18 @@ _origBtnAddWord.addEventListener("click", queueSave);
 
 if (sb) {
   sb.auth.onAuthStateChange((event, session) => {
+    // Kontrollo shënuesin global PARA çdo gjëje tjetër — pavarësisht se çfarë event-i
+    // raporton Supabase, nëse jemi ende në proces rivendosjeje, trego formularin e ri,
+    // mos e trajto si identifikim normal.
+    if (window.__pendingPasswordRecovery) {
+      currentUser = session ? session.user : null; // e mbajmë në sfond, updateUser e përdor vetë sesionin
+      goToView("account");
+      showAuthPanel("reset");
+      document.getElementById("resetPassword1").value = "";
+      document.getElementById("resetPassword2").value = "";
+      document.getElementById("resetMsg").textContent = "";
+      return;
+    }
     if (event === "PASSWORD_RECOVERY") {
       // Përdoruesi erdhi nga lidhja e email-it — trego formularin e fjalëkalimit të ri,
       // pa e çuar direkt te llogaria, edhe pse teknikisht ka një sesion të përkohshëm.
