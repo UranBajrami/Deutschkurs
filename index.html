@@ -601,6 +601,16 @@
   .confetti-piece { position: fixed; top: -10px; z-index: 1000; border-radius: 2px; animation: confettiFall linear forwards; pointer-events: none; }
 
   /* ---- Vollbild-Einstufungstest ---- */
+  #pwResetOverlay {
+    position: fixed; inset: 0; z-index: 950; overflow-y: auto;
+    background:
+      radial-gradient(900px 500px at 20% -10%, rgba(255,200,87,.18), transparent 60%),
+      radial-gradient(700px 450px at 100% 20%, rgba(91,140,255,.16), transparent 55%),
+      var(--bg-0);
+    padding: calc(28px + env(safe-area-inset-top)) 20px calc(40px + env(safe-area-inset-bottom));
+    animation: overlayIn .4s cubic-bezier(.2,.8,.2,1);
+  }
+  #pwResetOverlay .placement-hero-icon { filter: drop-shadow(0 0 24px var(--gold-glow)); }
   #placementOverlay {
     position: fixed; inset: 0; z-index: 900; overflow-y: auto;
     background:
@@ -1782,6 +1792,25 @@
 </div>
 
 <!-- EINSTUFUNGSTEST: VOLLBILD-OVERLAY -->
+<!-- FAQE E PLOTË: VENDOS FJALËKALIM TË RI (pas klikimit të lidhjes në email) -->
+<div class="hidden" id="pwResetOverlay">
+  <div class="placement-shell">
+    <div class="placement-hero">
+      <div class="placement-hero-icon">🔑</div>
+      <h2 data-i18n="auth.reset.title">Vendos fjalëkalim të ri</h2>
+      <p data-i18n="auth.reset.subtitle">Shkruaj fjalëkalimin e ri për llogarinë tënde.</p>
+    </div>
+    <div class="auth-card">
+      <div class="sub" id="pwResetEmail" style="text-align:center;word-break:break-all;margin-bottom:14px;"></div>
+      <div class="auth-msg" id="pwResetMsg"></div>
+      <input type="password" id="pwResetInput1" placeholder="Fjalëkalimi i ri" autocomplete="new-password" data-i18n-placeholder="auth.reset.new">
+      <input type="password" id="pwResetInput2" placeholder="Përsërit fjalëkalimin" autocomplete="new-password" data-i18n-placeholder="auth.reset.repeat">
+      <button class="btn btn-primary" id="btnPwResetSave" style="width:100%;padding:16px;font-size:1rem;" data-i18n="auth.reset.save">Ruaj fjalëkalimin e ri</button>
+      <div class="auth-toggle"><a id="pwResetSkip" data-i18n="auth.reset.skip">Më vonë →</a></div>
+    </div>
+  </div>
+</div>
+
 <div class="hidden" id="placementOverlay">
   <div class="placement-shell">
     <div id="placementIntro">
@@ -3993,6 +4022,7 @@ const UI_STRINGS = {
 
   "auth.forgot":          { sq: "Ke harruar fjalëkalimin?", de: "Passwort vergessen?" },
   "auth.changepw":        { sq: "🔑 Ndrysho fjalëkalimin", de: "🔑 Passwort ändern" },
+  "auth.reset.skip":      { sq: "Më vonë →", de: "Später →" },
   "auth.forgot.title":    { sq: "Rivendos fjalëkalimin", de: "Passwort zurücksetzen" },
   "auth.forgot.subtitle": { sq: "Shkruaj email-in tënd. Do të marrësh një lidhje për të vendosur një fjalëkalim të ri.",
                             de: "Gib deine E-Mail-Adresse ein. Du erhältst einen Link, um ein neues Passwort festzulegen." },
@@ -6803,8 +6833,8 @@ window.__pendingPasswordRecovery = false;
       }
       console.log("Sesioni i rivendosjes u krijua me sukses.");
       setTimeout(() => {
-        goToView("account");
-        showAuthPanel("reset");
+        const u = (data && data.session && data.session.user) || null;
+        openPwResetOverlay(u && u.email);
       }, 200);
     });
   }
@@ -6919,6 +6949,58 @@ document.getElementById("btnLogout").addEventListener("click", async () => {
   clearTimeout(syncTimer);
   await saveProgress();
   if (sb) await sb.auth.signOut();
+});
+
+/* ============ FAQJA E PLOTË E RIVENDOSJES SË FJALËKALIMIT ============ */
+function openPwResetOverlay(email) {
+  const ov = document.getElementById("pwResetOverlay");
+  if (!ov) return;
+  document.getElementById("pwResetInput1").value = "";
+  document.getElementById("pwResetInput2").value = "";
+  const msg = document.getElementById("pwResetMsg");
+  msg.textContent = ""; msg.className = "auth-msg";
+  document.getElementById("pwResetEmail").textContent = email ? ("📧 " + email) : "";
+  ov.classList.remove("hidden");
+  document.body.style.overflow = "hidden";   // pa scroll në sfond
+}
+
+function closePwResetOverlay() {
+  const ov = document.getElementById("pwResetOverlay");
+  if (!ov) return;
+  ov.classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+document.getElementById("pwResetSkip").addEventListener("click", () => {
+  window.__pendingPasswordRecovery = false;
+  closePwResetOverlay();
+  goToView("account");
+});
+
+document.getElementById("btnPwResetSave").addEventListener("click", async () => {
+  const msgEl = document.getElementById("pwResetMsg");
+  const p1 = document.getElementById("pwResetInput1").value;
+  const p2 = document.getElementById("pwResetInput2").value;
+  if (p1.length < 6) { msgEl.textContent = "Fjalëkalimi duhet të ketë të paktën 6 shkronja."; msgEl.className = "auth-msg err"; return; }
+  if (p1 !== p2) { msgEl.textContent = "Fjalëkalimet nuk përputhen."; msgEl.className = "auth-msg err"; return; }
+  if (!sb) { msgEl.textContent = "Nuk ka lidhje me serverin."; msgEl.className = "auth-msg err"; return; }
+  const btn = document.getElementById("btnPwResetSave");
+  btn.disabled = true;
+  msgEl.textContent = "Po ruhet…"; msgEl.className = "auth-msg";
+  try {
+    const { error } = await sb.auth.updateUser({ password: p1 });
+    if (error) throw error;
+    window.__pendingPasswordRecovery = false;
+    msgEl.textContent = "✓ Fjalëkalimi u ndryshua me sukses!";
+    msgEl.className = "auth-msg ok";
+    spawnConfetti();
+    setTimeout(() => { closePwResetOverlay(); goToView("cards"); }, 1600);
+  } catch (err) {
+    msgEl.textContent = err.message || "Diçka shkoi keq. Provo përsëri.";
+    msgEl.className = "auth-msg err";
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 /* ============ NDRYSHIMI I FJALËKALIMIT KUR JE I IDENTIFIKUAR ============ */
@@ -7147,26 +7229,8 @@ if (sb) {
     // mos e trajto si identifikim normal.
     if (window.__pendingPasswordRecovery) {
       currentUser = session ? session.user : null; // e mbajmë në sfond, updateUser e përdor vetë sesionin
-      goToView("account");
-      showAuthPanel("reset");
-      document.getElementById("resetPassword1").value = "";
-      document.getElementById("resetPassword2").value = "";
-      document.getElementById("resetMsg").textContent = "";
-      // Sigurí shtesë: edhe nëse për ndonjë arsye paneli i rivendosjes nuk shfaqet
-      // (p.sh. Supabase sillet ndryshe), hapim direkt kutinë e ndryshimit të fjalëkalimit
-      // brenda llogarisë, që përdoruesi të mos ngecë kurrë pa zgjidhje.
-      setTimeout(() => {
-        const resetVisible = !document.getElementById("authResetView").classList.contains("hidden");
-        if (!resetVisible && currentUser) {
-          const box = document.getElementById("changePwBox");
-          if (box) {
-            box.classList.remove("hidden");
-            const m = document.getElementById("changePwMsg");
-            m.textContent = "Vendos fjalëkalimin tënd të ri këtu poshtë.";
-            m.className = "auth-msg";
-          }
-        }
-      }, 1200);
+      // Faqe e plotë, në qendër të ekranit — jo thjesht një kuti brenda llogarisë.
+      openPwResetOverlay(currentUser && currentUser.email);
       return;
     }
     if (event === "PASSWORD_RECOVERY") {
