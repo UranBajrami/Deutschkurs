@@ -88,7 +88,29 @@
 
   .view, .hud, .account-bar { animation: fadeSlideIn .35s cubic-bezier(.2,.8,.2,1); }
 
-  header { text-align: center; margin: 0 auto 4px; width: 100%; max-width: 520px; }
+  header { text-align: center; margin: 0 auto 4px; width: 100%; max-width: 520px; position: relative; }
+  .lang-toggle-stack {
+    position: absolute; top: 0; right: 0; display: flex; flex-direction: column; gap: 5px; align-items: flex-end;
+  }
+  .lang-toggle {
+    display: flex; gap: 4px;
+    background: rgba(255,255,255,.06); border: 1px solid var(--line);
+    border-radius: var(--radius-pill); padding: 3px;
+  }
+  .lang-toggle-btn {
+    padding: 5px 10px; border-radius: var(--radius-pill); border: none; cursor: pointer;
+    font-family: var(--font); font-size: .72rem; font-weight: 800; background: transparent;
+    color: var(--muted); transition: background .15s ease, color .15s ease;
+  }
+  .lang-toggle-btn.active {
+    background: linear-gradient(135deg, var(--blue), #7aa2ff); color: #fff;
+    box-shadow: 0 3px 10px var(--blue-glow);
+  }
+  #menuLangToggle .lang-toggle-btn.active {
+    background: linear-gradient(135deg, var(--gold), #ffe08a); color: #241a03;
+    box-shadow: 0 3px 10px var(--gold-glow);
+  }
+  .lang-toggle-btn:active { transform: scale(.94); }
   .app-logo-row {
     display: flex; align-items: center; justify-content: center; gap: 12px;
     margin-bottom: 10px;
@@ -1169,6 +1191,7 @@
   @media (max-width: 400px) {
     body { padding-left: calc(12px + env(safe-area-inset-left)); padding-right: calc(12px + env(safe-area-inset-right)); }
     .app-logo-img { width: 44px; height: 44px; }
+    .lang-toggle-btn { padding: 4px 7px; font-size: .64rem; }
     .app-logo-text { font-size: 1.5rem; }
     .subtitle { font-size: .76rem; }
     nav { gap: 4px; padding: 6px; border-radius: 20px; }
@@ -1309,6 +1332,16 @@
   <div class="app-logo-row">
     <img src="icons/icon-192.png" alt="Shkolla" class="app-logo-img">
     <h1 class="app-logo-text">Shkolla</h1>
+    <div class="lang-toggle-stack">
+      <div class="lang-toggle" id="langToggle" title="Gjuha e fjalorit">
+        <button class="lang-toggle-btn active" data-lang="sq" id="langBtnSQ">🇦🇱 SQ</button>
+        <button class="lang-toggle-btn" data-lang="en" id="langBtnEN">🇬🇧 EN</button>
+      </div>
+      <div class="lang-toggle" id="menuLangToggle" title="Gjuha e menusë">
+        <button class="lang-toggle-btn active" data-lang="sq" id="menuLangBtnSQ">📋 SQ</button>
+        <button class="lang-toggle-btn" data-lang="de" id="menuLangBtnDE">📋 DE</button>
+      </div>
+    </div>
   </div>
   <div class="header-row">
     <div class="cefr-pill hidden" id="cefrPill">B1</div>
@@ -1380,16 +1413,16 @@
 </div>
 
 <nav>
-  <button class="tab-btn active" data-view="cards"><span class="tab-icon">🗂️</span><span class="tab-label">Karta</span></button>
-  <button class="tab-btn" data-view="numbers"><span class="tab-icon">🔢</span><span class="tab-label">Numrat</span></button>
-  <button class="tab-btn" data-view="quiz"><span class="tab-icon">❓</span><span class="tab-label">Kuiz</span></button>
-  <button class="tab-btn" data-view="imagequiz"><span class="tab-icon">🖼️</span><span class="tab-label">Foto</span></button>
-  <button class="tab-btn" data-view="grammar"><span class="tab-icon">📐</span><span class="tab-label">Gramatikë</span></button>
-  <button class="tab-btn" data-view="homework"><span class="tab-icon">📋</span><span class="tab-label">Detyrat</span></button>
-  <button class="tab-btn" data-view="practice"><img src="mascot/eagle-64.png" alt="" class="tab-icon-img"><span class="tab-label">Shpejt</span></button>
-  <button class="tab-btn" data-view="exam"><span class="tab-icon">📝</span><span class="tab-label">Provim</span></button>
-  <button class="tab-btn" data-view="stats"><span class="tab-icon">🏡</span><span class="tab-label">Kalaja</span></button>
-  <button class="tab-btn" data-view="account"><span class="tab-icon">👤</span><span class="tab-label">Llogaria</span></button>
+  <button class="tab-btn active" data-view="cards"><span class="tab-icon">🗂️</span><span class="tab-label" data-i18n="nav.cards">Karta</span></button>
+  <button class="tab-btn" data-view="numbers"><span class="tab-icon">🔢</span><span class="tab-label" data-i18n="nav.numbers">Numrat</span></button>
+  <button class="tab-btn" data-view="quiz"><span class="tab-icon">❓</span><span class="tab-label" data-i18n="nav.quiz">Kuiz</span></button>
+  <button class="tab-btn" data-view="imagequiz"><span class="tab-icon">🖼️</span><span class="tab-label" data-i18n="nav.imagequiz">Foto</span></button>
+  <button class="tab-btn" data-view="grammar"><span class="tab-icon">📐</span><span class="tab-label" data-i18n="nav.grammar">Gramatikë</span></button>
+  <button class="tab-btn" data-view="homework"><span class="tab-icon">📋</span><span class="tab-label" data-i18n="nav.homework">Detyrat</span></button>
+  <button class="tab-btn" data-view="practice"><img src="mascot/eagle-64.png" alt="" class="tab-icon-img"><span class="tab-label" data-i18n="nav.practice">Shpejt</span></button>
+  <button class="tab-btn" data-view="exam"><span class="tab-icon">📝</span><span class="tab-label" data-i18n="nav.exam">Provim</span></button>
+  <button class="tab-btn" data-view="stats"><span class="tab-icon">🏡</span><span class="tab-label" data-i18n="nav.stats">Kalaja</span></button>
+  <button class="tab-btn" data-view="account"><span class="tab-icon">👤</span><span class="tab-label" data-i18n="nav.account">Llogaria</span></button>
 </nav>
 
 <!-- KARTEN -->
@@ -1397,40 +1430,40 @@
   <select class="filter-select" id="catFilter"></select>
   <div class="stats-bar">
     <span id="cardProgress">0 / 0</span>
-    <span id="cardKnown">Ditur: 0</span>
+    <span id="cardKnown" data-i18n-tpl="cardKnown">Ditur: 0</span>
   </div>
   <div class="card-wrap">
     <div class="card" id="flashcard">
       <div class="card-face card-front">
         <div class="card-flip-badge">⟳</div>
-        <div class="card-lang">Shqip</div>
+        <div class="card-lang" id="cardLangFront" data-i18n="card.lang.sq">Shqip</div>
         <div class="card-word" id="frontWord">—</div>
         <div class="card-cat" id="frontCat"></div>
-        <div class="card-hint">Trokit për ta kthyer</div>
+        <div class="card-hint" data-i18n="card.hint">Trokit për ta kthyer</div>
       </div>
       <div class="card-face card-back">
         <div class="card-flip-badge">⟳</div>
-        <div class="card-lang">Gjermanisht</div>
+        <div class="card-lang" data-i18n="card.lang.de">Gjermanisht</div>
         <div class="card-word" id="backWord">—</div>
-        <button class="btn btn-secondary" id="btnSpeak" style="margin-top:12px;font-size:.8rem;padding:6px 12px;">🔊 Dëgjo</button>
+        <button class="btn btn-secondary" id="btnSpeak" style="margin-top:12px;font-size:.8rem;padding:6px 12px;"><span data-i18n="card.listen">🔊 Dëgjo</span></button>
       </div>
     </div>
   </div>
   <div class="row-buttons">
-    <button class="btn btn-dontknow" id="btnDontKnow">✗ Nuk e dija</button>
-    <button class="btn btn-know" id="btnKnow">✓ E dija (+5)</button>
+    <button class="btn btn-dontknow" id="btnDontKnow" data-i18n="card.dontknow">✗ Nuk e dija</button>
+    <button class="btn btn-know" id="btnKnow" data-i18n="card.know">✓ E dija (+5)</button>
   </div>
   <div class="controls" style="margin-top:10px;">
-    <button class="btn btn-secondary" id="btnShuffle">🔀 Përziej</button>
-    <button class="btn btn-secondary" id="btnResetProgress">↺ Rifillo</button>
+    <button class="btn btn-secondary" id="btnShuffle" data-i18n="card.shuffle">🔀 Përziej</button>
+    <button class="btn btn-secondary" id="btnResetProgress" data-i18n="card.reset">↺ Rifillo</button>
   </div>
 </div>
 
 <!-- QUIZ -->
 <div class="view hidden" id="view-quiz">
   <select class="filter-select" id="quizDir">
-    <option value="al-de">Shqip → Gjermanisht</option>
-    <option value="de-al">Gjermanisht → Shqip</option>
+    <option value="al-de" data-i18n="quiz.dir.forward">Shqip → Gjermanisht</option>
+    <option value="de-al" data-i18n="quiz.dir.backward">Gjermanisht → Shqip</option>
   </select>
   <div class="stats-bar">
     <span id="quizProgress">Pyetja 0 / 0</span>
@@ -1443,8 +1476,8 @@
   <div class="quiz-options" id="quizOptions"></div>
   <div class="streak-flash" id="streakFlash"></div>
   <div class="controls" style="margin-top:10px;">
-    <button class="btn btn-primary hidden" id="btnNextQuiz">Vazhdo →</button>
-    <button class="btn btn-secondary" id="btnRestartQuiz">↺ Kuiz i ri</button>
+    <button class="btn btn-primary hidden" id="btnNextQuiz" data-i18n="common.next">Vazhdo →</button>
+    <button class="btn btn-secondary" id="btnRestartQuiz" data-i18n="quiz.new">↺ Kuiz i ri</button>
   </div>
 </div>
 
@@ -1455,10 +1488,10 @@
     <span id="imgQuizScore">Saktë: 0</span>
   </div>
   <div class="quiz-question">
-    <div class="lang">Si quhet kjo në gjermanisht?</div>
+    <div class="lang" data-i18n="imgquiz.question">Si quhet kjo në gjermanisht?</div>
     <div id="imgQuizVisual" style="margin-top:10px;">
       <div id="imgQuizFrame" style="width:100%; max-width:300px; height:240px; margin:0 auto; border-radius:16px; background:rgba(255,255,255,.05); box-shadow:0 8px 24px rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; overflow:hidden;">
-        <div id="imgQuizLoading" style="color:var(--muted); font-size:.85rem; font-weight:700;">Fotoja po ngarkohet…</div>
+        <div id="imgQuizLoading" style="color:var(--muted); font-size:.85rem; font-weight:700;" data-i18n="imgquiz.loading">Fotoja po ngarkohet…</div>
         <img id="imgQuizPhoto" class="hidden" alt="" style="max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain;">
       </div>
       <div id="imgQuizAttribution" class="hidden" style="font-size:.65rem; color:var(--muted); margin-top:6px;">Foto: Wikipedia</div>
@@ -1467,8 +1500,8 @@
   <div class="quiz-options" id="imgQuizOptions"></div>
   <div class="streak-flash" id="imgQuizStreakFlash"></div>
   <div class="controls" style="margin-top:10px;">
-    <button class="btn btn-primary hidden" id="btnNextImgQuiz">Vazhdo →</button>
-    <button class="btn btn-secondary" id="btnRestartImgQuiz">↺ Kuiz i ri me foto</button>
+    <button class="btn btn-primary hidden" id="btnNextImgQuiz" data-i18n="common.next">Vazhdo →</button>
+    <button class="btn btn-secondary" id="btnRestartImgQuiz" data-i18n="imgquiz.new">↺ Kuiz i ri me foto</button>
   </div>
 </div>
 
@@ -1482,15 +1515,15 @@
   <div class="grammar-cat-tag" id="grammarCatTag"></div>
   <div class="grammar-sentence" id="grammarSentence">—</div>
   <div class="grammar-help">
-    <span class="help-flag">🇦🇱</span>
+    <span class="help-flag" id="grammarHelpFlag">🇦🇱</span>
     <span id="grammarHelp">—</span>
   </div>
   <div class="quiz-options" id="grammarOptions"></div>
   <div class="grammar-explain hidden" id="grammarExplain"></div>
   <div class="streak-flash" id="grammarFlash"></div>
   <div class="controls" style="margin-top:10px;">
-    <button class="btn btn-primary hidden" id="btnNextGrammar">Vazhdo →</button>
-    <button class="btn btn-secondary" id="btnRestartGrammar">↺ Fillo nga e para</button>
+    <button class="btn btn-primary hidden" id="btnNextGrammar" data-i18n="common.next">Vazhdo →</button>
+    <button class="btn btn-secondary" id="btnRestartGrammar" data-i18n="grammar.restart">↺ Fillo nga e para</button>
   </div>
 </div>
 
@@ -1498,8 +1531,8 @@
 <div class="view hidden" id="view-homework">
   <div class="hw-header">
     <div class="hw-date" id="hwDate"></div>
-    <h2>📋 Detyrat e ditës</h2>
-    <p id="hwIntro">Rreth një orë punë, të ndara në disa ushtrime. Çdo ditë detyra të reja.</p>
+    <h2 data-i18n="hw.title">📋 Detyrat e ditës</h2>
+    <p id="hwIntro" data-i18n="hw.intro">Rreth një orë punë, të ndara në disa ushtrime. Çdo ditë detyra të reja.</p>
   </div>
   <div class="hw-overall">
     <div class="hw-overall-track"><div class="hw-overall-fill" id="hwOverallFill" style="width:0%"></div></div>
@@ -1514,13 +1547,13 @@
   <div id="practiceIntro">
     <div class="practice-hero">
       <img src="mascot/eagle-240.png" alt="" class="practice-hero-img">
-      <h2>Ushtrim i shpejtë</h2>
-      <p>Unë të zgjedh ushtrime rastësore: përkthime, foto dhe dëgjim. Sa më shumë radhazi saktë, aq më shumë pikë!</p>
+      <h2 data-i18n="practice.title">Ushtrim i shpejtë</h2>
+      <p data-i18n="practice.intro">Unë të zgjedh ushtrime rastësore: përkthime, foto dhe dëgjim. Sa më shumë radhazi saktë, aq më shumë pikë!</p>
     </div>
     <div class="practice-types">
       <span>🇦🇱→🇩🇪 Përkthim</span><span>🇩🇪→🇦🇱 Përkthim</span><span>🖼️ Foto</span><span>🔊 Dëgjim</span><span>📐 Gramatikë</span>
     </div>
-    <button class="btn btn-primary" id="btnStartPractice" style="width:100%;padding:16px;font-size:1rem;">Nisma! Fillo ushtrimin</button>
+    <button class="btn btn-primary" id="btnStartPractice" style="width:100%;padding:16px;font-size:1rem;" data-i18n="practice.start">Nisma! Fillo ushtrimin</button>
   </div>
 
   <div class="hidden" id="practiceRunner">
@@ -1533,8 +1566,8 @@
     <div class="quiz-options" id="practiceOptions"></div>
     <div class="streak-flash" id="practiceFlash"></div>
     <div class="controls" style="margin-top:10px;">
-      <button class="btn btn-primary hidden" id="btnNextPractice">Vazhdo →</button>
-      <button class="btn btn-secondary" id="btnStopPractice">■ Ndalo</button>
+      <button class="btn btn-primary hidden" id="btnNextPractice" data-i18n="common.next">Vazhdo →</button>
+      <button class="btn btn-secondary" id="btnStopPractice" data-i18n="practice.stop">■ Ndalo</button>
     </div>
   </div>
 </div>
@@ -1566,8 +1599,8 @@
       <div class="hidden" id="usernameEditBox">
         <input type="text" id="usernameInput" placeholder="Emri i ri" maxlength="24">
         <div class="controls" style="margin-top:8px;">
-          <button class="btn btn-primary" id="btnSaveUsername" style="flex:1;">Ruaj</button>
-          <button class="btn btn-secondary" id="btnCancelUsername" style="flex:1;">Anulo</button>
+          <button class="btn btn-primary" id="btnSaveUsername" style="flex:1;" data-i18n="common.save">Ruaj</button>
+          <button class="btn btn-secondary" id="btnCancelUsername" style="flex:1;" data-i18n="common.cancel">Anulo</button>
         </div>
       </div>
       <div class="profile-since" id="profileSince"></div>
@@ -1576,7 +1609,7 @@
     <div class="stats-grid" id="profileStatsGrid"></div>
 
     <div class="auth-card" id="prestigeAccountCard">
-      <h3>🏝️ Prestigo</h3>
+      <h3 data-i18n="account.prestige.title">🏝️ Prestigo</h3>
       <div class="sub" id="prestigeAccountSub">Plotëso fshatin për të kaluar në ishullin tjetër.</div>
       <div class="prestige-progress-row">
         <div class="prestige-progress-track"><div class="prestige-progress-fill" id="prestigeAccProgFill" style="width:0%"></div></div>
@@ -1586,7 +1619,7 @@
     </div>
 
     <div class="auth-card">
-      <h3>📚 Si ke mësuar</h3>
+      <h3 data-i18n="account.learn.title">📚 Si ke mësuar</h3>
       <div id="profileLearnList"></div>
     </div>
   </div>
@@ -1617,26 +1650,26 @@
 
   <div class="auth-card">
     <div id="authLoggedOut">
-      <h3 id="authTitle">Identifikohu</h3>
-      <div class="sub">Identifikohu që përparimi yt të ruhet në çdo pajisje.</div>
+      <h3 id="authTitle" data-i18n="auth.title">Identifikohu</h3>
+      <div class="sub" data-i18n="auth.subtitle">Identifikohu që përparimi yt të ruhet në çdo pajisje.</div>
       <div class="auth-msg" id="authMsg"></div>
-      <input type="email" id="authEmail" placeholder="E-mail" autocomplete="email" autocapitalize="off" autocorrect="off">
-      <input type="password" id="authPassword" placeholder="Fjalëkalimi" autocomplete="current-password">
-      <button class="btn btn-primary" id="btnAuthSubmit" style="width:100%;">Identifikohu</button>
-      <div class="auth-toggle" id="authToggle">Nuk ke llogari? <a id="authToggleLink">Regjistrohu tani</a></div>
+      <input type="email" id="authEmail" placeholder="E-mail" autocomplete="email" autocapitalize="off" autocorrect="off" data-i18n-placeholder="auth.email">
+      <input type="password" id="authPassword" placeholder="Fjalëkalimi" autocomplete="current-password" data-i18n-placeholder="auth.password">
+      <button class="btn btn-primary" id="btnAuthSubmit" style="width:100%;" data-i18n="auth.title">Identifikohu</button>
+      <div class="auth-toggle" id="authToggle"><span data-i18n="auth.noaccount">Nuk ke llogari?</span> <a id="authToggleLink" data-i18n="auth.registernow">Regjistrohu tani</a></div>
     </div>
     <div class="hidden" id="authLoggedIn">
-      <h3>I identifikuar ✓</h3>
+      <h3 data-i18n="auth.loggedin">I identifikuar ✓</h3>
       <div class="sub" id="authUserEmail" style="word-break:break-all;"></div>
       <div class="auth-msg ok" id="syncMsg"></div>
-      <button class="btn btn-secondary" id="btnLogout" style="width:100%;">🚪 Dil nga llogaria</button>
+      <button class="btn btn-secondary" id="btnLogout" style="width:100%;" data-i18n="auth.logout">🚪 Dil nga llogaria</button>
     </div>
-    <div class="sync-note">Pikët dhe fjalët e shtuara vetë ruhen automatikisht online dhe ngarkohen përsëri herën tjetër që identifikohesh (edhe në një pajisje tjetër). Ushtrimet me karta dhe kuiz funksionojnë edhe offline, pa identifikim.</div>
+    <div class="sync-note" data-i18n="auth.syncnote">Pikët dhe fjalët e shtuara vetë ruhen automatikisht online dhe ngarkohen përsëri herën tjetër që identifikohesh (edhe në një pajisje tjetër). Ushtrimet me karta dhe kuiz funksionojnë edhe offline, pa identifikim.</div>
   </div>
 
   <div class="hidden" id="leaderboardCard" style="margin-top:14px;">
     <div class="auth-card">
-      <h3>🏆 Renditja</h3>
+      <h3 data-i18n="account.leaderboard.title">🏆 Renditja</h3>
       <div class="sub">Kush ka mbledhur më shumë pikë deri tani.</div>
       <div id="leaderboardList"></div>
       <button class="btn btn-secondary" id="btnRefreshLeaderboard" style="width:100%;margin-top:12px;">↺ Rifresko renditjen</button>
@@ -1645,7 +1678,7 @@
 
   <div class="hidden" id="levelCard" style="margin-top:14px;">
     <div class="auth-card">
-      <h3>🎓 Niveli gjuhësor</h3>
+      <h3 data-i18n="account.level.title">🎓 Niveli gjuhësor</h3>
       <div class="sub" id="levelCardSub">Bazuar në testin e vlerësimit fillestar.</div>
       <div style="display:flex;align-items:center;gap:14px;margin:6px 0 16px;">
         <div id="levelCefrBadge" style="font-size:1.8rem;font-weight:800;color:var(--gold);text-shadow:0 0 16px var(--gold-glow);">—</div>
@@ -2337,8 +2370,231 @@ const RAW = {
 ]
 };
 
+const RAW_EN = {
+"Begrüßung & Höflichkeit": [
+"good afternoon","good morning","good evening","good night","hello","goodbye",
+"thank you","please","you're welcome","I'm sorry","excuse me","yes","no",
+"how are you?","nice to meet you","congratulations","welcome","see you soon","maybe","of course"
+],
+"Person & Familie": [
+"first name","last name","age","address","family","mother","father","parents",
+"brother","sister","son/boy","daughter/girl","child","grandmother","grandfather",
+"husband","wife","friend (m)","friend (f)","neighbor","relative","married","single",
+"divorced","wedding","birthday","birthplace","nationality (citizenship)","native language","foreigner"
+],
+"Zeit & Kalender": [
+"time","day","night","week","month","year","hour","minute","second","morning",
+"midday","afternoon","evening","today","tomorrow","yesterday","the day after tomorrow",
+"the day before yesterday","now","later","early","late","always","never","sometimes",
+"often","rarely","usually","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday",
+"Sunday","weekend","January","February","March","April","May","June","July","August",
+"September","October","November","December","season","spring","summer","autumn","winter"
+],
+"Zahlen": [
+"one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve",
+"twenty","thirty","forty","fifty","hundred","thousand","the first","the second",
+"the half","the quarter","the number","a lot","little","some","all"
+],
+"Essen & Trinken": [
+"food","drink","breakfast","lunch","dinner","bread","water","milk","coffee","tea",
+"juice","wine","beer","meat","chicken","fish","egg","cheese","butter","rice","pasta",
+"potato","vegetable","fruit","apple","orange (fruit)","banana","tomato","onion","salad","soup",
+"dessert","cake","ice cream","sugar","salt","pepper","oil","delicious","hungry","thirsty",
+"restaurant","waiter","menu","order","tip","vegetarian"
+],
+"Einkaufen & Geld": [
+"shop","market","supermarket","shopping mall","bakery","butcher shop","price","money",
+"coin","banknote","credit card","checkout","invoice/bill","receipt","discount","offer",
+"to buy","to sell","to pay","to cost","expensive","cheap","free of charge","to save",
+"bank account","bank","loan","tax","insurance","exchange"
+]
+};
+
+const RAW_EN_2 = {
+"Kleidung": ["clothing","dress","shirt","blouse","trousers","jeans","skirt","jacket","coat","sweater",
+"shoes","boots","socks","cap","scarf","gloves","belt","bag","size","to try on"],
+"Körper & Gesundheit": ["body","head","face","eye","ear","nose","mouth","tooth","neck","arm","hand",
+"finger","leg","back","stomach","heart","skin","hair","doctor","dentist","nurse","hospital","pharmacy",
+"medicine","prescription","appointment","sick","healthy","pain","fever","cold (illness)","cough","allergy",
+"accident","emergency","ambulance","to recover","stress","recovery/rest","sleep"],
+"Wohnen": ["house","apartment","room","bedroom","living room","kitchen","bathroom","balcony","garden",
+"basement","floor (storey)","stairs","elevator","door","window","wall","floor (ground)","table","chair",
+"bed","sofa","cupboard","fridge","stove","washing machine","rent","landlord","tenant","rental contract",
+"furniture","heating","electricity","to move (house)","neighborhood"],
+"Arbeit & Beruf": ["work/job","profession","office","company/firm","boss","colleague","employee","salary",
+"contract","working hours","vacation","meeting","project","task","experience","application","CV/résumé",
+"job interview","unemployed","internship","teacher","engineer","salesperson","cook","driver","electrician",
+"plumber","hairdresser","police officer","firefighter","to hire","to quit/dismiss","to earn","qualification",
+"certificate/reference"],
+"Bildung": ["school","kindergarten","university","course","lesson/class","pupil","student","exam","grade",
+"homework","diploma","certificate","library","book","notebook","pen","pencil","to learn","to study",
+"to explain","exercise","mistake","language","dictionary","grammar","pronunciation","to translate"],
+"Reisen & Verkehr": ["trip/journey","holidays","airport","airplane","train","train station","bus","tram",
+"subway","taxi","car","bicycle","ticket","timetable","delay","bus stop","passport","ID card","visa","hotel",
+"reservation","suitcase","luggage","map","street","highway","right","left","straight ahead","nearby","far",
+"information (desk)","tourist","border","parking lot","driver's license","gasoline"],
+"Stadt & Ämter": ["city","village","center","district/neighborhood","square/plaza","park","church","museum",
+"theater","cinema","post office","police","town hall","residents' registration office","employment office",
+"form","document","certificate/confirmation","signature","deadline","application (form)","residence permit",
+"registration","deregistration","counter/window","queue"],
+"Wetter & Natur": ["weather","sun","rain","snow","wind","cloud","storm","fog","temperature","warm","cold",
+"hot","fresh/cool","sunny","rainy","forecast","tree","flower","grass","forest","mountain","sea","lake",
+"river","beach","island","sky","earth","environment","pollution","recycling","dog","cat","bird","horse","fish"],
+"Freizeit & Medien": ["free time","hobby","sport","football/soccer","swimming","hiking","music","song",
+"movie","series","game","party/celebration","concert","exhibition","photo","television","radio","newspaper",
+"magazine","news","computer","mobile phone","internet","e-mail","message","social media","app","password",
+"to rest","to have fun"],
+"Gefühle & Charakter": ["happy","sad","angry","calm","nervous","tired","worried","surprised","proud","shy",
+"polite","honest","patient","lazy","hardworking","clever/smart","sociable","selfish","generous","reliable",
+"love","fear","hope","joy","disappointment","jealousy","gratitude"]
+};
+
+const RAW_EN_3 = {
+"Verben": ["to go","to come","to eat","to drink","to speak","to hear/listen","to see","to read","to write",
+"to think","to know (facts)","to know (people)","to want","to be able to/can","to have to/must",
+"to be allowed to/may","to sleep","to work","to play","to live","to help","to wait","to begin","to end/finish",
+"to understand","to forget","to remember","to say","to ask","to answer","to travel","to drive/ride","to run/walk",
+"to cook","to clean","to wash","to open","to close","to change","to decide","to believe","to hope","to laugh",
+"to cry","to meet","to invite","to thank","to promise","to suggest","to compare","to choose","to try","to reach/achieve",
+"to lose","to find","to bring","to take","to give","to send","to take part","to search/look for","to use",
+"to take care of","to worry","to complain","to explain","to repeat","to keep","to develop","to improve","to plan","to organize"],
+"Adjektive": ["big","small","new","old","long","short","fast","slow","light/easy","difficult","simple",
+"complicated","good","bad","beautiful","ugly","strong","weak","clean","dirty","safe","dangerous","important",
+"unnecessary","interesting","boring","busy","free","full","empty","open","closed","correct","wrong","possible",
+"impossible","the same","different","known","unknown"],
+"Konnektoren & B1-Redemittel": ["because","therefore","nevertheless","although","while","besides/moreover",
+"actually","but","or","if","when","before","after (conj.)","since (time)","so that","instead of","for example",
+"finally","first","afterwards","on one hand","on the other hand","in my opinion","I think that","I agree",
+"I disagree","in reality","anyway","mainly","especially","enough","possibly","certainly","meanwhile",
+"in summary","the advantage","the disadvantage","the reason","the example","the opinion","the problem",
+"the solution","the possibility","the decision","the change","the development","the experience","the goal","the result","the suggestion"],
+"Technik & Kommunikation": ["laptop","file","printer","screen","keyboard","battery","charger","network",
+"website","to download","to upload","video call","camera","signal","Wi-Fi","code","data","software","device",
+"tablet","internet connection","contact","call","button","to repair","to break down","modern"],
+"Umwelt & Gesellschaft": ["climate","climate change","energy","renewable energy","garbage/waste","plastic",
+"society","culture","tradition","religion","law (a law)","right/law (justice)","freedom","equality","to vote/elect",
+"government","state","population","immigrant","integration","diversity","poverty","wealth","unemployment",
+"education (system)","justice","security","war","peace"],
+"Beziehungen & Charakter": ["relationship","partner","marriage","engagement","divorce","trust","respect",
+"conflict","argument","to reconcile","to get along well","distant/aloof","lonely","to accompany","to support",
+"to cheat/betray","stubborn","flexible","sensitive","reasonable","ambitious","modest","mature","youth",
+"childhood","age (life stage)"],
+"Alltag & Haushalt": ["routine","to wake up","to get up","to get dressed","to comb one's hair","to shower",
+"to shave","to wash dishes","to sweep","to iron","to fold","to tidy up","to run the household","cost of living",
+"maintenance","gardening","to feed","to walk (a dog)","cleaning","order/tidiness","mess","to plan the day",
+"to-do list","memory","relieved"],
+"Sport & Bewegung": ["training","gym","to swim","team","opponent","victory","defeat","draw/tie","referee",
+"stadium","competition (sports)","marathon","jogging","yoga","flexibility","strength","endurance","muscle","injury",
+"to get injured","to warm up","active","inactive"],
+"Kochen & Küche": ["ingredient","to bake","to fry","to boil","to mix","taste","aroma/flavor","stale","sweet",
+"bitter","sour","salty","spicy","pan","pot","knife","fork","spoon","plate","glass","microwave"],
+"Reisen (erweitert)": ["backpack","tourist information","sightseeing tour","travel guide (book)","monument",
+"castle","palace","panorama","souvenir","camping","tent","sleeping bag","to reserve","to cancel","to confirm",
+"check-in","exit","entrance","travel insurance","boarding pass","customs"]
+};
+
+const RAW_EN_4 = {
+"Meinung äußern": ["I am of the opinion that","from my point of view","to doubt","I am sure","astonishing",
+"absurd","logical","unreasonable","honestly speaking","in general","in particular","compared with","in comparison",
+"undoubtedly","strangely enough","unfortunately","fortunately"],
+"Redewendungen B1": ["it depends","probably","as far as I know","as planned","on time","the case","in any case",
+"in no case/no way","step by step","over time","sooner or later","everything is fine","don't worry","everything will be fine"],
+"Bildung & Beruf (erweitert)": ["intern","seminar","presentation/paper","master's degree","bachelor's degree",
+"scholarship","tuition fee","semester","lecture","thesis","career","promotion","dismissal","flexitime",
+"home office","female colleague","director","budget","investment","profit","competition (rivals)"],
+"Farben & Formen": ["red","yellow","blue","green","orange","purple","pink","brown","gray","black","white",
+"golden","silver","circle","square (shape)","triangle","rectangle","line","corner","shape"],
+"Politik & Verwaltung": ["parliament","head of government","president","ministry","election","party (political)",
+"citizen","constitution","municipality","mayor","administration","identity document","citizenship","statement/declaration",
+"fine (penalty)","objection/appeal","lawyer","court","verdict","witness","right to vote","duty/obligation","to sign"],
+"Bank & Versicherung": ["account","transfer","withdrawal","deposit","interest rate","health insurance",
+"life insurance","insurance policy","compensation","customer","bank advisor","transaction","debt","to repay",
+"to budget","finances","currency","exchange rate"],
+"Kunst, Musik & Literatur": ["painting","painter","sculpture","art exhibition","novel","poem","author",
+"character (in a story)","work (of art)","musical instrument","guitar","piano","violin","orchestra","singer",
+"composer","melody","rhythm","audience","stage","actor","director (film)","recognition"],
+"Feiertage & Bräuche": ["national holiday","Christmas","New Year","Easter","the Bayram festival",
+"family tradition","gift","decoration","to celebrate","invitation","guest","hospitality","custom",
+"traditional costume","folk dance","feast/banquet"],
+"Notfälle & Sicherheit": ["danger","alarm","fire","smoke","evacuation","emergency exit","first aid",
+"emergency call","traffic accident","to injure","theft","violence","protection","guard","surveillance camera"],
+"Tiere (erweitert)": ["rabbit","fox","wolf","bear","deer","pig","cow","sheep","goat","hen","donkey",
+"mouse","snake","frog","butterfly","bee","ant","spider","dolphin","whale"]
+};
+
+const RAW_EN_5 = {
+"Pflanzen & Garten": ["plant","seed","root","leaf","branch","to bloom","to plant","to water","vegetable garden","seedling"],
+"Möbel & Einrichtung (erweitert)": ["bookshelf","coffee table","carpet/rug","curtains","mirror","lamp",
+"cushion/pillow","blanket","nightstand","wall clock","vase","lighting","upholstery","style","contemporary",
+"outdated","functional","room/space"],
+"Small Talk & Höflichkeitsfloskeln": ["how was your day?","everything ok?","my pleasure","no worries",
+"nice to see you","long time no see","how's it going?","what did you do today?","welcome back","have a good time",
+"all the best","bless you!"],
+"Mengen & Maße": ["kilogram","gram","liter","meter","centimeter","kilometer","width","length","height","weight",
+"quantity","package","box","sack","piece","pair","dozen","part","whole"],
+"Charakter & Verhalten (erweitert)": ["curious","brave","fearful","stingy","generous","calm/relaxed","immature",
+"arrogant","fair/just","dishonest","loyal","unreliable","energetic","steadfast","self-confident"],
+"Berufe (Übersicht)": ["veterinarian","pharmacist","architect","journalist","photographer","designer",
+"programmer","accountant","secretary","receptionist","real estate agent","cleaner","gardener","carpenter",
+"welder","mechanic","pilot","flight attendant","captain","soldier","farmer","fisherman","bricklayer",
+"musician","writer","editor","translator","trader/merchant"],
+"Schulfächer & Lernen": ["mathematics","physics","chemistry","biology","history","geography","literature",
+"philosophy","computer science","physical education","art","foreign language","oral exam","written exam",
+"grade average","tutoring","curriculum"],
+"Wissenschaft & Forschung": ["science","research","experiment","theory","hypothesis","laboratory","discovery",
+"invention","analysis","proof","researcher","robotics","artificial intelligence","genetics","microscope","satellite"],
+"Wirtschaft (Detail)": ["job market","inflation","export","import","stock/share","stock exchange",
+"economic crisis","economic growth","minimum wage","enterprise/business","entrepreneur","supply and demand","production","consumption"],
+"Geographie & Länder": ["continent","ocean","national border","capital city","peninsula","valley","desert",
+"glacier","volcano","hemisphere","equator","nation","nationality","homeland","emigration"],
+"Ernährung": ["diet","calorie","vitamin","protein","carbohydrates","fat","fiber","intolerance","organic food",
+"preservative","portion","fasting","overweight","underweight"],
+"Gefühle & Psychologie (erweitert)": ["depression","stressed","self-confidence","motivation","pressure",
+"frustration","satisfaction","empathy","self-esteem","to relax","meditation","therapy","psychologist","awareness/consciousness"],
+"Digitalisierung & Internet (erweitert)": ["digitalization","online platform","online shopping","online payment",
+"cybersecurity","computer virus","data protection","the cloud","follower","post","comment","livestream",
+"video game","virtual reality"]
+};
+
+const RAW_EN_6 = {
+"Reisedokumente & Formalitäten (erweitert)": ["work permit","embassy","consulate","certified translation",
+"notary","stamp","original","copy","application deadline","registration certificate","social security number"],
+"Zeitausdrücke (erweitert)": ["recently","lately","until now","in the future","in the past","currently",
+"temporarily","permanently","period (of time)","starting point","every time","from time to time",
+"at the same time","in parallel"],
+"Verben (erweitert, reflexiv & trennbar)": ["to get bored","to be interested","to participate","to get involved",
+"to concentrate","to orient oneself","to adapt","to behave","behavior","to react","to influence",
+"to cooperate/work together","to communicate","to negotiate","to contribute","to guarantee","to secure/ensure",
+"to prevent","to deal with/address"],
+"Präpositionen & Richtungswörter": ["over/above","under","next to","between","opposite","inside","outside",
+"around","along","up to/until","direction","below","above","behind"],
+"Kleidung & Accessoires (erweitert)": ["glasses","sunglasses","wristwatch","ring","bracelet","necklace",
+"wallet/purse","umbrella","tie","vest","sandals","slippers","uniform","accessory"],
+"Haushaltsgeräte (erweitert)": ["dishwasher","vacuum cleaner","iron","hair dryer","blender","kettle","toaster",
+"broom","bucket","sponge","detergent","towel","bedsheet"],
+"Verkehr & Mobilität (erweitert)": ["traffic","traffic jam","traffic light","crosswalk","speed limit",
+"car insurance","gas station","car repair","tire","engine","steering wheel","to park","no-parking zone","e-bike"],
+"Ausdrücke im Alltag (erweitert)": ["what a shame","what a surprise","it doesn't matter","that surprises me",
+"I completely agree","I understand","I don't understand","can you repeat that?","what do you think?",
+"ultimately","it depends on the situation","let's leave it at that"],
+"Körper & Krankheiten (erweitert)": ["diabetes","blood pressure","cholesterol","allergic","asthma","migraine",
+"wound","bleeding","bone fracture","gynecologist","pediatrician","operation/surgery","vaccination",
+"medical examination","symptom","diagnosis","cured/healed"],
+"Naturphänomene (erweitert)": ["earthquake","flood","drought","hail","lightning","thunder","tornado",
+"heat wave","frost","natural disaster","humidity","air pressure","changeable (weather)"],
+"Medien & Presse (erweitert)": ["media","news agency","journalism","report/reportage","editorial office",
+"censorship","freedom of the press","public opinion","advertising","survey/poll","subscription","subscriber"],
+"Adjektive (erweitert 2)": ["independent","dependent","rigid","tolerant","objective","subjective","rational",
+"emotional","direct","indirect","unstable","efficient","inefficient","useful","useless","practical","theoretical"]
+};
+
 const vocab = [];
-for (const cat in RAW) RAW[cat].forEach(([al, de]) => vocab.push({al, de, cat}));
+for (const cat in RAW) {
+  RAW[cat].forEach(([al, de], i) => {
+    const en = (RAW_EN[cat] && RAW_EN[cat][i]) || (RAW_EN_2[cat] && RAW_EN_2[cat][i]) || (RAW_EN_3[cat] && RAW_EN_3[cat][i]) || (RAW_EN_4[cat] && RAW_EN_4[cat][i]) || (RAW_EN_5[cat] && RAW_EN_5[cat][i]) || (RAW_EN_6[cat] && RAW_EN_6[cat][i]) || null;
+    vocab.push({ al, de, en, cat });
+  });
+}
 
 /* ============ PRÜFUNGSMATERIAL (Zertifikat B1) ============ */
 
@@ -3631,6 +3887,131 @@ function registerAnswer(isCorrect) {
   renderStreakBar();
 }
 
+/* ============ GJUHA E MENUSË: shqip <-> gjermanisht (i pavarur nga gjuha e fjalorit) ============ */
+// Çdo çelës ka tekstin shqip (origjinali) dhe përkthimin gjerman. Rritet me çdo etapë.
+const UI_STRINGS = {
+  "nav.cards":     { sq: "Karta",      de: "Karten" },
+  "nav.numbers":   { sq: "Numrat",     de: "Zahlen" },
+  "nav.quiz":      { sq: "Kuiz",       de: "Quiz" },
+  "nav.imagequiz": { sq: "Foto",       de: "Fotos" },
+  "nav.grammar":   { sq: "Gramatikë",  de: "Grammatik" },
+  "nav.homework":  { sq: "Detyrat",    de: "Aufgaben" },
+  "nav.practice":  { sq: "Shpejt",     de: "Schnell" },
+  "nav.exam":      { sq: "Provim",     de: "Prüfung" },
+  "nav.stats":     { sq: "Kalaja",     de: "Die Burg" },
+  "nav.account":   { sq: "Llogaria",   de: "Konto" },
+
+  "common.next":   { sq: "Vazhdo →",   de: "Weiter →" },
+  "common.save":   { sq: "Ruaj",       de: "Speichern" },
+  "common.cancel": { sq: "Anulo",      de: "Abbrechen" },
+
+  "card.lang.sq":   { sq: "Shqip", de: "Albanisch" },
+  "card.lang.de":   { sq: "Gjermanisht", de: "Deutsch" },
+  "card.hint":      { sq: "Trokit për ta kthyer", de: "Zum Umdrehen tippen" },
+  "card.listen":    { sq: "🔊 Dëgjo", de: "🔊 Anhören" },
+  "card.dontknow":  { sq: "✗ Nuk e dija", de: "✗ Wusste ich nicht" },
+  "card.know":      { sq: "✓ E dija (+5)", de: "✓ Wusste ich (+5)" },
+  "card.shuffle":   { sq: "🔀 Përziej", de: "🔀 Mischen" },
+  "card.reset":     { sq: "↺ Rifillo", de: "↺ Neu starten" },
+
+  "quiz.dir.forward":  { sq: "Shqip → Gjermanisht", de: "Deutsch → Englisch/Albanisch" },
+  "quiz.dir.backward": { sq: "Gjermanisht → Shqip", de: "Englisch/Albanisch → Deutsch" },
+  "quiz.new":          { sq: "↺ Kuiz i ri", de: "↺ Neues Quiz" },
+
+  "imgquiz.question": { sq: "Si quhet kjo në gjermanisht?", de: "Wie heißt das auf Deutsch?" },
+  "imgquiz.loading":  { sq: "Fotoja po ngarkohet…", de: "Foto wird geladen…" },
+  "imgquiz.new":       { sq: "↺ Kuiz i ri me foto", de: "↺ Neues Bilderquiz" },
+
+  "grammar.restart": { sq: "↺ Fillo nga e para", de: "↺ Von vorn beginnen" },
+
+  "hw.title": { sq: "📋 Detyrat e ditës", de: "📋 Aufgaben des Tages" },
+  "hw.intro": { sq: "Rreth një orë punë, të ndara në disa ushtrime. Çdo ditë detyra të reja.",
+                de: "Etwa eine Stunde Arbeit, aufgeteilt auf mehrere Übungen. Jeden Tag neue Aufgaben." },
+
+  "practice.title": { sq: "Ushtrim i shpejtë", de: "Schnellübung" },
+  "practice.intro": { sq: "Unë të zgjedh ushtrime rastësore: përkthime, foto dhe dëgjim. Sa më shumë radhazi saktë, aq më shumë pikë!",
+                      de: "Ich wähle für dich zufällige Übungen: Übersetzungen, Fotos und Hören. Je mehr hintereinander richtig, desto mehr Punkte!" },
+  "practice.start": { sq: "Nisma! Fillo ushtrimin", de: "Los geht's! Übung starten" },
+  "practice.stop":  { sq: "■ Ndalo", de: "■ Stopp" },
+
+  "auth.title":        { sq: "Identifikohu", de: "Anmelden" },
+  "auth.subtitle":     { sq: "Identifikohu që përparimi yt të ruhet në çdo pajisje.", de: "Melde dich an, damit dein Fortschritt auf jedem Gerät gespeichert wird." },
+  "auth.email":        { sq: "E-mail", de: "E-Mail" },
+  "auth.password":     { sq: "Fjalëkalimi", de: "Passwort" },
+  "auth.noaccount":    { sq: "Nuk ke llogari?", de: "Kein Konto?" },
+  "auth.registernow":  { sq: "Regjistrohu tani", de: "Jetzt registrieren" },
+  "auth.loggedin":     { sq: "I identifikuar ✓", de: "Angemeldet ✓" },
+  "auth.logout":       { sq: "🚪 Dil nga llogaria", de: "🚪 Abmelden" },
+  "auth.syncnote":     { sq: "Pikët dhe fjalët e shtuara vetë ruhen automatikisht online dhe ngarkohen përsëri herën tjetër që identifikohesh (edhe në një pajisje tjetër). Ushtrimet me karta dhe kuiz funksionojnë edhe offline, pa identifikim.",
+                         de: "Punkte und selbst hinzugefügte Wörter werden automatisch online gespeichert und beim nächsten Anmelden wieder geladen (auch auf einem anderen Gerät). Karten- und Quiz-Übungen funktionieren auch offline, ohne Anmeldung." },
+
+  "account.prestige.title":     { sq: "🏝️ Prestigo", de: "🏝️ Prestige" },
+  "account.learn.title":        { sq: "📚 Si ke mësuar", de: "📚 Wie du gelernt hast" },
+  "account.leaderboard.title":  { sq: "🏆 Renditja", de: "🏆 Bestenliste" },
+  "account.level.title":        { sq: "🎓 Niveli gjuhësor", de: "🎓 Sprachniveau" }
+};
+
+let menuLang = "sq"; // "sq" = shqip (parazgjedhje), "de" = gjermanisht
+
+function uiText(key) {
+  const entry = UI_STRINGS[key];
+  if (!entry) return null;
+  return menuLang === "de" ? entry.de : entry.sq;
+}
+
+// Rifreskon çdo element me [data-i18n] sipas gjuhës aktuale të menusë
+function applyMenuLang() {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.dataset.i18n;
+    const txt = uiText(key);
+    if (txt !== null) el.textContent = txt;
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    const txt = uiText(el.dataset.i18nPlaceholder);
+    if (txt !== null) el.placeholder = txt;
+  });
+  const btnSQ = document.getElementById("menuLangBtnSQ");
+  const btnDE = document.getElementById("menuLangBtnDE");
+  if (btnSQ) btnSQ.classList.toggle("active", menuLang === "sq");
+  if (btnDE) btnDE.classList.toggle("active", menuLang === "de");
+}
+
+function setMenuLang(lang) {
+  menuLang = lang === "de" ? "de" : "sq";
+  applyMenuLang();
+  ensureStats();
+  stats.menuLang = menuLang;
+  queueSave();
+}
+
+/* ============ NDËRRIMI I GJUHËS SË NDIHMËS: shqip <-> anglisht ============ */
+let helperLang = "sq"; // "sq" = shqip (parazgjedhje), "en" = anglisht
+
+// Kthen fjalën ndihmëse të një artikulli vokabullar sipas gjuhës aktuale.
+// Nëse anglishtja s'është përkthyer ende për këtë fjalë, bie mbrapa te shqipja
+// (asnjë fjalë nuk zhduket kurrë — thjesht s'është përkthyer akoma).
+function helperWord(w) {
+  if (helperLang === "en") return w.en || w.al;
+  return w.al;
+}
+
+function setHelperLang(lang) {
+  helperLang = lang === "en" ? "en" : "sq";
+  document.getElementById("langBtnSQ").classList.toggle("active", helperLang === "sq");
+  document.getElementById("langBtnEN").classList.toggle("active", helperLang === "en");
+  ensureStats();
+  stats.helperLang = helperLang;
+  queueSave();
+  // Rifresko pamjen aktuale, që ndryshimi të duket menjëherë
+  if (typeof renderCard === "function" && !document.getElementById("view-cards").classList.contains("hidden")) renderCard();
+  if (typeof fillCatSelects === "function") fillCatSelects();
+}
+
+document.getElementById("langBtnSQ").addEventListener("click", () => setHelperLang("sq"));
+document.getElementById("langBtnEN").addEventListener("click", () => setHelperLang("en"));
+document.getElementById("menuLangBtnSQ").addEventListener("click", () => setMenuLang("sq"));
+document.getElementById("menuLangBtnDE").addEventListener("click", () => setMenuLang("de"));
+
 function speak(text) {
   if (!("speechSynthesis" in window)) { alert("Pajisja jote nuk mbështet sintezën e zërit."); return; }
   window.speechSynthesis.cancel();
@@ -3848,7 +4229,7 @@ function renderCard() {
     return;
   }
   const w = currentDeck[cardIndex];
-  fw.textContent = w.al; bw.textContent = w.de;
+  fw.textContent = helperWord(w); bw.textContent = w.de;
   document.getElementById("frontCat").textContent = w.cat;
   flashcard.classList.remove("flipped");
   document.getElementById("cardProgress").textContent = (cardIndex+1)+" / "+currentDeck.length;
@@ -3870,6 +4251,28 @@ document.getElementById("catFilter").addEventListener("change", () => { initCard
 
 /* ============ QUIZ ============ */
 let quizPool=[], quizIndex=0, quizScore=0, quizAnswered=false;
+// Shfaq fjalën në gjuhën aktuale të ndihmës kur fusha është "al"; "de" mbetet gjithmonë gjermanisht.
+// Logjika e krahasimit/saktësisë përdor gjithmonë vlerat e papërpunuara (al/de), pra s'preket nga gjuha.
+function quizFieldText(w, field) {
+  return field === "al" ? helperWord(w) : w[field];
+}
+
+// Zgjedh distraktorë me tekst TË NDRYSHËM nga përgjigjja e saktë dhe nga njëri-tjetri,
+// që kurrë të mos shfaqen dy butona identikë (as në shqip, as në anglisht).
+function pickDistinctDistractors(pool, correct, field, count) {
+  const correctText = quizFieldText(correct, field);
+  const seen = new Set([correctText]);
+  const out = [];
+  for (const w of shuffle(pool)) {
+    if (w === correct) continue;
+    const t = quizFieldText(w, field);
+    if (seen.has(t)) continue;
+    seen.add(t); out.push(w);
+    if (out.length >= count) break;
+  }
+  return out;
+}
+
 function startQuiz() {
   if (vocab.length < 4) return;
   quizPool = shuffle(vocab).slice(0, 20);
@@ -3892,25 +4295,26 @@ function renderQuiz() {
   const correct = quizPool[quizIndex];
   const askField = dir === "al-de" ? "al" : "de";
   const ansField = dir === "al-de" ? "de" : "al";
-  document.getElementById("quizLang").textContent = dir === "al-de" ? "Shqip" : "Deutsch";
-  document.getElementById("quizWord").textContent = correct[askField];
+  const helperLabel = helperLang === "en" ? "English" : "Shqip";
+  document.getElementById("quizLang").textContent = dir === "al-de" ? helperLabel : "Deutsch";
+  document.getElementById("quizWord").textContent = quizFieldText(correct, askField);
   document.getElementById("quizProgress").textContent = "Pyetja "+(quizIndex+1)+" / "+quizPool.length;
   document.getElementById("quizScore").textContent = "Richtig: "+quizScore;
   setActiveHint(correct[ansField], correct.cat, ".quiz-question");
-  const distractors = shuffle(vocab.filter(w => w[ansField] !== correct[ansField])).slice(0,3);
+  const distractors = pickDistinctDistractors(vocab, correct, ansField, 3);
   const options = shuffle([correct, ...distractors]);
   const box = document.getElementById("quizOptions");
   box.innerHTML = "";
   options.forEach(opt => {
     const el = document.createElement("button");
     el.className = "quiz-option";
-    el.textContent = opt[ansField];
+    el.textContent = quizFieldText(opt, ansField);
     el.addEventListener("click", () => {
       if (quizAnswered) return;
       quizAnswered = true;
       clearActiveHint();
       box.querySelectorAll(".quiz-option").forEach(o => {
-        if (o.textContent === correct[ansField]) o.classList.add("correct");
+        if (o.textContent === quizFieldText(correct, ansField)) o.classList.add("correct");
         else if (o === el) o.classList.add("wrong");
         else o.classList.add("faded");
       });
@@ -4591,17 +4995,21 @@ function renderPracticeTranslate(dir) {
   const askField = dir === "al-de" ? "al" : "de";
   const ansField = dir === "al-de" ? "de" : "al";
   const correct = shuffle(vocab)[0];
-  const distractors = shuffle(vocab.filter(w => w[ansField] !== correct[ansField])).slice(0, 3);
+  const distractors = pickDistinctDistractors(vocab, correct, ansField, 3);
   const options = shuffle([correct, ...distractors]);
 
-  document.getElementById("practiceTypeBar").textContent =
-    dir === "al-de" ? "🇦🇱 → 🇩🇪  Përkthe në gjermanisht" : "🇩🇪 → 🇦🇱  Përkthe në shqip";
+  const dirIcon = dir === "al-de" ? (helperLang === "en" ? "🇬🇧" : "🇦🇱") : "🇩🇪";
+  const dirTargetIcon = dir === "al-de" ? "🇩🇪" : (helperLang === "en" ? "🇬🇧" : "🇦🇱");
+  const dirLabel = dir === "al-de"
+    ? (helperLang === "en" ? "Translate into German" : "Përkthe në gjermanisht")
+    : (helperLang === "en" ? "Translate into English" : "Përkthe në shqip");
+  document.getElementById("practiceTypeBar").textContent = `${dirIcon} → ${dirTargetIcon}  ${dirLabel}`;
   currentPracticeWordKey = correct.al + "|" + correct.de;
   document.getElementById("practiceBody").innerHTML =
-    `<div class="practice-prompt"><div class="big-word">${esc(correct[askField])}</div></div>`;
+    `<div class="practice-prompt"><div class="big-word">${esc(quizFieldText(correct, askField))}</div></div>`;
 
-  const box = buildPracticeOptions(options, correct[ansField], o => o[ansField],
-    practiceAnswerHandler(document.getElementById("practiceOptions"), correct[ansField], 10));
+  const box = buildPracticeOptions(options, quizFieldText(correct, ansField), o => quizFieldText(o, ansField),
+    practiceAnswerHandler(document.getElementById("practiceOptions"), quizFieldText(correct, ansField), 10));
   if (dir === "al-de") setActiveHint(correct.de, correct.cat, ".practice-prompt");
 }
 
@@ -6217,7 +6625,7 @@ function renderList() {
   filtered.forEach(w => {
     const item = document.createElement("div");
     item.className = "word-item";
-    item.innerHTML = `<div><span class="sq">${esc(w.al)}</span> — <span class="de">${esc(w.de)}</span></div>
+    item.innerHTML = `<div><span class="sq">${esc(helperWord(w))}</span> — <span class="de">${esc(w.de)}</span></div>
       <button class="del" data-idx="${w.idx}">🗑</button>`;
     listDiv.appendChild(item);
   });
@@ -6404,6 +6812,8 @@ async function loadProgress() {
       examRunCount = data.exam_runs || 0;
       if (data.stats && typeof data.stats === "object") { stats = data.stats; ensureStats(); }
       if (typeof ensureFarmCoins === "function") ensureFarmCoins();
+      if (stats.helperLang && typeof setHelperLang === "function") setHelperLang(stats.helperLang);
+      if (stats.menuLang && typeof setMenuLang === "function") setMenuLang(stats.menuLang);
       lastSeenTreeStage = treeStageFor(Math.floor(totalPoints / 100) + 1).idx;
       const custom = Array.isArray(data.custom_vocab) ? data.custom_vocab : [];
       custom.forEach(w => {
@@ -7040,6 +7450,73 @@ function renderStatsView() {
 /* ============ USHTRIME GRAMATIKE: fjali me boshllëk ============ */
 // q = fjalia gjermanisht me ___ , sq = përkthimi shqip (ndihmë),
 // opts = zgjedhjet, a = indeksi i saktë, ex = shpjegimi shqip, cat = tema
+// Përkthimet angleze për 62 fjalitë e gramatikës — në të njëjtën radhë saktësisht.
+// Përdoret vetëm si ndihmë (sq/en); vetë fjalia gjermane dhe përgjigjet MBETEN të pandryshuara.
+const GRAMMAR_EN = [
+{en:"I see the dog in the garden.", ex:"\"sehen\" takes Accusative. Masculine: der → den."},
+{en:"I give the child an apple.", ex:"\"geben\" takes Dative for the recipient. das Kind → dem Kind."},
+{en:"The woman there is my teacher.", ex:"Feminine in Nominative: die Frau."},
+{en:"This is the father's car.", ex:"Masculine Genitive: des Vaters (possession)."},
+{en:"I help the woman with the bags.", ex:"\"helfen\" always takes Dative. die Frau → der Frau."},
+{en:"I'm waiting for the bus.", ex:"warten AUF + Accusative — always this way."},
+{en:"I'm interested in music.", ex:"sich interessieren FÜR + Accusative."},
+{en:"We are talking about the weather.", ex:"sprechen ÜBER + Accusative (or: von + Dative)."},
+{en:"I take the bus to work.", ex:"\"mit\" always takes Dative. der Bus → dem Bus."},
+{en:"The book is on the table.", ex:"No movement (where?) → Dative: auf dem Tisch."},
+{en:"I put the book on the table.", ex:"With movement (where to?) → Accusative: auf den Tisch."},
+{en:"I'm looking forward to the weekend.", ex:"sich freuen AUF = something in the future."},
+{en:"I'm happy about your gift.", ex:"sich freuen ÜBER = something that already happened."},
+{en:"He lives in Berlin.", ex:"For cities without movement: in + Dative."},
+{en:"Tomorrow we're going to Italy.", ex:"For countries without an article: nach Italien."},
+{en:"I'm going to the doctor.", ex:"To a person: zu + Dative → zum Arzt."},
+{en:"I'm learning German because I want to work here.", ex:"\"weil\" = because; the verb goes to the end."},
+{en:"He didn't come because he was sick.", ex:"Reason → weil."},
+{en:"I go to sleep early so that I'm fit tomorrow.", ex:"Purpose → damit."},
+{en:"Although it was raining, we went for a walk.", ex:"Contrast → obwohl."},
+{en:"I don't know whether he's coming today.", ex:"Indirect yes/no question → ob."},
+{en:"When/if I have time, I'll visit you.", ex:"Condition or repetition → wenn."},
+{en:"When I was little, we lived in Tirana.", ex:"A single event in the past → als."},
+{en:"He says that he is tired.", ex:"Subordinate clause → dass."},
+{en:"After I had eaten, I went to sleep.", ex:"\"Nachdem\" = after; the earlier action in time."},
+{en:"Before you go, please call me.", ex:"\"Bevor\" = before."},
+{en:"Yesterday I went to the cinema.", ex:"Verbs of motion (gehen) form the perfect tense with \"sein\"."},
+{en:"Yesterday I watched a movie.", ex:"\"sehen\" forms the perfect tense with \"haben\"."},
+{en:"He gets up every morning at 7 o'clock.", ex:"Separable verb: aufstehen → er steht … auf."},
+{en:"Next year we will move to Berlin.", ex:"Future tense: werden + infinitive."},
+{en:"As a child she loved painting.", ex:"\"malen\" → perfect tense with haben."},
+{en:"I can help you if you want.", ex:"1st person singular: ich kann."},
+{en:"Smoking is not allowed here.", ex:"Prohibition/permission → dürfen."},
+{en:"You should drink more water.", ex:"Advice → sollen (subjunctive: solltest)."},
+{en:"The window is opened every morning.", ex:"Passive voice: werden + past participle."},
+{en:"The letter was written yesterday.", ex:"Passive voice in the past: wurde + past participle."},
+{en:"If I had time, I would read more.", ex:"Unreal condition → hätte."},
+{en:"In your place, I wouldn't do that.", ex:"Polite advice → würde."},
+{en:"Could you please help me?", ex:"Polite request → könnten."},
+{en:"I would like a coffee, please.", ex:"Polite order: ich hätte gern."},
+{en:"If he had come earlier, we would have seen him.", ex:"Unreal past condition, verb of motion → wäre."},
+{en:"This is the man who helped me.", ex:"Subject of the relative clause → Nominative: der."},
+{en:"This is the book that I bought.", ex:"Neuter Accusative → das."},
+{en:"The woman I wrote to isn't answering.", ex:"\"schreiben\" + Dative → der (feminine Dative)."},
+{en:"The man whose car is broken is waiting outside.", ex:"Masculine Genitive → dessen."},
+{en:"I have a small dog.", ex:"ein + masculine Accusative → -en."},
+{en:"That's a good idea.", ex:"eine + feminine Nominative → -e."},
+{en:"He drinks hot coffee.", ex:"Without an article, masculine Accusative… here Nominative-as-substance → heißer Kaffee."},
+{en:"Berlin is bigger than Munich.", ex:"Comparison with \"als\" → comparative."},
+{en:"This is the best restaurant in the city.", ex:"Superlative with article: das beste."},
+{en:"Tomorrow I'm visiting my grandma.", ex:"When the sentence starts with a time expression, the verb stays second."},
+{en:"I'm giving him the book.", ex:"Recipient → Dative: ihm."},
+{en:"Do you know him?", ex:"Direct object → Accusative: ihn."},
+{en:"I saw her yesterday in the park.", ex:"Feminine Accusative → sie."},
+{en:"He told me the story.", ex:"Feminine Accusative → die Geschichte."},
+{en:"I forgot to call you.", ex:"Separable verb: an|rufen → anzurufen."},
+{en:"It's important to exercise every day.", ex:"Infinitive with \"zu\" after expressions like \"es ist wichtig\"."},
+{en:"I'm learning German (in order) to find a job.", ex:"Purpose with the same subject → um … zu."},
+{en:"I'm tired, nevertheless I keep working.", ex:"\"trotzdem\" doesn't change the word order: the verb stays second."},
+{en:"It's raining, that's why I'm taking the umbrella.", ex:"Consequence → deshalb (verb comes right after it)."},
+{en:"I like tea, whereas my brother prefers coffee.", ex:"Simple contrast → aber (word order doesn't change)."},
+{en:"The more I practice, the better I get.", ex:"Fixed expression: je … desto."}
+];
+
 const GRAMMAR_EXERCISES = [
   // --- Nyjat (der/die/das) ---
   { cat:"Nyjat", q:"Ich sehe ___ Hund im Garten.", sq:"Unë shoh qenin në kopsht.", opts:["der","den","dem"], a:1, ex:"„sehen“ kërkon Akkusativ. Mashkullore: der → den." },
@@ -7271,9 +7748,12 @@ function renderGrammar() {
   }
 
   const ex = grammarPool[grammarIndex];
+  const exIdx = GRAMMAR_EXERCISES.indexOf(ex);
+  const exEn = GRAMMAR_EN[exIdx];
   document.getElementById("grammarCatTag").textContent = ex.cat;
   document.getElementById("grammarSentence").innerHTML = esc(ex.q).replace("___", '<span class="gap">_____</span>');
-  document.getElementById("grammarHelp").textContent = ex.sq;
+  document.getElementById("grammarHelp").textContent = helperLang === "en" && exEn ? exEn.en : ex.sq;
+  document.getElementById("grammarHelpFlag").textContent = (helperLang === "en" && exEn) ? "🇬🇧" : "🇦🇱";
   document.getElementById("grammarProgress").textContent = "Fjalia " + (grammarIndex + 1) + " / " + grammarPool.length;
   document.getElementById("grammarScore").textContent = "Saktë: " + grammarScore;
 
@@ -7297,7 +7777,7 @@ function renderGrammar() {
       document.getElementById("grammarSentence").innerHTML =
         esc(ex.q).replace("___", `<span class="gap filled">${esc(ex.opts[ex.a])}</span>`);
       const expl = document.getElementById("grammarExplain");
-      expl.textContent = "💡 " + ex.ex;
+      expl.textContent = "💡 " + (helperLang === "en" && exEn ? exEn.ex : ex.ex);
       expl.classList.remove("hidden");
       if (correct) {
         grammarScore++;
@@ -8152,6 +8632,7 @@ initCardOrder();
 renderPoints();
 renderCard();
 renderStreakBar();
+applyMenuLang();
 if (lastSeenTreeStage === null) lastSeenTreeStage = treeStageFor(Math.floor(totalPoints / 100) + 1).idx;
 
 const hudFarmRowEl = document.getElementById("hudFarmRow");
