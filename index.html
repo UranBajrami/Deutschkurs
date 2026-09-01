@@ -611,6 +611,31 @@
     animation: overlayIn .4s cubic-bezier(.2,.8,.2,1);
   }
   #pwResetOverlay .placement-hero-icon { filter: drop-shadow(0 0 24px var(--gold-glow)); }
+  #langOnboardOverlay {
+    position: fixed; inset: 0; z-index: 960; overflow-y: auto;
+    background:
+      radial-gradient(900px 500px at 20% -10%, rgba(91,140,255,.2), transparent 60%),
+      radial-gradient(700px 450px at 100% 20%, rgba(255,95,109,.14), transparent 55%),
+      var(--bg-0);
+    padding: calc(28px + env(safe-area-inset-top)) 20px calc(40px + env(safe-area-inset-bottom));
+    animation: overlayIn .4s cubic-bezier(.2,.8,.2,1);
+  }
+  .flag-choice-grid { display: flex; flex-direction: column; gap: 14px; }
+  .flag-choice-btn {
+    display: flex; align-items: center; gap: 16px; width: 100%; padding: 14px;
+    background: var(--surface); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--line); border-radius: var(--radius-lg); cursor: pointer;
+    font-family: var(--font); box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    transition: transform .12s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  .flag-choice-btn:active { transform: scale(.97); }
+  .flag-choice-btn:hover { border-color: rgba(91,140,255,.5); box-shadow: 0 8px 26px rgba(0,0,0,.4), 0 0 20px var(--blue-glow); }
+  .flag-choice-btn img {
+    width: 84px; height: 56px; object-fit: cover; border-radius: 8px; flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(0,0,0,.4);
+  }
+  .flag-choice-btn span { font-size: 1.15rem; font-weight: 800; color: var(--ink); }
+
   .pwreset-note {
     text-align: center; margin-top: 14px; font-size: .78rem; font-weight: 600;
     color: var(--muted); line-height: 1.5;
@@ -1363,6 +1388,7 @@
       <div class="lang-toggle" id="menuLangToggle" title="Gjuha e menusë">
         <button class="lang-toggle-btn active" data-lang="sq" id="menuLangBtnSQ">📋 SQ</button>
         <button class="lang-toggle-btn" data-lang="de" id="menuLangBtnDE">📋 DE</button>
+        <button class="lang-toggle-btn" data-lang="en" id="menuLangBtnEN">📋 EN</button>
       </div>
     </div>
   </div>
@@ -1797,6 +1823,31 @@
 
 <!-- EINSTUFUNGSTEST: VOLLBILD-OVERLAY -->
 <!-- FAQE E PLOTË: VENDOS FJALËKALIM TË RI (pas klikimit të lidhjes në email) -->
+<!-- FAQE E PARË: ZGJEDH GJUHËN, PARA IDENTIFIKIMIT -->
+<div class="hidden" id="langOnboardOverlay">
+  <div class="placement-shell">
+    <div class="placement-hero">
+      <div class="placement-hero-icon">🌍</div>
+      <h2 data-i18n="onboard.title">Çfarë do të mësosh?</h2>
+      <p data-i18n="onboard.subtitle">Zgjidh gjuhën. Mund ta ndryshosh kurdo herë tjetër.</p>
+    </div>
+    <div class="flag-choice-grid">
+      <button class="flag-choice-btn" data-flag="sq">
+        <img src="flags/sq.png" alt="Shqip">
+        <span>Shqip</span>
+      </button>
+      <button class="flag-choice-btn" data-flag="de">
+        <img src="flags/de.png" alt="Deutsch">
+        <span>Deutsch</span>
+      </button>
+      <button class="flag-choice-btn" data-flag="en">
+        <img src="flags/us.png" alt="English">
+        <span>English</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="hidden" id="pwResetOverlay">
   <div class="placement-shell">
     <div class="placement-hero">
@@ -3969,87 +4020,94 @@ function registerAnswer(isCorrect) {
 /* ============ GJUHA E MENUSË: shqip <-> gjermanisht (i pavarur nga gjuha e fjalorit) ============ */
 // Çdo çelës ka tekstin shqip (origjinali) dhe përkthimin gjerman. Rritet me çdo etapë.
 const UI_STRINGS = {
-  "nav.cards":     { sq: "Karta",      de: "Karten" },
-  "nav.numbers":   { sq: "Numrat",     de: "Zahlen" },
-  "nav.quiz":      { sq: "Kuiz",       de: "Quiz" },
-  "nav.imagequiz": { sq: "Foto",       de: "Fotos" },
-  "nav.grammar":   { sq: "Gramatikë",  de: "Grammatik" },
-  "nav.homework":  { sq: "Detyrat",    de: "Aufgaben" },
-  "nav.practice":  { sq: "Shpejt",     de: "Schnell" },
-  "nav.exam":      { sq: "Provim",     de: "Prüfung" },
-  "nav.stats":     { sq: "Kalaja",     de: "Die Burg" },
-  "nav.account":   { sq: "Llogaria",   de: "Konto" },
+  "nav.cards":     { sq: "Karta",      de: "Karten", en: "Cards" },
+  "nav.numbers":   { sq: "Numrat",     de: "Zahlen", en: "Numbers" },
+  "nav.quiz":      { sq: "Kuiz",       de: "Quiz", en: "Quiz" },
+  "nav.imagequiz": { sq: "Foto",       de: "Fotos", en: "Photos" },
+  "nav.grammar":   { sq: "Gramatikë",  de: "Grammatik", en: "Grammar" },
+  "nav.homework":  { sq: "Detyrat",    de: "Aufgaben", en: "Tasks" },
+  "nav.practice":  { sq: "Shpejt",     de: "Schnell", en: "Quick" },
+  "nav.exam":      { sq: "Provim",     de: "Prüfung", en: "Exam" },
+  "nav.stats":     { sq: "Kalaja",     de: "Die Burg", en: "The Castle" },
+  "nav.account":   { sq: "Llogaria",   de: "Konto", en: "Account" },
 
-  "common.next":   { sq: "Vazhdo →",   de: "Weiter →" },
-  "common.save":   { sq: "Ruaj",       de: "Speichern" },
-  "common.cancel": { sq: "Anulo",      de: "Abbrechen" },
+  "common.next":   { sq: "Vazhdo →",   de: "Weiter →", en: "Next →" },
+  "common.save":   { sq: "Ruaj",       de: "Speichern", en: "Save" },
+  "common.cancel": { sq: "Anulo",      de: "Abbrechen", en: "Cancel" },
 
-  "card.lang.sq":   { sq: "Shqip", de: "Albanisch" },
-  "card.lang.de":   { sq: "Gjermanisht", de: "Deutsch" },
-  "card.hint":      { sq: "Trokit për ta kthyer", de: "Zum Umdrehen tippen" },
-  "card.listen":    { sq: "🔊 Dëgjo", de: "🔊 Anhören" },
-  "card.dontknow":  { sq: "✗ Nuk e dija", de: "✗ Wusste ich nicht" },
-  "card.know":      { sq: "✓ E dija (+5)", de: "✓ Wusste ich (+5)" },
-  "card.shuffle":   { sq: "🔀 Përziej", de: "🔀 Mischen" },
-  "card.reset":     { sq: "↺ Rifillo", de: "↺ Neu starten" },
+  "card.lang.sq":   { sq: "Shqip", de: "Albanisch", en: "Albanian" },
+  "card.lang.de":   { sq: "Gjermanisht", de: "Deutsch", en: "German" },
+  "card.hint":      { sq: "Trokit për ta kthyer", de: "Zum Umdrehen tippen", en: "Tap to flip" },
+  "card.listen":    { sq: "🔊 Dëgjo", de: "🔊 Anhören", en: "🔊 Listen" },
+  "card.dontknow":  { sq: "✗ Nuk e dija", de: "✗ Wusste ich nicht", en: "✗ Didn't know" },
+  "card.know":      { sq: "✓ E dija (+5)", de: "✓ Wusste ich (+5)", en: "✓ Knew it (+5)" },
+  "card.shuffle":   { sq: "🔀 Përziej", de: "🔀 Mischen", en: "🔀 Shuffle" },
+  "card.reset":     { sq: "↺ Rifillo", de: "↺ Neu starten", en: "↺ Restart" },
 
-  "quiz.dir.forward":  { sq: "Shqip → Gjermanisht", de: "Deutsch → Englisch/Albanisch" },
-  "quiz.dir.backward": { sq: "Gjermanisht → Shqip", de: "Englisch/Albanisch → Deutsch" },
-  "quiz.new":          { sq: "↺ Kuiz i ri", de: "↺ Neues Quiz" },
+  "quiz.dir.forward":  { sq: "Shqip → Gjermanisht", de: "Deutsch → Englisch/Albanisch", en: "Albanian → German" },
+  "quiz.dir.backward": { sq: "Gjermanisht → Shqip", de: "Englisch/Albanisch → Deutsch", en: "German → Albanian" },
+  "quiz.new":          { sq: "↺ Kuiz i ri", de: "↺ Neues Quiz", en: "↺ New quiz" },
 
-  "imgquiz.question": { sq: "Si quhet kjo në gjermanisht?", de: "Wie heißt das auf Deutsch?" },
-  "imgquiz.loading":  { sq: "Fotoja po ngarkohet…", de: "Foto wird geladen…" },
-  "imgquiz.new":       { sq: "↺ Kuiz i ri me foto", de: "↺ Neues Bilderquiz" },
+  "imgquiz.question": { sq: "Si quhet kjo në gjermanisht?", de: "Wie heißt das auf Deutsch?", en: "What's this called in German?" },
+  "imgquiz.loading":  { sq: "Fotoja po ngarkohet…", de: "Foto wird geladen…", en: "Loading photo…" },
+  "imgquiz.new":       { sq: "↺ Kuiz i ri me foto", de: "↺ Neues Bilderquiz", en: "↺ New photo quiz" },
 
-  "grammar.restart": { sq: "↺ Fillo nga e para", de: "↺ Von vorn beginnen" },
+  "grammar.restart": { sq: "↺ Fillo nga e para", de: "↺ Von vorn beginnen", en: "↺ Start over" },
 
-  "hw.title": { sq: "📋 Detyrat e ditës", de: "📋 Aufgaben des Tages" },
+  "hw.title": { sq: "📋 Detyrat e ditës", de: "📋 Aufgaben des Tages", en: "📋 Today's tasks" },
   "hw.intro": { sq: "Rreth një orë punë, të ndara në disa ushtrime. Çdo ditë detyra të reja.",
-                de: "Etwa eine Stunde Arbeit, aufgeteilt auf mehrere Übungen. Jeden Tag neue Aufgaben." },
+                de: "Etwa eine Stunde Arbeit, aufgeteilt auf mehrere Übungen. Jeden Tag neue Aufgaben.", en: "About an hour of work, split into several exercises. New tasks every day." },
 
-  "practice.title": { sq: "Ushtrim i shpejtë", de: "Schnellübung" },
+  "practice.title": { sq: "Ushtrim i shpejtë", de: "Schnellübung", en: "Quick practice" },
   "practice.intro": { sq: "Unë të zgjedh ushtrime rastësore: përkthime, foto dhe dëgjim. Sa më shumë radhazi saktë, aq më shumë pikë!",
-                      de: "Ich wähle für dich zufällige Übungen: Übersetzungen, Fotos und Hören. Je mehr hintereinander richtig, desto mehr Punkte!" },
-  "practice.start": { sq: "Nisma! Fillo ushtrimin", de: "Los geht's! Übung starten" },
-  "practice.stop":  { sq: "■ Ndalo", de: "■ Stopp" },
+                      de: "Ich wähle für dich zufällige Übungen: Übersetzungen, Fotos und Hören. Je mehr hintereinander richtig, desto mehr Punkte!", en: "I'll pick random exercises for you: translations, photos, and listening. The more correct in a row, the more points!" },
+  "practice.start": { sq: "Nisma! Fillo ushtrimin", de: "Los geht's! Übung starten", en: "Let's go! Start the exercise" },
+  "practice.stop":  { sq: "■ Ndalo", de: "■ Stopp", en: "■ Stop" },
 
-  "auth.title":        { sq: "Identifikohu", de: "Anmelden" },
-  "auth.subtitle":     { sq: "Identifikohu që përparimi yt të ruhet në çdo pajisje.", de: "Melde dich an, damit dein Fortschritt auf jedem Gerät gespeichert wird." },
-  "auth.email":        { sq: "E-mail", de: "E-Mail" },
-  "auth.password":     { sq: "Fjalëkalimi", de: "Passwort" },
-  "auth.noaccount":    { sq: "Nuk ke llogari?", de: "Kein Konto?" },
-  "auth.registernow":  { sq: "Regjistrohu tani", de: "Jetzt registrieren" },
-  "auth.loggedin":     { sq: "I identifikuar ✓", de: "Angemeldet ✓" },
-  "auth.logout":       { sq: "🚪 Dil nga llogaria", de: "🚪 Abmelden" },
+  "auth.title":        { sq: "Identifikohu", de: "Anmelden", en: "Sign in" },
+  "auth.subtitle":     { sq: "Identifikohu që përparimi yt të ruhet në çdo pajisje.", de: "Melde dich an, damit dein Fortschritt auf jedem Gerät gespeichert wird.", en: "Sign in so your progress is saved on every device." },
+  "auth.email":        { sq: "E-mail", de: "E-Mail", en: "Email" },
+  "auth.password":     { sq: "Fjalëkalimi", de: "Passwort", en: "Password" },
+  "auth.noaccount":    { sq: "Nuk ke llogari?", de: "Kein Konto?", en: "No account?" },
+  "auth.registernow":  { sq: "Regjistrohu tani", de: "Jetzt registrieren", en: "Sign up now" },
+  "auth.loggedin":     { sq: "I identifikuar ✓", de: "Angemeldet ✓", en: "Signed in ✓" },
+  "auth.logout":       { sq: "🚪 Dil nga llogaria", de: "🚪 Abmelden", en: "🚪 Sign out" },
   "auth.syncnote":     { sq: "Pikët dhe fjalët e shtuara vetë ruhen automatikisht online dhe ngarkohen përsëri herën tjetër që identifikohesh (edhe në një pajisje tjetër). Ushtrimet me karta dhe kuiz funksionojnë edhe offline, pa identifikim.",
-                         de: "Punkte und selbst hinzugefügte Wörter werden automatisch online gespeichert und beim nächsten Anmelden wieder geladen (auch auf einem anderen Gerät). Karten- und Quiz-Übungen funktionieren auch offline, ohne Anmeldung." },
+                         de: "Punkte und selbst hinzugefügte Wörter werden automatisch online gespeichert und beim nächsten Anmelden wieder geladen (auch auf einem anderen Gerät). Karten- und Quiz-Übungen funktionieren auch offline, ohne Anmeldung.", en: "Points and your own added words are automatically saved online and reloaded the next time you sign in (even on a different device). Card and quiz exercises also work offline, without signing in." },
 
-  "auth.forgot":          { sq: "Ke harruar fjalëkalimin?", de: "Passwort vergessen?" },
-  "auth.changepw":        { sq: "🔑 Ndrysho fjalëkalimin", de: "🔑 Passwort ändern" },
-  "auth.reset.required":  { sq: "Për të vazhduar, duhet të vendosësh një fjalëkalim të ri.", de: "Um fortzufahren, musst du ein neues Passwort festlegen." },
-  "auth.forgot.title":    { sq: "Rivendos fjalëkalimin", de: "Passwort zurücksetzen" },
+  "auth.forgot":          { sq: "Ke harruar fjalëkalimin?", de: "Passwort vergessen?", en: "Forgot your password?" },
+  "auth.changepw":        { sq: "🔑 Ndrysho fjalëkalimin", de: "🔑 Passwort ändern", en: "🔑 Change password" },
+  "auth.reset.required":  { sq: "Për të vazhduar, duhet të vendosësh një fjalëkalim të ri.", de: "Um fortzufahren, musst du ein neues Passwort festlegen.", en: "To continue, you need to set a new password." },
+  "auth.forgot.title":    { sq: "Rivendos fjalëkalimin", de: "Passwort zurücksetzen", en: "Reset password" },
   "auth.forgot.subtitle": { sq: "Shkruaj email-in tënd. Do të marrësh një lidhje për të vendosur një fjalëkalim të ri.",
-                            de: "Gib deine E-Mail-Adresse ein. Du erhältst einen Link, um ein neues Passwort festzulegen." },
-  "auth.forgot.send":     { sq: "Dërgo lidhjen", de: "Link senden" },
-  "auth.forgot.back":     { sq: "← Kthehu te identifikimi", de: "← Zurück zur Anmeldung" },
-  "auth.reset.title":     { sq: "Vendos fjalëkalim të ri", de: "Neues Passwort festlegen" },
-  "auth.reset.subtitle":  { sq: "Shkruaj fjalëkalimin e ri për llogarinë tënde.", de: "Gib das neue Passwort für dein Konto ein." },
-  "auth.reset.new":       { sq: "Fjalëkalimi i ri", de: "Neues Passwort" },
-  "auth.reset.repeat":    { sq: "Përsërit fjalëkalimin", de: "Passwort wiederholen" },
-  "auth.reset.save":      { sq: "Ruaj fjalëkalimin e ri", de: "Neues Passwort speichern" },
+                            de: "Gib deine E-Mail-Adresse ein. Du erhältst einen Link, um ein neues Passwort festzulegen.", en: "Enter your email. You'll receive a link to set a new password." },
+  "auth.forgot.send":     { sq: "Dërgo lidhjen", de: "Link senden", en: "Send link" },
+  "auth.forgot.back":     { sq: "← Kthehu te identifikimi", de: "← Zurück zur Anmeldung", en: "← Back to sign in" },
+  "auth.reset.title":     { sq: "Vendos fjalëkalim të ri", de: "Neues Passwort festlegen", en: "Set a new password" },
+  "auth.reset.subtitle":  { sq: "Shkruaj fjalëkalimin e ri për llogarinë tënde.", de: "Gib das neue Passwort für dein Konto ein.", en: "Enter the new password for your account." },
+  "auth.reset.new":       { sq: "Fjalëkalimi i ri", de: "Neues Passwort", en: "New password" },
+  "auth.reset.repeat":    { sq: "Përsërit fjalëkalimin", de: "Passwort wiederholen", en: "Repeat password" },
+  "auth.reset.save":      { sq: "Ruaj fjalëkalimin e ri", de: "Neues Passwort speichern", en: "Save new password" },
 
-  "account.prestige.title":     { sq: "🏝️ Prestigo", de: "🏝️ Prestige" },
-  "account.learn.title":        { sq: "📚 Si ke mësuar", de: "📚 Wie du gelernt hast" },
-  "account.leaderboard.title":  { sq: "🏆 Renditja", de: "🏆 Bestenliste" },
-  "account.level.title":        { sq: "🎓 Niveli gjuhësor", de: "🎓 Sprachniveau" }
+  "account.prestige.title":     { sq: "🏝️ Prestigo", de: "🏝️ Prestige", en: "🏝️ Prestige" },
+  "account.learn.title":        { sq: "📚 Si ke mësuar", de: "📚 Wie du gelernt hast", en: "📚 How you've learned" },
+  "account.leaderboard.title":  { sq: "🏆 Renditja", de: "🏆 Bestenliste", en: "🏆 Leaderboard" },
+  "account.level.title":        { sq: "🎓 Niveli gjuhësor", de: "🎓 Sprachniveau", en: "🎓 Language level" },
+
+  "onboard.title":    { sq: "Çfarë do të mësosh?", de: "Was möchtest du lernen?", en: "What do you want to learn?" },
+  "onboard.subtitle": { sq: "Zgjidh gjuhën. Mund ta ndryshosh kurdo herë tjetër.",
+                         de: "Wähle deine Sprache. Du kannst sie jederzeit später ändern.",
+                         en: "Choose your language. You can change it anytime later." }
 };
 
-let menuLang = "sq"; // "sq" = shqip (parazgjedhje), "de" = gjermanisht
+let menuLang = "sq"; // "sq" = shqip (parazgjedhje), "de" = gjermanisht, "en" = anglisht
 
 function uiText(key) {
   const entry = UI_STRINGS[key];
   if (!entry) return null;
-  return menuLang === "de" ? entry.de : entry.sq;
+  if (menuLang === "de") return entry.de;
+  if (menuLang === "en") return entry.en || entry.de; // fallback nëse ndonjë çelës i ri harron "en"
+  return entry.sq;
 }
 
 // Rifreskon çdo element me [data-i18n] sipas gjuhës aktuale të menusë
@@ -4065,17 +4123,45 @@ function applyMenuLang() {
   });
   const btnSQ = document.getElementById("menuLangBtnSQ");
   const btnDE = document.getElementById("menuLangBtnDE");
+  const btnEN = document.getElementById("menuLangBtnEN");
   if (btnSQ) btnSQ.classList.toggle("active", menuLang === "sq");
   if (btnDE) btnDE.classList.toggle("active", menuLang === "de");
+  if (btnEN) btnEN.classList.toggle("active", menuLang === "en");
 }
 
 function setMenuLang(lang) {
-  menuLang = lang === "de" ? "de" : "sq";
+  menuLang = (lang === "de" || lang === "en") ? lang : "sq";
   applyMenuLang();
   ensureStats();
   stats.menuLang = menuLang;
   queueSave();
 }
+
+/* ============ FAQJA E PARË: ZGJEDH GJUHËN, PARA IDENTIFIKIMIT ============ */
+// Shfaqet vetëm një herë, para se përdoruesi të regjistrohet/identifikohet.
+// Zgjedhja fillestare vendos edhe menunë edhe gjuhën e fjalorit njëkohësisht,
+// që gjithçka të jetë menjëherë koherente — por të dyja mund të ndryshohen
+// veç e veç më vonë nga çelësat lart djathtas, si më parë.
+function showLangOnboardIfNeeded() {
+  ensureStats();
+  if (stats.langOnboardDone) return;
+  document.getElementById("langOnboardOverlay").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function chooseOnboardLang(flag) {
+  ensureStats();
+  setMenuLang(flag === "en" ? "en" : flag === "de" ? "de" : "sq");
+  if (flag === "sq" || flag === "en") setHelperLang(flag);
+  stats.langOnboardDone = true;
+  queueSave();
+  document.getElementById("langOnboardOverlay").classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+document.querySelectorAll(".flag-choice-btn").forEach(btn => {
+  btn.addEventListener("click", () => chooseOnboardLang(btn.dataset.flag));
+});
 
 /* ============ NDËRRIMI I GJUHËS SË NDIHMËS: shqip <-> anglisht ============ */
 let helperLang = "sq"; // "sq" = shqip (parazgjedhje), "en" = anglisht
@@ -4104,6 +4190,7 @@ document.getElementById("langBtnSQ").addEventListener("click", () => setHelperLa
 document.getElementById("langBtnEN").addEventListener("click", () => setHelperLang("en"));
 document.getElementById("menuLangBtnSQ").addEventListener("click", () => setMenuLang("sq"));
 document.getElementById("menuLangBtnDE").addEventListener("click", () => setMenuLang("de"));
+document.getElementById("menuLangBtnEN").addEventListener("click", () => setMenuLang("en"));
 
 function speak(text) {
   if (!("speechSynthesis" in window)) { alert("Pajisja jote nuk mbështet sintezën e zërit."); return; }
@@ -9011,6 +9098,7 @@ renderPoints();
 renderCard();
 renderStreakBar();
 applyMenuLang();
+showLangOnboardIfNeeded();
 if (lastSeenTreeStage === null) lastSeenTreeStage = treeStageFor(Math.floor(totalPoints / 100) + 1).idx;
 
 const hudFarmRowEl = document.getElementById("hudFarmRow");
