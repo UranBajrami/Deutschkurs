@@ -611,6 +611,10 @@
     animation: overlayIn .4s cubic-bezier(.2,.8,.2,1);
   }
   #pwResetOverlay .placement-hero-icon { filter: drop-shadow(0 0 24px var(--gold-glow)); }
+  .pwreset-note {
+    text-align: center; margin-top: 14px; font-size: .78rem; font-weight: 600;
+    color: var(--muted); line-height: 1.5;
+  }
   #placementOverlay {
     position: fixed; inset: 0; z-index: 900; overflow-y: auto;
     background:
@@ -1806,7 +1810,7 @@
       <input type="password" id="pwResetInput1" placeholder="Fjalëkalimi i ri" autocomplete="new-password" data-i18n-placeholder="auth.reset.new">
       <input type="password" id="pwResetInput2" placeholder="Përsërit fjalëkalimin" autocomplete="new-password" data-i18n-placeholder="auth.reset.repeat">
       <button class="btn btn-primary" id="btnPwResetSave" style="width:100%;padding:16px;font-size:1rem;" data-i18n="auth.reset.save">Ruaj fjalëkalimin e ri</button>
-      <div class="auth-toggle"><a id="pwResetSkip" data-i18n="auth.reset.skip">Më vonë →</a></div>
+      <div class="pwreset-note" data-i18n="auth.reset.required">Për të vazhduar, duhet të vendosësh një fjalëkalim të ri.</div>
     </div>
   </div>
 </div>
@@ -4022,7 +4026,7 @@ const UI_STRINGS = {
 
   "auth.forgot":          { sq: "Ke harruar fjalëkalimin?", de: "Passwort vergessen?" },
   "auth.changepw":        { sq: "🔑 Ndrysho fjalëkalimin", de: "🔑 Passwort ändern" },
-  "auth.reset.skip":      { sq: "Më vonë →", de: "Später →" },
+  "auth.reset.required":  { sq: "Për të vazhduar, duhet të vendosësh një fjalëkalim të ri.", de: "Um fortzufahren, musst du ein neues Passwort festlegen." },
   "auth.forgot.title":    { sq: "Rivendos fjalëkalimin", de: "Passwort zurücksetzen" },
   "auth.forgot.subtitle": { sq: "Shkruaj email-in tënd. Do të marrësh një lidhje për të vendosur një fjalëkalim të ri.",
                             de: "Gib deine E-Mail-Adresse ein. Du erhältst einen Link, um ein neues Passwort festzulegen." },
@@ -6962,6 +6966,23 @@ function openPwResetOverlay(email) {
   document.getElementById("pwResetEmail").textContent = email ? ("📧 " + email) : "";
   ov.classList.remove("hidden");
   document.body.style.overflow = "hidden";   // pa scroll në sfond
+
+  // Siguri: derisa fjalëkalimi të ndryshohet vërtet, nuk lejohet dalje nga kjo faqe.
+  // Nëse dikush provon ta mbyllë me mjete të tjera, e rihapim menjëherë.
+  if (!window.__pwResetGuard) {
+    window.__pwResetGuard = setInterval(() => {
+      if (!window.__pendingPasswordRecovery) {
+        clearInterval(window.__pwResetGuard);
+        window.__pwResetGuard = null;
+        return;
+      }
+      const el = document.getElementById("pwResetOverlay");
+      if (el && el.classList.contains("hidden")) {
+        el.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+      }
+    }, 600);
+  }
 }
 
 function closePwResetOverlay() {
@@ -6970,12 +6991,6 @@ function closePwResetOverlay() {
   ov.classList.add("hidden");
   document.body.style.overflow = "";
 }
-
-document.getElementById("pwResetSkip").addEventListener("click", () => {
-  window.__pendingPasswordRecovery = false;
-  closePwResetOverlay();
-  goToView("account");
-});
 
 document.getElementById("btnPwResetSave").addEventListener("click", async () => {
   const msgEl = document.getElementById("pwResetMsg");
