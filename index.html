@@ -1695,6 +1695,19 @@
       <h3 data-i18n="auth.loggedin">I identifikuar ✓</h3>
       <div class="sub" id="authUserEmail" style="word-break:break-all;"></div>
       <div class="auth-msg ok" id="syncMsg"></div>
+
+      <!-- Ndryshimi i fjalëkalimit: gjithmonë i disponueshëm kur je i identifikuar -->
+      <button class="btn btn-secondary" id="btnShowChangePw" style="width:100%;margin-bottom:10px;" data-i18n="auth.changepw">🔑 Ndrysho fjalëkalimin</button>
+      <div class="hidden" id="changePwBox">
+        <div class="auth-msg" id="changePwMsg"></div>
+        <input type="password" id="changePw1" placeholder="Fjalëkalimi i ri" autocomplete="new-password" data-i18n-placeholder="auth.reset.new">
+        <input type="password" id="changePw2" placeholder="Përsërit fjalëkalimin" autocomplete="new-password" data-i18n-placeholder="auth.reset.repeat">
+        <div class="controls" style="margin-bottom:10px;">
+          <button class="btn btn-primary" id="btnChangePwSave" style="flex:1;" data-i18n="common.save">Ruaj</button>
+          <button class="btn btn-secondary" id="btnChangePwCancel" style="flex:1;" data-i18n="common.cancel">Anulo</button>
+        </div>
+      </div>
+
       <button class="btn btn-secondary" id="btnLogout" style="width:100%;" data-i18n="auth.logout">🚪 Dil nga llogaria</button>
     </div>
     <div class="sync-note" data-i18n="auth.syncnote">Pikët dhe fjalët e shtuara vetë ruhen automatikisht online dhe ngarkohen përsëri herën tjetër që identifikohesh (edhe në një pajisje tjetër). Ushtrimet me karta dhe kuiz funksionojnë edhe offline, pa identifikim.</div>
@@ -3979,6 +3992,7 @@ const UI_STRINGS = {
                          de: "Punkte und selbst hinzugefügte Wörter werden automatisch online gespeichert und beim nächsten Anmelden wieder geladen (auch auf einem anderen Gerät). Karten- und Quiz-Übungen funktionieren auch offline, ohne Anmeldung." },
 
   "auth.forgot":          { sq: "Ke harruar fjalëkalimin?", de: "Passwort vergessen?" },
+  "auth.changepw":        { sq: "🔑 Ndrysho fjalëkalimin", de: "🔑 Passwort ändern" },
   "auth.forgot.title":    { sq: "Rivendos fjalëkalimin", de: "Passwort zurücksetzen" },
   "auth.forgot.subtitle": { sq: "Shkruaj email-in tënd. Do të marrësh një lidhje për të vendosur një fjalëkalim të ri.",
                             de: "Gib deine E-Mail-Adresse ein. Du erhältst einen Link, um ein neues Passwort festzulegen." },
@@ -6907,6 +6921,49 @@ document.getElementById("btnLogout").addEventListener("click", async () => {
   if (sb) await sb.auth.signOut();
 });
 
+/* ============ NDRYSHIMI I FJALËKALIMIT KUR JE I IDENTIFIKUAR ============ */
+// Kjo funksionon GJITHMONË kur ke një sesion aktiv — edhe nëse ke ardhur nga një lidhje
+// rivendosjeje dhe aplikacioni të ka identifikuar direkt. Kështu askush nuk ngec pa mundësi
+// për të vendosur fjalëkalim të ri.
+document.getElementById("btnShowChangePw").addEventListener("click", () => {
+  const box = document.getElementById("changePwBox");
+  box.classList.toggle("hidden");
+  document.getElementById("changePwMsg").textContent = "";
+  document.getElementById("changePw1").value = "";
+  document.getElementById("changePw2").value = "";
+});
+
+document.getElementById("btnChangePwCancel").addEventListener("click", () => {
+  document.getElementById("changePwBox").classList.add("hidden");
+});
+
+document.getElementById("btnChangePwSave").addEventListener("click", async () => {
+  const msgEl = document.getElementById("changePwMsg");
+  const p1 = document.getElementById("changePw1").value;
+  const p2 = document.getElementById("changePw2").value;
+  if (p1.length < 6) { msgEl.textContent = "Fjalëkalimi duhet të ketë të paktën 6 shkronja."; msgEl.className = "auth-msg err"; return; }
+  if (p1 !== p2) { msgEl.textContent = "Fjalëkalimet nuk përputhen."; msgEl.className = "auth-msg err"; return; }
+  if (!sb) { msgEl.textContent = "Nuk ka lidhje me serverin."; msgEl.className = "auth-msg err"; return; }
+  const btn = document.getElementById("btnChangePwSave");
+  btn.disabled = true;
+  msgEl.textContent = "Po ruhet…"; msgEl.className = "auth-msg";
+  try {
+    const { error } = await sb.auth.updateUser({ password: p1 });
+    if (error) throw error;
+    msgEl.textContent = "✓ Fjalëkalimi u ndryshua me sukses!";
+    msgEl.className = "auth-msg ok";
+    window.__pendingPasswordRecovery = false;
+    document.getElementById("changePw1").value = "";
+    document.getElementById("changePw2").value = "";
+    setTimeout(() => { document.getElementById("changePwBox").classList.add("hidden"); }, 2500);
+  } catch (err) {
+    msgEl.textContent = err.message || "Diçka shkoi keq. Provo përsëri.";
+    msgEl.className = "auth-msg err";
+  } finally {
+    btn.disabled = false;
+  }
+});
+
 /* ============ RIVENDOSJA E FJALËKALIMIT (harruar) ============ */
 function showAuthPanel(panel) {
   // panel: "login" | "forgot" | "reset"
@@ -7095,6 +7152,21 @@ if (sb) {
       document.getElementById("resetPassword1").value = "";
       document.getElementById("resetPassword2").value = "";
       document.getElementById("resetMsg").textContent = "";
+      // Sigurí shtesë: edhe nëse për ndonjë arsye paneli i rivendosjes nuk shfaqet
+      // (p.sh. Supabase sillet ndryshe), hapim direkt kutinë e ndryshimit të fjalëkalimit
+      // brenda llogarisë, që përdoruesi të mos ngecë kurrë pa zgjidhje.
+      setTimeout(() => {
+        const resetVisible = !document.getElementById("authResetView").classList.contains("hidden");
+        if (!resetVisible && currentUser) {
+          const box = document.getElementById("changePwBox");
+          if (box) {
+            box.classList.remove("hidden");
+            const m = document.getElementById("changePwMsg");
+            m.textContent = "Vendos fjalëkalimin tënd të ri këtu poshtë.";
+            m.className = "auth-msg";
+          }
+        }
+      }, 1200);
       return;
     }
     if (event === "PASSWORD_RECOVERY") {
