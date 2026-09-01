@@ -112,18 +112,13 @@
   }
   .lang-toggle-btn:active { transform: scale(.94); }
   .app-logo-row {
-    display: flex; align-items: center; justify-content: center; gap: 12px;
+    display: flex; align-items: center; justify-content: center;
     margin-bottom: 10px;
   }
   .app-logo-img {
-    width: 56px; height: 56px; object-fit: contain; flex-shrink: 0;
-    filter: drop-shadow(0 4px 14px rgba(0,0,0,.4)) drop-shadow(0 0 20px var(--gold-glow));
+    width: 84px; height: 84px; object-fit: contain; flex-shrink: 0;
+    filter: drop-shadow(0 6px 18px rgba(0,0,0,.45)) drop-shadow(0 0 26px var(--gold-glow));
     animation: floatGlow 3s ease-in-out infinite;
-  }
-  .app-logo-text {
-    font-size: 2rem; margin: 0; font-weight: 800; letter-spacing: -.02em;
-    background: linear-gradient(135deg, #fff, #c9d6ff);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   .header-row { display: flex; align-items: center; justify-content: center; gap: 10px; }
   .subtitle { color: var(--muted); font-size: .82rem; font-weight: 600; }
@@ -634,7 +629,25 @@
     width: 84px; height: 56px; object-fit: cover; border-radius: 8px; flex-shrink: 0;
     box-shadow: 0 3px 10px rgba(0,0,0,.4);
   }
-  .flag-choice-btn span { font-size: 1.15rem; font-weight: 800; color: var(--ink); }
+  .flag-pair { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .flag-pair img { width: 52px; height: 35px; object-fit: cover; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+  .flag-arrow { color: var(--muted); font-size: 1rem; font-weight: 800; }
+  .flag-choice-label { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; }
+  .flag-choice-label strong { font-size: 1.1rem; font-weight: 800; color: var(--ink); }
+  .flag-choice-label em { font-size: .74rem; font-style: normal; font-weight: 600; color: var(--muted); line-height: 1.35; }
+  .onboard-question-toggle {
+    display: flex; justify-content: center; gap: 8px; margin-bottom: 22px;
+  }
+  .onboard-qt-btn {
+    padding: 8px 16px; border-radius: var(--radius-pill); border: 1px solid var(--line);
+    background: rgba(255,255,255,.05); color: var(--muted); font-family: var(--font);
+    font-size: .82rem; font-weight: 800; cursor: pointer; transition: all .15s ease;
+  }
+  .onboard-qt-btn.active {
+    background: linear-gradient(135deg, var(--blue), #7aa2ff); color: #fff; border-color: transparent;
+    box-shadow: 0 4px 14px var(--blue-glow);
+  }
+  .onboard-qt-btn:active { transform: scale(.95); }
 
   .pwreset-note {
     text-align: center; margin-top: 14px; font-size: .78rem; font-weight: 600;
@@ -1238,9 +1251,8 @@
   /* Telefona të vegjël (iPhone SE, mini) */
   @media (max-width: 400px) {
     body { padding-left: calc(12px + env(safe-area-inset-left)); padding-right: calc(12px + env(safe-area-inset-right)); }
-    .app-logo-img { width: 44px; height: 44px; }
+    .app-logo-img { width: 60px; height: 60px; }
     .lang-toggle-btn { padding: 4px 7px; font-size: .64rem; }
-    .app-logo-text { font-size: 1.5rem; }
     .subtitle { font-size: .76rem; }
     nav { gap: 4px; padding: 6px; border-radius: 20px; }
     nav button { padding: 9px 5px 8px; font-size: .6rem; border-radius: 15px; gap: 2px; min-width: 54px; max-width: 72px; }
@@ -1278,8 +1290,7 @@
   @media (min-width: 700px) {
     body { padding-left: calc(28px + env(safe-area-inset-left)); padding-right: calc(28px + env(safe-area-inset-right)); }
     .view, .hud, .account-bar, nav, header { max-width: 640px; }
-    .app-logo-img { width: 68px; height: 68px; }
-    .app-logo-text { font-size: 2.4rem; }
+    .app-logo-img { width: 104px; height: 104px; }
     .subtitle { font-size: .92rem; }
     nav button { font-size: .8rem; padding: 14px 6px 12px; }
     nav button .tab-icon { font-size: 1.5rem; height: 30px; width: 30px; }
@@ -1306,6 +1317,7 @@
   /* iPad landscape / ekrane të mëdha */
   @media (min-width: 1024px) {
     .view, .hud, .account-bar, nav, header { max-width: 720px; }
+    .app-logo-img { width: 120px; height: 120px; }
     .card-wrap { height: 280px; }
     .card-word { font-size: 2.2rem; }
     .practice-hero-img { width: 190px; height: 190px; }
@@ -1323,6 +1335,7 @@
 
   /* Telefon në pozicion horizontal: kursej lartësi */
   @media (max-height: 480px) and (orientation: landscape) {
+    .app-logo-img { width: 44px; height: 44px; }
     .card-wrap { height: 150px; }
     .practice-hero-img { width: 80px; height: 80px; }
     .mascot-fab { width: 54px; height: 54px; }
@@ -1379,16 +1392,11 @@
 <header>
   <div class="app-logo-row">
     <img src="icons/icon-192.png" alt="Shkolla" class="app-logo-img">
-    <h1 class="app-logo-text">Shkolla</h1>
     <div class="lang-toggle-stack">
-      <div class="lang-toggle" id="langToggle" title="Gjuha e fjalorit">
-        <button class="lang-toggle-btn active" data-lang="sq" id="langBtnSQ">🇦🇱 SQ</button>
-        <button class="lang-toggle-btn" data-lang="en" id="langBtnEN">🇬🇧 EN</button>
-      </div>
-      <div class="lang-toggle" id="menuLangToggle" title="Gjuha e menusë">
-        <button class="lang-toggle-btn active" data-lang="sq" id="menuLangBtnSQ">📋 SQ</button>
-        <button class="lang-toggle-btn" data-lang="de" id="menuLangBtnDE">📋 DE</button>
-        <button class="lang-toggle-btn" data-lang="en" id="menuLangBtnEN">📋 EN</button>
+      <div class="lang-toggle" id="modeToggle" title="Modaliteti i mësimit">
+        <button class="lang-toggle-btn active" data-mode="sq-de">🇦🇱→🇩🇪</button>
+        <button class="lang-toggle-btn" data-mode="sq-en">🇦🇱→🇬🇧</button>
+        <button class="lang-toggle-btn" data-mode="de-en">🇩🇪→🇬🇧</button>
       </div>
     </div>
   </div>
@@ -1485,14 +1493,14 @@
     <div class="card" id="flashcard">
       <div class="card-face card-front">
         <div class="card-flip-badge">⟳</div>
-        <div class="card-lang" id="cardLangFront" data-i18n="card.lang.sq">Shqip</div>
+        <div class="card-lang" id="cardLangFront">Shqip</div>
         <div class="card-word" id="frontWord">—</div>
         <div class="card-cat" id="frontCat"></div>
         <div class="card-hint" data-i18n="card.hint">Trokit për ta kthyer</div>
       </div>
       <div class="card-face card-back">
         <div class="card-flip-badge">⟳</div>
-        <div class="card-lang" data-i18n="card.lang.de">Gjermanisht</div>
+        <div class="card-lang" id="cardLangBack">Gjermanisht</div>
         <div class="card-word" id="backWord">—</div>
         <button class="btn btn-secondary" id="btnSpeak" style="margin-top:12px;font-size:.8rem;padding:6px 12px;"><span data-i18n="card.listen">🔊 Dëgjo</span></button>
       </div>
@@ -1826,26 +1834,52 @@
 <!-- FAQE E PARË: ZGJEDH GJUHËN, PARA IDENTIFIKIMIT -->
 <div class="hidden" id="langOnboardOverlay">
   <div class="placement-shell">
+    <div class="onboard-question-toggle">
+      <button class="onboard-qt-btn active" data-qlang="sq">🇦🇱 Shqip</button>
+      <button class="onboard-qt-btn" data-qlang="de">🇩🇪 Deutsch</button>
+    </div>
     <div class="placement-hero">
       <div class="placement-hero-icon">🌍</div>
       <h2 data-i18n="onboard.title">Çfarë do të mësosh?</h2>
       <p data-i18n="onboard.subtitle">Zgjidh gjuhën. Mund ta ndryshosh kurdo herë tjetër.</p>
     </div>
     <div class="flag-choice-grid">
-      <button class="flag-choice-btn" data-flag="sq">
-        <img src="flags/sq.png" alt="Shqip">
-        <span>Shqip</span>
+      <button class="flag-choice-btn" data-mode="sq-de">
+        <span class="flag-pair">
+          <img src="flags/sq.png" alt="Shqip">
+          <span class="flag-arrow">→</span>
+          <img src="flags/de.png" alt="Deutsch">
+        </span>
+        <span class="flag-choice-label">
+          <strong>Deutsch</strong>
+          <em data-i18n="mode.sq-de.sub">Mëso gjermanisht, ndihma në shqip</em>
+        </span>
       </button>
-      <button class="flag-choice-btn" data-flag="de">
-        <img src="flags/de.png" alt="Deutsch">
-        <span>Deutsch</span>
+      <button class="flag-choice-btn" data-mode="sq-en">
+        <span class="flag-pair">
+          <img src="flags/sq.png" alt="Shqip">
+          <span class="flag-arrow">→</span>
+          <img src="flags/us.png" alt="English">
+        </span>
+        <span class="flag-choice-label">
+          <strong>English</strong>
+          <em data-i18n="mode.sq-en.sub">Mëso anglisht, ndihma në shqip</em>
+        </span>
       </button>
-      <button class="flag-choice-btn" data-flag="en">
-        <img src="flags/us.png" alt="English">
-        <span>English</span>
+      <button class="flag-choice-btn" data-mode="de-en">
+        <span class="flag-pair">
+          <img src="flags/de.png" alt="Deutsch">
+          <span class="flag-arrow">→</span>
+          <img src="flags/us.png" alt="English">
+        </span>
+        <span class="flag-choice-label">
+          <strong>English</strong>
+          <em data-i18n="mode.de-en.sub">Englisch lernen, Hilfe auf Deutsch</em>
+        </span>
       </button>
     </div>
   </div>
+
 </div>
 
 <div class="hidden" id="pwResetOverlay">
@@ -3901,18 +3935,23 @@ function renderHudFarmRow() {
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML;}
 
-function pickGermanVoice() {
+// Zgjedh një zë sipas prefiksit të gjuhës ("de" ose "en"), me preferencë për zë femëror
+function pickVoiceFor(langPrefix) {
   if (!("speechSynthesis" in window)) return null;
   const voices = window.speechSynthesis.getVoices();
   if (!voices.length) return null;
-  const femaleHints = ["anna","petra","helena","katja","marlene","conny","viktoria","female","google deutsch","martina","vicki"];
-  const maleHints = ["markus","yannick","stefan","male","hans","conrad"];
-  const deVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith("de"));
-  let voice = deVoices.find(v => femaleHints.some(h => v.name.toLowerCase().includes(h)));
-  if (!voice) voice = deVoices.find(v => !maleHints.some(h => v.name.toLowerCase().includes(h)));
-  if (!voice) voice = deVoices[0];
+  const femaleHints = ["anna","petra","helena","katja","marlene","conny","viktoria","female","google deutsch","martina","vicki",
+                       "samantha","karen","moira","tessa","serena","zira","google us english","google uk english female","joanna","emma"];
+  const maleHints = ["markus","yannick","stefan","male","hans","conrad","daniel","alex","fred","david","google uk english male"];
+  const pool = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith(langPrefix));
+  let voice = pool.find(v => femaleHints.some(hh => v.name.toLowerCase().includes(hh)));
+  if (!voice) voice = pool.find(v => !maleHints.some(hh => v.name.toLowerCase().includes(hh)));
+  if (!voice) voice = pool[0];
   return voice || voices[0] || null;
 }
+
+// Mbetet për përputhshmëri me kodin ekzistues
+function pickGermanVoice() { return pickVoiceFor("de"); }
 if ("speechSynthesis" in window) {
   window.speechSynthesis.getVoices();
   window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
@@ -4097,7 +4136,47 @@ const UI_STRINGS = {
   "onboard.title":    { sq: "Çfarë do të mësosh?", de: "Was möchtest du lernen?", en: "What do you want to learn?" },
   "onboard.subtitle": { sq: "Zgjidh gjuhën. Mund ta ndryshosh kurdo herë tjetër.",
                          de: "Wähle deine Sprache. Du kannst sie jederzeit später ändern.",
-                         en: "Choose your language. You can change it anytime later." }
+                         en: "Choose your language. You can change it anytime later." },
+
+  "exam.choose_level": { sq: "Zgjidh nivelin e provimit", de: "Wähle das Prüfungsniveau", en: "Choose the exam level" },
+  "exam.or_single":    { sq: "Ose ushtro një modul B1 veç e veç", de: "Oder übe ein einzelnes B1-Modul", en: "Or practice a single B1 module" },
+  "exam.modules_meta": { sq: "module", de: "Module", en: "modules" },
+  "exam.min":          { sq: "min", de: "Min.", en: "min" },
+  "exam.points":       { sq: "pikë", de: "Punkte", en: "points" },
+
+  "exam.lesen.title": { sq: "📖 Lesen (Lexim)", de: "📖 Lesen (Leseverstehen)", en: "📖 Lesen (Reading)" },
+  "exam.lesen.desc":  { sq: "Tre tekste me pyetje: email, artikull gazete dhe njoftime.",
+                         de: "Drei Texte mit Fragen: E-Mail, Zeitungsartikel und Anzeigen.",
+                         en: "Three texts with questions: email, newspaper article, and notices." },
+  "exam.lesen.meta":  { sq: "11 pyetje · 25 minuta", de: "11 Fragen · 25 Minuten", en: "11 questions · 25 minutes" },
+
+  "exam.gram.title": { sq: "🧩 Sprachbausteine (Gramatikë)", de: "🧩 Sprachbausteine (Grammatik)", en: "🧩 Sprachbausteine (Grammar)" },
+  "exam.gram.desc":  { sq: "Tekst gramatikor me boshllëqe: fjali të nënrenditura, parafjalë, Konjunktiv II.",
+                        de: "Grammatiktext mit Lücken: Nebensätze, Präpositionen, Konjunktiv II.",
+                        en: "Grammar text with gaps: subordinate clauses, prepositions, Konjunktiv II." },
+  "exam.gram.meta":  { sq: "20 pyetje · 20 minuta", de: "20 Fragen · 20 Minuten", en: "20 questions · 20 minutes" },
+
+  "exam.hoeren.title": { sq: "🎧 Hören (Dëgjim)", de: "🎧 Hören (Hörverstehen)", en: "🎧 Hören (Listening)" },
+  "exam.hoeren.desc":  { sq: "Pajisja jote i lexon tekstet me zë: njoftim në stacion, mesazh telefonik, bisedë në zyrë.",
+                          de: "Dein Gerät liest die Texte laut vor: Bahnhofsdurchsage, Telefonnachricht, Bürogespräch.",
+                          en: "Your device reads the texts aloud: station announcement, phone message, office conversation." },
+  "exam.hoeren.meta":  { sq: "9 pyetje · 15 minuta", de: "9 Fragen · 15 Minuten", en: "9 questions · 15 minutes" },
+
+  "exam.schreiben.title": { sq: "✍️ Schreiben (Shkrim)", de: "✍️ Schreiben (Schreiben)", en: "✍️ Schreiben (Writing)" },
+  "exam.schreiben.desc":  { sq: "Shkruaj një email ose postim në forum, me numërues fjalësh dhe vetëkontroll.",
+                             de: "Schreibe eine E-Mail oder einen Forumsbeitrag, mit Wortzähler und Selbstkontrolle.",
+                             en: "Write an email or forum post, with word counter and self-check." },
+  "exam.schreiben.meta":  { sq: "1 detyrë · 30 minuta", de: "1 Aufgabe · 30 Minuten", en: "1 task · 30 minutes" },
+
+  "exam.sprechen.title": { sq: "🗣️ Sprechen (Të folurit)", de: "🗣️ Sprechen (Sprechen)", en: "🗣️ Sprechen (Speaking)" },
+  "exam.sprechen.desc":  { sq: "Karta bisede me shprehje ndihmëse — ushtro me zë, mundësisht me regjistrim në telefon.",
+                            de: "Gesprächskarten mit Hilfsausdrücken — übe laut, am besten mit Aufnahme auf dem Handy.",
+                            en: "Conversation cards with helper phrases — practice out loud, ideally with a phone recording." },
+  "exam.sprechen.meta":  { sq: "3 detyra · 15 minuta", de: "3 Aufgaben · 15 Minuten", en: "3 tasks · 15 minutes" },
+  "practice.translate_to": { sq: "Përkthe në {lang}", de: "Übersetze ins {lang}", en: "Translate into {lang}" },
+  "mode.sq-de.sub": { sq: "Mëso gjermanisht, ndihma në shqip", de: "Deutsch lernen, Hilfe auf Albanisch", en: "Learn German, help in Albanian" },
+  "mode.sq-en.sub": { sq: "Mëso anglisht, ndihma në shqip",    de: "Englisch lernen, Hilfe auf Albanisch", en: "Learn English, help in Albanian" },
+  "mode.de-en.sub": { sq: "Mëso anglisht, ndihma në gjermanisht", de: "Englisch lernen, Hilfe auf Deutsch", en: "Learn English, help in German" }
 };
 
 let menuLang = "sq"; // "sq" = shqip (parazgjedhje), "de" = gjermanisht, "en" = anglisht
@@ -4129,19 +4208,38 @@ function applyMenuLang() {
   if (btnEN) btnEN.classList.toggle("active", menuLang === "en");
 }
 
+// USHTRIMET: Sistemi i gjuhës është TANI I NJËSUAR — një zgjedhje e vetme (SQ/DE/EN)
+// kontrollon njëkohësisht menunë DHE gjuhën e ndihmës së fjalorit. Kështu asnjëherë
+// nuk mbetet fjalë shqip kur ke zgjedhur anglisht, apo anasjelltas — janë gjithmonë
+// të sinkronizuara, pa dy çelësa të ndashëm që bien në kundërshtim me njëri-tjetrin.
 function setMenuLang(lang) {
   menuLang = (lang === "de" || lang === "en") ? lang : "sq";
+  // Gjuha e ndihmës së fjalorit: shqip nëse menuja është shqip, përndryshe anglisht
+  // (as gjermanishtja e menusë s'ka "vetë-ndihmë" — anglishtja është më e arsyeshme atje).
+  helperLang = (menuLang === "sq") ? "sq" : "en";
+
   applyMenuLang();
+
+  const btnSQ = document.getElementById("menuLangBtnSQ");
+  const btnDE = document.getElementById("menuLangBtnDE");
+  const btnEN = document.getElementById("menuLangBtnEN");
+  if (btnSQ) btnSQ.classList.toggle("active", menuLang === "sq");
+  if (btnDE) btnDE.classList.toggle("active", menuLang === "de");
+  if (btnEN) btnEN.classList.toggle("active", menuLang === "en");
+
   ensureStats();
   stats.menuLang = menuLang;
+  stats.helperLang = helperLang;
   queueSave();
+
+  // Rifresko çdo pamje që varet nga gjuha, që ndryshimi të duket menjëherë kudo
+  if (typeof renderCard === "function" && document.getElementById("view-cards") && !document.getElementById("view-cards").classList.contains("hidden")) renderCard();
+  if (typeof fillCatSelects === "function") fillCatSelects();
+  if (typeof renderExamMenu === "function" && document.getElementById("view-exam") && !document.getElementById("view-exam").classList.contains("hidden")) renderExamMenu();
 }
 
 /* ============ FAQJA E PARË: ZGJEDH GJUHËN, PARA IDENTIFIKIMIT ============ */
 // Shfaqet vetëm një herë, para se përdoruesi të regjistrohet/identifikohet.
-// Zgjedhja fillestare vendos edhe menunë edhe gjuhën e fjalorit njëkohësisht,
-// që gjithçka të jetë menjëherë koherente — por të dyja mund të ndryshohen
-// veç e veç më vonë nga çelësat lart djathtas, si më parë.
 function showLangOnboardIfNeeded() {
   ensureStats();
   if (stats.langOnboardDone) return;
@@ -4149,10 +4247,9 @@ function showLangOnboardIfNeeded() {
   document.body.style.overflow = "hidden";
 }
 
-function chooseOnboardLang(flag) {
+function chooseOnboardMode(mode) {
   ensureStats();
-  setMenuLang(flag === "en" ? "en" : flag === "de" ? "de" : "sq");
-  if (flag === "sq" || flag === "en") setHelperLang(flag);
+  setLearnMode(mode);
   stats.langOnboardDone = true;
   queueSave();
   document.getElementById("langOnboardOverlay").classList.add("hidden");
@@ -4160,44 +4257,101 @@ function chooseOnboardLang(flag) {
 }
 
 document.querySelectorAll(".flag-choice-btn").forEach(btn => {
-  btn.addEventListener("click", () => chooseOnboardLang(btn.dataset.flag));
+  btn.addEventListener("click", () => chooseOnboardMode(btn.dataset.mode));
 });
 
-/* ============ NDËRRIMI I GJUHËS SË NDIHMËS: shqip <-> anglisht ============ */
-let helperLang = "sq"; // "sq" = shqip (parazgjedhje), "en" = anglisht
+// Ndryshon VETËM gjuhën në të cilën shfaqet vetë pyetja e onboarding-ut
+// (p.sh. një prind gjermanishtfolës mund ta lexojë pyetjen në gjermanisht),
+// pa e mbyllur ende faqen dhe pa vendosur akoma zgjedhjen përfundimtare.
+document.querySelectorAll(".onboard-qt-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".onboard-qt-btn").forEach(b => b.classList.toggle("active", b === btn));
+    menuLang = btn.dataset.qlang;
+    applyMenuLang();
+  });
+});
+
+/* ============ GJUHA E NDIHMËS SË FJALORIT (kontrollohet nga setMenuLang më sipër) ============ */
+let helperLang = "sq"; // "sq" = shqip, "en" = anglisht — përcaktohet automatikisht nga menuLang
 
 // Kthen fjalën ndihmëse të një artikulli vokabullar sipas gjuhës aktuale.
 // Nëse anglishtja s'është përkthyer ende për këtë fjalë, bie mbrapa te shqipja
 // (asnjë fjalë nuk zhduket kurrë — thjesht s'është përkthyer akoma).
+/* ============ MODALITETET E MËSIMIT ============
+   Tre kombinime, secili me një gjuhë MËSIMI (çfarë mëson) dhe një gjuhë NDIHMËSE
+   (gjuha jote amtare, që të shpjegon):
+     sq-de : mëson gjermanisht, ndihma në shqip   (versioni origjinal)
+     de-en : mëson anglisht,    ndihma në gjermanisht
+     sq-en : mëson anglisht,    ndihma në shqip
+   Çdo fjalë e fjalorit ka tashmë të tri fushat (al / de / en), prandaj të tre
+   modalitetet përdorin të njëjtin fjalor pa dublim të të dhënave. */
+const LEARN_MODES = {
+  "sq-de": { learn: "de", help: "al", learnLabel: "Deutsch",  helpLabel: "Shqip",   speak: "de-DE", menuLang: "sq" },
+  "de-en": { learn: "en", help: "de", learnLabel: "English",  helpLabel: "Deutsch", speak: "en-US", menuLang: "de" },
+  "sq-en": { learn: "en", help: "al", learnLabel: "English",  helpLabel: "Shqip",   speak: "en-US", menuLang: "sq" }
+};
+
+let learnMode = "sq-de";   // modaliteti aktual
+
+function modeCfg() { return LEARN_MODES[learnMode] || LEARN_MODES["sq-de"]; }
+
+// Fjala QË MËSON (ajo që duhet ta dish)
+function targetWord(w) {
+  const f = modeCfg().learn;
+  return (f === "en" ? (w.en || w.de) : w.de);
+}
+
+// Fjala NDIHMËSE (në gjuhën tënde, që ta kuptosh)
 function helperWord(w) {
-  if (helperLang === "en") return w.en || w.al;
-  return w.al;
+  const f = modeCfg().help;
+  if (f === "de") return w.de;
+  if (f === "al") return w.al;
+  return w.en || w.al;
 }
 
-function setHelperLang(lang) {
-  helperLang = lang === "en" ? "en" : "sq";
-  document.getElementById("langBtnSQ").classList.toggle("active", helperLang === "sq");
-  document.getElementById("langBtnEN").classList.toggle("active", helperLang === "en");
+// Etiketat e gjuhëve për t'i shfaqur në karta/kuiz
+function learnLangLabel() { return modeCfg().learnLabel; }
+function helpLangLabel()  { return modeCfg().helpLabel; }
+
+function setLearnMode(mode) {
+  if (!LEARN_MODES[mode]) mode = "sq-de";
+  learnMode = mode;
   ensureStats();
-  stats.helperLang = helperLang;
+  stats.learnMode = learnMode;
+  // Menuja ndjek automatikisht gjuhën ndihmëse, që gjithçka të jetë koherente
+  setMenuLang(modeCfg().menuLang);
   queueSave();
-  // Rifresko pamjen aktuale, që ndryshimi të duket menjëherë
-  if (typeof renderCard === "function" && !document.getElementById("view-cards").classList.contains("hidden")) renderCard();
-  if (typeof fillCatSelects === "function") fillCatSelects();
+  refreshAfterLangChange();
 }
 
-document.getElementById("langBtnSQ").addEventListener("click", () => setHelperLang("sq"));
-document.getElementById("langBtnEN").addEventListener("click", () => setHelperLang("en"));
-document.getElementById("menuLangBtnSQ").addEventListener("click", () => setMenuLang("sq"));
-document.getElementById("menuLangBtnDE").addEventListener("click", () => setMenuLang("de"));
-document.getElementById("menuLangBtnEN").addEventListener("click", () => setMenuLang("en"));
+// Rifreskon çdo pamje që varet nga gjuha
+function refreshAfterLangChange() {
+  if (typeof fillCatSelects === "function") fillCatSelects();
+  const vis = (id) => { const el = document.getElementById(id); return el && !el.classList.contains("hidden"); };
+  if (typeof renderCard === "function" && vis("view-cards")) renderCard();
+  if (typeof startQuiz === "function" && vis("view-quiz")) startQuiz();
+  if (typeof renderExamMenu === "function" && vis("view-exam")) renderExamMenu();
+  if (typeof renderModeButtons === "function") renderModeButtons();
+}
 
-function speak(text) {
+function renderModeButtons() {
+  document.querySelectorAll("[data-mode]").forEach(b =>
+    b.classList.toggle("active", b.dataset.mode === learnMode));
+}
+
+document.querySelectorAll("#modeToggle [data-mode]").forEach(btn => {
+  btn.addEventListener("click", () => setLearnMode(btn.dataset.mode));
+});
+
+// Lexon me zë në gjuhën e MËSIMIT të modalitetit aktual (gjermanisht ose anglisht).
+// Mund t'i jepet edhe një gjuhë e detyruar, p.sh. speak(txt, "de-DE").
+function speak(text, forceLang) {
   if (!("speechSynthesis" in window)) { alert("Pajisja jote nuk mbështet sintezën e zërit."); return; }
   window.speechSynthesis.cancel();
+  const lang = forceLang || (typeof modeCfg === "function" ? modeCfg().speak : "de-DE");
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = "de-DE"; u.rate = 0.93; u.pitch = 1.04;
-  const voice = pickGermanVoice();
+  u.lang = lang; u.rate = 0.93; u.pitch = 1.04;
+  const voice = pickVoiceFor(lang.slice(0, 2).toLowerCase());
   if (voice) u.voice = voice;
   window.speechSynthesis.speak(u);
 }
@@ -4409,7 +4563,11 @@ function renderCard() {
     return;
   }
   const w = currentDeck[cardIndex];
-  fw.textContent = helperWord(w); bw.textContent = w.de;
+  fw.textContent = helperWord(w); bw.textContent = targetWord(w);
+  const lf = document.getElementById("cardLangFront");
+  const lb = document.getElementById("cardLangBack");
+  if (lf) lf.textContent = helpLangLabel();
+  if (lb) lb.textContent = learnLangLabel();
   document.getElementById("frontCat").textContent = w.cat;
   flashcard.classList.remove("flipped");
   document.getElementById("cardProgress").textContent = (cardIndex+1)+" / "+currentDeck.length;
@@ -4421,7 +4579,7 @@ flashcard.addEventListener("click", e => {
 });
 document.getElementById("btnSpeak").addEventListener("click", e => {
   e.stopPropagation();
-  if (cardIndex < currentDeck.length) { speak(currentDeck[cardIndex].de); hwTick("listen", 1); }
+  if (cardIndex < currentDeck.length) { speak(targetWord(currentDeck[cardIndex])); hwTick("listen", 1); }
 });
 document.getElementById("btnKnow").addEventListener("click", () => { if (cardIndex < currentDeck.length){const w=currentDeck[cardIndex];knownCount++;cardIndex++;addPoints(5);feedbackCorrect();recordCard(true);recordStat(null,true,w.al+"|"+w.de);hwTick("cards",1);renderCard();} });
 document.getElementById("btnDontKnow").addEventListener("click", () => { if (cardIndex < currentDeck.length){const w=currentDeck[cardIndex];cardIndex++;feedbackWrong();recordCard(false);recordStat(null,false,w.al+"|"+w.de);hwTick("cards",1);renderCard();} });
@@ -4433,8 +4591,11 @@ document.getElementById("catFilter").addEventListener("change", () => { initCard
 let quizPool=[], quizIndex=0, quizScore=0, quizAnswered=false;
 // Shfaq fjalën në gjuhën aktuale të ndihmës kur fusha është "al"; "de" mbetet gjithmonë gjermanisht.
 // Logjika e krahasimit/saktësisë përdor gjithmonë vlerat e papërpunuara (al/de), pra s'preket nga gjuha.
+// "al" = fusha ndihmëse (gjuha jote), "de" = fusha e mësimit (ajo që mëson).
+// Emrat e fushave mbeten si më parë për përputhshmëri, por përmbajtja
+// tani vjen nga modaliteti aktiv i mësimit.
 function quizFieldText(w, field) {
-  return field === "al" ? helperWord(w) : w[field];
+  return field === "al" ? helperWord(w) : targetWord(w);
 }
 
 // Zgjedh distraktorë me tekst TË NDRYSHËM nga përgjigjja e saktë dhe nga njëri-tjetri,
@@ -4475,8 +4636,7 @@ function renderQuiz() {
   const correct = quizPool[quizIndex];
   const askField = dir === "al-de" ? "al" : "de";
   const ansField = dir === "al-de" ? "de" : "al";
-  const helperLabel = helperLang === "en" ? "English" : "Shqip";
-  document.getElementById("quizLang").textContent = dir === "al-de" ? helperLabel : "Deutsch";
+  document.getElementById("quizLang").textContent = dir === "al-de" ? helpLangLabel() : learnLangLabel();
   document.getElementById("quizWord").textContent = quizFieldText(correct, askField);
   document.getElementById("quizProgress").textContent = "Pyetja "+(quizIndex+1)+" / "+quizPool.length;
   document.getElementById("quizScore").textContent = "Richtig: "+quizScore;
@@ -5178,11 +5338,13 @@ function renderPracticeTranslate(dir) {
   const distractors = pickDistinctDistractors(vocab, correct, ansField, 3);
   const options = shuffle([correct, ...distractors]);
 
-  const dirIcon = dir === "al-de" ? (helperLang === "en" ? "🇬🇧" : "🇦🇱") : "🇩🇪";
-  const dirTargetIcon = dir === "al-de" ? "🇩🇪" : (helperLang === "en" ? "🇬🇧" : "🇦🇱");
-  const dirLabel = dir === "al-de"
-    ? (helperLang === "en" ? "Translate into German" : "Përkthe në gjermanisht")
-    : (helperLang === "en" ? "Translate into English" : "Përkthe në shqip");
+  const helpIcon  = modeCfg().help === "al" ? "🇦🇱" : modeCfg().help === "de" ? "🇩🇪" : "🇬🇧";
+  const learnIcon = modeCfg().learn === "de" ? "🇩🇪" : "🇬🇧";
+  const dirIcon       = dir === "al-de" ? helpIcon  : learnIcon;
+  const dirTargetIcon = dir === "al-de" ? learnIcon : helpIcon;
+  const toLearn = uiText("practice.translate_to").replace("{lang}", learnLangLabel());
+  const toHelp  = uiText("practice.translate_to").replace("{lang}", helpLangLabel());
+  const dirLabel = dir === "al-de" ? toLearn : toHelp;
   document.getElementById("practiceTypeBar").textContent = `${dirIcon} → ${dirTargetIcon}  ${dirLabel}`;
   currentPracticeWordKey = correct.al + "|" + correct.de;
   document.getElementById("practiceBody").innerHTML =
@@ -5289,40 +5451,40 @@ function renderExamMenu() {
       <div class="elc-body">
         <div class="elc-name">${esc(L.name)}</div>
         <div class="elc-desc">${esc(L.desc)}</div>
-        <div class="elc-meta">4 module · ${totalMin} min · 400 pikë</div>
+        <div class="elc-meta">4 ${uiText("exam.modules_meta")} · ${totalMin} ${uiText("exam.min")} · 400 ${uiText("exam.points")}</div>
       </div>
       ${recommended ? '<div class="elc-star">★</div>' : ""}
     </button>`;
   }).join("");
 
   menuEl.innerHTML = `
-    <div class="exam-section-label">Zgjidh nivelin e provimit</div>
+    <div class="exam-section-label">${uiText("exam.choose_level")}</div>
     ${levelCards}
-    <div class="exam-section-label" style="margin-top:18px;">Ose ushtro një modul B1 veç e veç</div>
+    <div class="exam-section-label" style="margin-top:18px;">${uiText("exam.or_single")}</div>
     <button class="exam-tile" data-exam="lesen">
-      <h3>📖 Lesen (Lexim)</h3>
-      <p>Tre tekste me pyetje: email, artikull gazete dhe njoftime.</p>
-      <div class="meta">11 pyetje · 25 minuta</div>
+      <h3>${uiText("exam.lesen.title")}</h3>
+      <p>${uiText("exam.lesen.desc")}</p>
+      <div class="meta">${uiText("exam.lesen.meta")}</div>
     </button>
     <button class="exam-tile" data-exam="grammatik">
-      <h3>🧩 Sprachbausteine (Gramatikë)</h3>
-      <p>Tekst gramatikor me boshllëqe: fjali të nënrenditura, parafjalë, Konjunktiv II.</p>
-      <div class="meta">20 pyetje · 20 minuta</div>
+      <h3>${uiText("exam.gram.title")}</h3>
+      <p>${uiText("exam.gram.desc")}</p>
+      <div class="meta">${uiText("exam.gram.meta")}</div>
     </button>
     <button class="exam-tile" data-exam="hoeren">
-      <h3>🎧 Hören (Dëgjim)</h3>
-      <p>Pajisja jote i lexon tekstet me zë: njoftim në stacion, mesazh telefonik, bisedë në zyrë.</p>
-      <div class="meta">9 pyetje · 15 minuta</div>
+      <h3>${uiText("exam.hoeren.title")}</h3>
+      <p>${uiText("exam.hoeren.desc")}</p>
+      <div class="meta">${uiText("exam.hoeren.meta")}</div>
     </button>
     <button class="exam-tile" data-exam="schreiben">
-      <h3>✍️ Schreiben (Shkrim)</h3>
-      <p>Shkruaj një email ose postim në forum, me numërues fjalësh dhe vetëkontroll.</p>
-      <div class="meta">1 detyrë · 30 minuta</div>
+      <h3>${uiText("exam.schreiben.title")}</h3>
+      <p>${uiText("exam.schreiben.desc")}</p>
+      <div class="meta">${uiText("exam.schreiben.meta")}</div>
     </button>
     <button class="exam-tile" data-exam="sprechen">
-      <h3>🗣️ Sprechen (Të folurit)</h3>
-      <p>Karta bisede me shprehje ndihmëse — ushtro me zë, mundësisht me regjistrim në telefon.</p>
-      <div class="meta">3 detyra · 15 minuta</div>
+      <h3>${uiText("exam.sprechen.title")}</h3>
+      <p>${uiText("exam.sprechen.desc")}</p>
+      <div class="meta">${uiText("exam.sprechen.meta")}</div>
     </button>
   `;
   menuEl.querySelectorAll(".exam-tile").forEach(t =>
@@ -7246,7 +7408,7 @@ async function loadProgress() {
       examRunCount = data.exam_runs || 0;
       if (data.stats && typeof data.stats === "object") { stats = data.stats; ensureStats(); }
       if (typeof ensureFarmCoins === "function") ensureFarmCoins();
-      if (stats.helperLang && typeof setHelperLang === "function") setHelperLang(stats.helperLang);
+      if (stats.learnMode && typeof setLearnMode === "function") setLearnMode(stats.learnMode);
       if (stats.menuLang && typeof setMenuLang === "function") setMenuLang(stats.menuLang);
       lastSeenTreeStage = treeStageFor(Math.floor(totalPoints / 100) + 1).idx;
       const custom = Array.isArray(data.custom_vocab) ? data.custom_vocab : [];
@@ -8205,8 +8367,13 @@ function renderGrammar() {
   const exEn = GRAMMAR_EN[exIdx];
   document.getElementById("grammarCatTag").textContent = ex.cat;
   document.getElementById("grammarSentence").innerHTML = esc(ex.q).replace("___", '<span class="gap">_____</span>');
-  document.getElementById("grammarHelp").textContent = helperLang === "en" && exEn ? exEn.en : ex.sq;
-  document.getElementById("grammarHelpFlag").textContent = (helperLang === "en" && exEn) ? "🇬🇧" : "🇦🇱";
+  // Ndihma e fjalisë: shqip ose anglisht sipas modalitetit.
+  // (Për modalitetin de-en ende s'ka përkthim gjermanisht të fjalive ndihmëse,
+  //  prandaj përdoret anglishtja, e cila është gjuha që mësohet aty.)
+  const gHelp = modeCfg().help === "al" ? "al" : "en";
+  document.getElementById("grammarHelp").textContent =
+    (gHelp === "en" && exEn) ? exEn.en : ex.sq;
+  document.getElementById("grammarHelpFlag").textContent = gHelp === "en" ? "🇬🇧" : "🇦🇱";
   document.getElementById("grammarProgress").textContent = "Fjalia " + (grammarIndex + 1) + " / " + grammarPool.length;
   document.getElementById("grammarScore").textContent = "Saktë: " + grammarScore;
 
@@ -8230,7 +8397,7 @@ function renderGrammar() {
       document.getElementById("grammarSentence").innerHTML =
         esc(ex.q).replace("___", `<span class="gap filled">${esc(ex.opts[ex.a])}</span>`);
       const expl = document.getElementById("grammarExplain");
-      expl.textContent = "💡 " + (helperLang === "en" && exEn ? exEn.ex : ex.ex);
+      expl.textContent = "💡 " + ((modeCfg().help === "en" && exEn) ? exEn.ex : ex.ex);
       expl.classList.remove("hidden");
       if (correct) {
         grammarScore++;
@@ -9098,6 +9265,9 @@ renderPoints();
 renderCard();
 renderStreakBar();
 applyMenuLang();
+ensureStats();
+if (stats.learnMode) { learnMode = stats.learnMode; setMenuLang(modeCfg().menuLang); }
+renderModeButtons();
 showLangOnboardIfNeeded();
 if (lastSeenTreeStage === null) lastSeenTreeStage = treeStageFor(Math.floor(totalPoints / 100) + 1).idx;
 
