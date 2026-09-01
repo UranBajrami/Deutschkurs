@@ -133,14 +133,20 @@
     letter-spacing: .03em;
   }
   .prestige-pill {
-    padding: 5px 12px 5px 6px; border-radius: var(--radius-pill); font-size: .78rem; font-weight: 800;
+    padding: 4px 14px 4px 4px; border-radius: var(--radius-pill); font-size: .82rem; font-weight: 800;
     background: rgba(255,200,87,.16); border: 1px solid rgba(255,200,87,.4); color: var(--gold);
-    letter-spacing: .02em; display: inline-flex; align-items: center; gap: 6px;
+    letter-spacing: .02em; display: inline-flex; align-items: center; gap: 7px;
   }
   .medal-img { display: inline-block; vertical-align: middle; object-fit: contain; }
-  .medal-img-pill { width: 22px; height: 22px; }
-  .medal-img-big { width: 84px; height: 84px; filter: drop-shadow(0 6px 16px rgba(0,0,0,.5)); }
+  .medal-img-pill { width: 34px; height: 34px; }
+  .medal-img-big { width: 140px; height: 140px; filter: drop-shadow(0 8px 22px rgba(0,0,0,.55)); }
   .medal-img-btn { width: 24px; height: 24px; vertical-align: middle; margin-right: 2px; }
+  .medal-img-showcase { width: 120px; height: 120px; filter: drop-shadow(0 8px 20px rgba(0,0,0,.5)) drop-shadow(0 0 26px var(--gold-glow)); }
+  .prestige-medal-showcase {
+    display: flex; align-items: center; justify-content: center;
+    padding: 14px 0 6px;
+  }
+  .prestige-medal-showcase.empty { display: none; }
 
   /* ---- HUD ---- */
   .hud {
@@ -1610,6 +1616,7 @@
 
     <div class="auth-card" id="prestigeAccountCard">
       <h3 data-i18n="account.prestige.title">🏝️ Prestigo</h3>
+      <div class="prestige-medal-showcase" id="prestigeMedalShowcase"></div>
       <div class="sub" id="prestigeAccountSub">Plotëso fshatin për të kaluar në ishullin tjetër.</div>
       <div class="prestige-progress-row">
         <div class="prestige-progress-track"><div class="prestige-progress-fill" id="prestigeAccProgFill" style="width:0%"></div></div>
@@ -8565,6 +8572,18 @@ function renderProfileView() {
 }
 
 function renderPrestigeAccountCard() {
+  ensurePrestige();
+  const showcase = document.getElementById("prestigeMedalShowcase");
+  if (showcase) {
+    if (stats.prestige > 0) {
+      showcase.innerHTML = islandMedalHtml(stats.prestige, 160, "medal-img medal-img-showcase");
+      showcase.classList.remove("empty");
+    } else {
+      showcase.innerHTML = "";
+      showcase.classList.add("empty");
+    }
+  }
+
   const built = FARM_ITEMS.filter(i => stats.farmBuilt && stats.farmBuilt[i.id]).length;
   const total = FARM_ITEMS.length;
   const pct = Math.round((built / total) * 100);
