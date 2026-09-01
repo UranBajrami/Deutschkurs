@@ -1017,6 +1017,55 @@
     box-shadow: 0 4px 14px var(--blue-glow);
   }
 
+  /* ---- PandaLife ---- */
+  .panda-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .panda-name-btn { background: none; border: none; font-family: var(--font); font-weight: 800; font-size: 1.05rem; color: var(--ink); cursor: pointer; padding: 0; }
+  .panda-emotion { font-size: 1.3rem; }
+  .panda-chip { padding: 4px 10px; border-radius: var(--radius-pill); background: rgba(255,255,255,.07); border: 1px solid var(--line); font-size: .74rem; font-weight: 800; }
+  .panda-xp-track { height: 6px; background: rgba(255,255,255,.08); border-radius: var(--radius-pill); overflow: hidden; margin-bottom: 12px; }
+  .panda-xp-fill { height: 100%; background: linear-gradient(90deg, #a78bfa, #f472b6); transition: width .4s ease; }
+  .panda-scene-wrap { position: relative; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--line); box-shadow: 0 10px 28px rgba(0,0,0,.35); background: #fdf2f8; }
+  .panda-scene { width: 100%; min-height: 220px; cursor: grab; }
+  .panda-bubble {
+    position: absolute; transform: translate(-50%, -100%); max-width: 220px; padding: 8px 12px; border-radius: 14px;
+    background: #fff; color: #2b2233; font-weight: 700; font-size: .8rem; box-shadow: 0 6px 18px rgba(0,0,0,.25);
+    pointer-events: none; white-space: normal; line-height: 1.3;
+  }
+  .panda-bubble::after { content: ""; position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #fff; border-bottom: 0; }
+  .panda-rotate { position: absolute; right: 10px; bottom: 10px; padding: 8px 12px; font-size: 1rem; }
+  .panda-hint { text-align: center; font-size: .68rem; color: var(--muted); font-weight: 600; margin: 8px 0 10px; }
+  .panda-actions { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 12px; }
+  .panda-act {
+    display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; border-radius: var(--radius-md);
+    background: rgba(255,255,255,.06); border: 1px solid var(--line); cursor: pointer; font-family: var(--font); color: var(--ink);
+  }
+  .panda-act span { font-size: 1.3rem; }
+  .panda-act em { font-style: normal; font-size: .62rem; font-weight: 800; }
+  .panda-act:active { transform: scale(.94); }
+  .panda-needs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+  .pn-row { display: flex; align-items: center; gap: 6px; font-size: .72rem; }
+  .pn-ic { width: 18px; text-align: center; }
+  .pn-lbl { width: 62px; color: var(--muted); font-weight: 700; }
+  .pn-track { flex: 1; height: 6px; background: rgba(255,255,255,.08); border-radius: var(--radius-pill); overflow: hidden; }
+  .pn-fill { height: 100%; transition: width .5s ease; }
+  .pn-val { width: 26px; text-align: right; font-weight: 800; }
+  .panda-weight { text-align: center; font-size: .76rem; font-weight: 800; color: var(--gold); margin-top: 10px; }
+  .panda-learn-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .panda-learn-pick .btn { padding: 12px 6px; font-size: .8rem; }
+  .panda-learn-clock { text-align: center; font-size: 2.6rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--gold); text-shadow: 0 0 20px var(--gold-glow); margin-bottom: 6px; }
+  .panda-inventory { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+  .pinv-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; border-radius: var(--radius-md); background: rgba(255,255,255,.06); border: 1px solid var(--line); cursor: pointer; font-family: var(--font); color: var(--ink); }
+  .pinv-emoji { font-size: 1.5rem; } .pinv-name { font-size: .68rem; font-weight: 700; } .pinv-count { font-size: .66rem; color: var(--gold); font-weight: 800; }
+  .pn-empty { font-size: .78rem; color: var(--muted); font-weight: 600; text-align: center; padding: 8px; }
+  .pshop-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 10px; scrollbar-width: none; }
+  .pshop-tab { flex: 0 0 auto; padding: 7px 11px; border-radius: var(--radius-pill); border: 1px solid var(--line); background: rgba(255,255,255,.05); color: var(--muted); font-family: var(--font); font-size: .72rem; font-weight: 800; cursor: pointer; }
+  .pshop-tab.active { background: linear-gradient(135deg, var(--blue), #7aa2ff); color: #fff; border-color: transparent; }
+  .pdaily { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: .8rem; font-weight: 700; }
+  .pdaily:last-child { border-bottom: none; }
+  .pdaily.done .pdaily-lbl { color: var(--green); }
+  .pdaily-lbl { flex: 1; } .pdaily-val { color: var(--muted); font-weight: 800; }
+  @media (max-width: 400px) { .panda-actions { grid-template-columns: repeat(3, 1fr); } .panda-needs { grid-template-columns: 1fr; } }
+
   /* ---- Fshati im (ferma që ndërtohet) ---- */
   .farm-card {
     background: var(--surface); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
@@ -1454,7 +1503,7 @@
     <div class="hud-bar-row hud-bar-clickable" id="hudFarmRow">
       <span class="hud-bar-label">🪙 <span id="hudFarmCoins">0</span></span>
       <div class="hud-bar-track"><div class="hud-farm-fill" id="hudFarmFill" style="width:0%"></div></div>
-      <span class="hud-bar-goto">Fshati →</span>
+      <span class="hud-bar-goto">🐼 →</span>
     </div>
   </div>
 
@@ -1478,7 +1527,7 @@
   <button class="tab-btn" data-view="homework"><span class="tab-icon">📋</span><span class="tab-label" data-i18n="nav.homework">Detyrat</span></button>
   <button class="tab-btn" data-view="practice"><img src="mascot/eagle-64.png" alt="" class="tab-icon-img"><span class="tab-label" data-i18n="nav.practice">Shpejt</span></button>
   <button class="tab-btn" data-view="exam"><span class="tab-icon">📝</span><span class="tab-label" data-i18n="nav.exam">Provim</span></button>
-  <button class="tab-btn" data-view="stats"><span class="tab-icon">🏡</span><span class="tab-label" data-i18n="nav.stats">Kalaja</span></button>
+  <button class="tab-btn" data-view="stats"><span class="tab-icon">🐼</span><span class="tab-label" data-i18n="nav.stats">Panda</span></button>
   <button class="tab-btn" data-view="account"><span class="tab-icon">👤</span><span class="tab-label" data-i18n="nav.account">Llogaria</span></button>
 </nav>
 
@@ -1814,20 +1863,92 @@
   </div>
 </div>
 
-<!-- FSHATI IM: ndërtohet me pikë, tab i vetin -->
+<!-- PANDALIFE: Lern-Tamagotchi, tab i vetin -->
 <div class="view hidden" id="view-stats">
-  <div class="farm-card">
-    <div class="farm-header">
-      <h3>🏰 Kalaja ime</h3>
+  <div class="farm-card panda-card">
+    <div class="panda-top">
+      <button class="panda-name-btn" id="pandaName">Panda</button>
+      <span class="panda-emotion" id="pandaEmotion">🙂</span>
       <div class="farm-coins"><span class="fc-icon">🪙</span><span id="farmCoinsValue">0</span></div>
+      <span class="panda-chip" id="pandaLevel">⭐ 1</span>
+      <span class="panda-chip" id="pandaStreak">🔥 0</span>
     </div>
-    <div class="farm-scene" id="farmScene"></div>
-    <div class="farm-progress-track"><div class="farm-progress-fill" id="farmProgressFill" style="width:0%"></div></div>
-    <div class="farm-progress-label" id="farmProgressLabel">0 / 0 ndërtime</div>
+    <div class="panda-xp-track"><div class="panda-xp-fill" id="pandaXpFill" style="width:0%"></div></div>
+
+    <div class="panda-scene-wrap">
+      <div class="panda-scene" id="pandaScene"></div>
+      <div class="panda-bubble hidden" id="pandaBubble"></div>
+      <button class="btn btn-secondary hidden panda-rotate" id="btnPandaRotate">⟳</button>
+    </div>
+    <div class="panda-hint" data-i18n="panda.hint">Trokit pandën për ta përkëdhelur · Tërhiq mobiliet për t'i zhvendosur</div>
+
+    <div class="panda-actions">
+      <button class="panda-act" id="btnPandaPet"><span>❤️</span><em data-i18n="panda.act.pet">Përkëdhel</em></button>
+      <button class="panda-act" id="btnPandaFeed"><span>🍎</span><em data-i18n="panda.act.feed">Ushqe</em></button>
+      <button class="panda-act" id="btnPandaDrink"><span>🥤</span><em data-i18n="panda.act.drink">Pije</em></button>
+      <button class="panda-act" id="btnPandaPlay"><span>🎾</span><em data-i18n="panda.act.play">Luaj</em></button>
+      <button class="panda-act" id="btnPandaWash"><span>🧼</span><em data-i18n="panda.act.wash">Laje</em></button>
+      <button class="panda-act" id="btnPandaSleep"><span>💤</span><em data-i18n="panda.sleep">Fle</em></button>
+    </div>
+
+    <div id="pandaNeeds" class="panda-needs"></div>
+    <div class="panda-weight" id="pandaWeight">⚖️</div>
+
+    <div class="farm-progress-track" style="margin-top:12px;"><div class="farm-progress-fill" id="farmProgressFill" style="width:0%"></div></div>
+    <div class="farm-progress-label" id="farmProgressLabel">0 / 0</div>
   </div>
 
-  <div class="farm-shop" id="farmShop"></div>
+  <!-- 📚 MËSIMI: kohëmatës real -->
+  <div class="auth-card">
+    <h3 data-i18n="panda.learn.title">📚 Mëso me pandën</h3>
+    <div class="sub" data-i18n="panda.learn.sub">Zgjidh sa minuta. Kur mbaron koha, fiton monedha për pandën. Ushtrimet e tjera në aplikacion sjellin monedha gjithashtu.</div>
+    <div id="pandaLearnPick" class="panda-learn-pick">
+      <button class="btn btn-secondary" data-learn="15">15 min · 5 🪙</button>
+      <button class="btn btn-secondary" data-learn="25">25 min · 10 🪙</button>
+      <button class="btn btn-secondary" data-learn="30">30 min · 15 🪙</button>
+      <button class="btn btn-secondary" data-learn="45">45 min · 25 🪙</button>
+      <button class="btn btn-primary" data-learn="60">60 min · 40 🪙</button>
+    </div>
+    <div id="pandaLearnRun" class="hidden panda-learn-run">
+      <div class="panda-learn-clock" id="pandaLearnClock">25:00</div>
+      <div class="sub" data-i18n="panda.learn.running">Koha e mësimit po ecën… pandaja të pret! 🐼</div>
+      <button class="btn btn-secondary" id="btnPandaLearnCancel" data-i18n="common.cancel" style="width:100%;margin-top:10px;">Anulo</button>
+    </div>
+  </div>
+
+  <div class="auth-card">
+    <h3 data-i18n="panda.daily.title">🎯 Qëllimet e ditës</h3>
+    <div id="pandaDaily"></div>
+  </div>
+
+  <div class="auth-card">
+    <h3 data-i18n="panda.inv.title">🎒 Çanta</h3>
+    <div id="pandaInventory" class="panda-inventory"></div>
+  </div>
+
+  <div class="auth-card" id="pandaShop">
+    <h3 data-i18n="panda.shop.title">🛍️ Dyqani</h3>
+    <div id="pandaShopTabs" class="pshop-tabs"></div>
+    <div id="pandaShopList"></div>
+  </div>
+
+  <div class="auth-card hidden" id="pandaDebug">
+    <h3>🛠️ Debug</h3>
+    <div class="proto-btns">
+      <button class="btn btn-secondary" data-dbg="coins">+100 🪙</button>
+      <button class="btn btn-secondary" data-dbg="xp">+100 XP</button>
+      <button class="btn btn-secondary" data-dbg="hungry">Hunger 10</button>
+      <button class="btn btn-secondary" data-dbg="full">Alles 100</button>
+      <button class="btn btn-secondary" data-dbg="tired">Energie 10</button>
+      <button class="btn btn-secondary" data-dbg="fat">Gewicht 90</button>
+      <button class="btn btn-secondary" data-dbg="thin">Gewicht 20</button>
+      <button class="btn btn-secondary" data-dbg="skip8h">+8h</button>
+      <button class="btn btn-secondary" data-dbg="reset">Reset</button>
+      <button class="btn btn-secondary" id="btnPandaRename">✏️ Name</button>
+    </div>
+  </div>
 </div>
+
 
 <!-- EINSTUFUNGSTEST: VOLLBILD-OVERLAY -->
 <!-- FAQE E PLOTË: VENDOS FJALËKALIM TË RI (pas klikimit të lidhjes në email) -->
@@ -4067,7 +4188,7 @@ const UI_STRINGS = {
   "nav.homework":  { sq: "Detyrat",    de: "Aufgaben", en: "Tasks" },
   "nav.practice":  { sq: "Shpejt",     de: "Schnell", en: "Quick" },
   "nav.exam":      { sq: "Provim",     de: "Prüfung", en: "Exam" },
-  "nav.stats":     { sq: "Kalaja",     de: "Die Burg", en: "The Castle" },
+  "nav.stats":     { sq: "Panda",      de: "Panda",    en: "Panda" },
   "nav.account":   { sq: "Llogaria",   de: "Konto", en: "Account" },
 
   "common.next":   { sq: "Vazhdo →",   de: "Weiter →", en: "Next →" },
@@ -4138,6 +4259,42 @@ const UI_STRINGS = {
                          de: "Wähle deine Sprache. Du kannst sie jederzeit später ändern.",
                          en: "Choose your language. You can change it anytime later." },
 
+  "panda.hint": { sq: "Trokit pandën për ta përkëdhelur · Tërhiq mobiliet për t'i zhvendosur", de: "Panda antippen zum Streicheln · Möbel ziehen zum Verschieben", en: "Tap the panda to pet · Drag furniture to move" },
+  "panda.act.pet":   { sq: "Përkëdhel", de: "Streicheln", en: "Pet" },
+  "panda.act.feed":  { sq: "Ushqe", de: "Füttern", en: "Feed" },
+  "panda.act.drink": { sq: "Pije", de: "Trinken", en: "Drink" },
+  "panda.act.play":  { sq: "Luaj", de: "Spielen", en: "Play" },
+  "panda.act.wash":  { sq: "Laje", de: "Waschen", en: "Wash" },
+  "panda.sleep":     { sq: "Fle", de: "Schlafen", en: "Sleep" },
+  "panda.wake":      { sq: "Zgjo", de: "Wecken", en: "Wake" },
+  "panda.need.hunger": { sq: "Uria", de: "Hunger", en: "Hunger" },
+  "panda.need.thirst": { sq: "Etja", de: "Durst", en: "Thirst" },
+  "panda.need.energy": { sq: "Energjia", de: "Energie", en: "Energy" },
+  "panda.need.mood":   { sq: "Humori", de: "Stimmung", en: "Mood" },
+  "panda.need.hygiene":{ sq: "Higjiena", de: "Hygiene", en: "Hygiene" },
+  "panda.need.toilet": { sq: "Tualeti", de: "Toilette", en: "Toilet" },
+  "panda.need.affection": { sq: "Dashuria", de: "Zuneigung", en: "Affection" },
+  "panda.need.health": { sq: "Shëndeti", de: "Gesundheit", en: "Health" },
+  "panda.w.thin":  { sq: "Pak i dobët", de: "Etwas dünn", en: "A bit thin" },
+  "panda.w.ok":    { sq: "Peshë e shëndetshme", de: "Gesundes Gewicht", en: "Healthy weight" },
+  "panda.w.round": { sq: "Pak i rrumbullakët", de: "Etwas rund", en: "A bit round" },
+  "panda.learn.title": { sq: "📚 Mëso me pandën", de: "📚 Mit dem Panda lernen", en: "📚 Study with your panda" },
+  "panda.learn.sub": { sq: "Zgjidh sa minuta. Kur mbaron koha, fiton monedha për pandën. Ushtrimet e tjera në aplikacion sjellin monedha gjithashtu.", de: "Wähle die Minuten. Wenn die Zeit abläuft, verdienst du Münzen für den Panda. Auch alle anderen Übungen in der App bringen Münzen.", en: "Pick the minutes. When time is up you earn coins for the panda. All other exercises in the app earn coins too." },
+  "panda.learn.running": { sq: "Koha e mësimit po ecën… pandaja të pret! 🐼", de: "Lernzeit läuft… dein Panda wartet auf dich! 🐼", en: "Study time is running… your panda is waiting! 🐼" },
+  "panda.daily.title": { sq: "🎯 Qëllimet e ditës", de: "🎯 Tagesziele", en: "🎯 Daily goals" },
+  "panda.task.learn": { sq: "Mëso {n} minuta", de: "{n} Minuten lernen", en: "Study {n} minutes" },
+  "panda.task.pet":   { sq: "Përkëdhel {n} herë", de: "{n}-mal streicheln", en: "Pet {n} times" },
+  "panda.task.feed":  { sq: "Ushqe pandën", de: "Panda füttern", en: "Feed the panda" },
+  "panda.task.play":  { sq: "Luaj me pandën", de: "Mit dem Panda spielen", en: "Play with the panda" },
+  "panda.inv.title":  { sq: "🎒 Çanta", de: "🎒 Inventar", en: "🎒 Inventory" },
+  "panda.inv_empty":  { sq: "Çanta është bosh — blej diçka në dyqan.", de: "Inventar ist leer — kauf etwas im Shop.", en: "Inventory is empty — buy something in the shop." },
+  "panda.shop.title": { sq: "🛍️ Dyqani", de: "🛍️ Shop", en: "🛍️ Shop" },
+  "panda.buy":   { sq: "Bli", de: "Kaufen", en: "Buy" },
+  "panda.owned": { sq: "Në dhomë", de: "Im Zimmer", en: "In the room" },
+  "panda.furniture_count": { sq: "mobilie", de: "Möbel", en: "furniture" },
+  "panda.next_island": { sq: "Kalo në ishullin", de: "Weiter zur Insel", en: "Go to island" },
+  "panda.next_island_hint": { sq: "Mobilo dhomën plotësisht për ishullin tjetër.", de: "Richte das Zimmer komplett ein für die nächste Insel.", en: "Fully furnish the room for the next island." },
+  "panda.rename_prompt": { sq: "Emri i ri i pandës:", de: "Neuer Name für den Panda:", en: "New name for your panda:" },
   "exam.choose_level": { sq: "Zgjidh nivelin e provimit", de: "Wähle das Prüfungsniveau", en: "Choose the exam level" },
   "exam.or_single":    { sq: "Ose ushtro një modul B1 veç e veç", de: "Oder übe ein einzelnes B1-Modul", en: "Or practice a single B1 module" },
   "exam.modules_meta": { sq: "module", de: "Module", en: "modules" },
@@ -4200,12 +4357,6 @@ function applyMenuLang() {
     const txt = uiText(el.dataset.i18nPlaceholder);
     if (txt !== null) el.placeholder = txt;
   });
-  const btnSQ = document.getElementById("menuLangBtnSQ");
-  const btnDE = document.getElementById("menuLangBtnDE");
-  const btnEN = document.getElementById("menuLangBtnEN");
-  if (btnSQ) btnSQ.classList.toggle("active", menuLang === "sq");
-  if (btnDE) btnDE.classList.toggle("active", menuLang === "de");
-  if (btnEN) btnEN.classList.toggle("active", menuLang === "en");
 }
 
 // USHTRIMET: Sistemi i gjuhës është TANI I NJËSUAR — një zgjedhje e vetme (SQ/DE/EN)
@@ -4220,12 +4371,6 @@ function setMenuLang(lang) {
 
   applyMenuLang();
 
-  const btnSQ = document.getElementById("menuLangBtnSQ");
-  const btnDE = document.getElementById("menuLangBtnDE");
-  const btnEN = document.getElementById("menuLangBtnEN");
-  if (btnSQ) btnSQ.classList.toggle("active", menuLang === "sq");
-  if (btnDE) btnDE.classList.toggle("active", menuLang === "de");
-  if (btnEN) btnEN.classList.toggle("active", menuLang === "en");
 
   ensureStats();
   stats.menuLang = menuLang;
@@ -4511,7 +4656,7 @@ function goToView(t) {
   if (t !== "practice") { practiceActive = false; }
   if (t === "cards") renderCard();
   if (t === "exam") renderExamMenu();
-  if (t === "stats") renderFarmView();
+  if (t === "stats") renderPandaView();
   if (t === "account") { renderProfileView(); renderStatsView(); }
   if (t === "numbers") {
     document.getElementById("numberIntro").classList.remove("hidden");
@@ -7408,6 +7553,7 @@ async function loadProgress() {
       examRunCount = data.exam_runs || 0;
       if (data.stats && typeof data.stats === "object") { stats = data.stats; ensureStats(); }
       if (typeof ensureFarmCoins === "function") ensureFarmCoins();
+      if (typeof updateOfflineTime === "function") updateOfflineTime();
       if (stats.learnMode && typeof setLearnMode === "function") setLearnMode(stats.learnMode);
       if (stats.menuLang && typeof setMenuLang === "function") setMenuLang(stats.menuLang);
       lastSeenTreeStage = treeStageFor(Math.floor(totalPoints / 100) + 1).idx;
@@ -8464,562 +8610,621 @@ function renderHomework() {
   `;
 }
 
-/* ============ FSHATI IM: fermë që ndërtohet copë-copë me pikë ============ */
-// Çdo artikull kushton monedha (fitohen njësoj si pikët, por shpenzohen këtu).
-// Shtëpia dhe ara kanë disa faza; pjesa tjetër blihen njëherë. Gjithmonë ka
-// diçka të re për të blerë — asnjë "fund" i fiksuar si te pema.
-// Çdo fshat kushton afërsisht sa niveli 1-100 (rreth 9900 pikë), që të mos plotësohet shumë shpejt
-const FARM_COST_SCALE = 5;
-function itemCost(item) { return item.cost * FARM_COST_SCALE; }
+/* ================================================================
+   PANDALIFE — Lern-Tamagotchi
+   Sistemet: NeedsSystem, EmotionSystem, EconomySystem, TimeSystem,
+   LearningSystem, FurnitureSystem, ProgressionSystem, SaveSystem.
+   Skena 3D ndodhet në modulin e veçantë (window.Panda3D).
+   ================================================================ */
 
-const FARM_ITEMS = [
-  // --- Shtëpia (4 faza) ---
-  { id:"house1", group:"house", stage:1, name:"Themeli i kullës", emoji:"🧱", cost:35, x:14, y:32, size:2.0 },
-  { id:"house2", group:"house", stage:2, name:"Trupi i kullës",   emoji:"🏛️", cost:60, x:14, y:32, size:2.3 },
-  { id:"house3", group:"house", stage:3, name:"Kati i sipërm",   emoji:"🗼", cost:95, x:14, y:32, size:2.6 },
-  { id:"house4", group:"house", stage:4, name:"Çatia e lartë",  emoji:"🏰", cost:140, x:14, y:32, size:2.9 },
-
-  // --- Ara (3 faza) ---
-  { id:"field1", group:"field", stage:1, name:"Themeli gjashtëkëndor",   emoji:"⬡", cost:28, x:70, y:30, size:2.2 },
-  { id:"field2", group:"field", stage:2, name:"Trupi gjashtëkëndor",  emoji:"🛕", cost:48, x:70, y:30, size:2.2 },
-  { id:"field3", group:"field", stage:3, name:"Çatia gjashtëkëndore",  emoji:"⛩️", cost:75, x:70, y:30, size:2.2 },
-
-  // --- Ndërtesa dhe elemente të tjera (nga një blerje) ---
-  { id:"barn",     group:"single", name:"Porta kryesore",           emoji:"🚪", cost:85,  x:32, y:55, size:2.2 },
-  { id:"silo",     group:"single", name:"Harku i kullës",  emoji:"🏗️", cost:130, x:46, y:52, size:2.0 },
-  { id:"well",     group:"single", name:"Shkallët e gurta",               emoji:"🪜", cost:55,  x:26, y:66, size:1.6 },
-  { id:"pond",     group:"single", name:"Ura e gurtë",      emoji:"🌉", cost:65,  x:82, y:62, size:1.8 },
-  { id:"haybale",  group:"single", name:"Trungu i prerë",        emoji:"🪵", cost:32,  x:38, y:68, size:1.7 },
-  { id:"tractor",  group:"single", name:"Katapulti",           emoji:"🎯", cost:150, x:58, y:70, size:2.2 },
-  { id:"tree1",    group:"single", name:"Pemë e madhe",               emoji:"🌳", cost:30,  x:4,  y:18, size:1.9 },
-  { id:"tree2",    group:"single", name:"Pemë e vogël",        emoji:"🌲", cost:30,  x:92, y:12, size:1.9 },
-  { id:"flowers",  group:"single", name:"Qoshja e murit",    emoji:"🧱", cost:40,  x:22, y:20, size:1.6 },
-  { id:"chicken",  group:"single", name:"Flamuri i kalasë",               emoji:"🚩", cost:38,  x:40, y:60, size:1.5 },
-  { id:"dog",      group:"single", name:"Flamuri i vogël",          emoji:"🏴", cost:45,  x:18, y:44, size:1.6 },
-  { id:"sheep",    group:"single", name:"Gardhi prej druri",              emoji:"🪵", cost:60,  x:52, y:60, size:1.7 },
-  { id:"cow",      group:"single", name:"Balista",               emoji:"🏹", cost:85,  x:62, y:58, size:1.9 },
-  { id:"goat",     group:"single", name:"Shkëmbinjtë",               emoji:"🪨", cost:70,  x:46, y:63, size:1.6 },
-  { id:"cart",     group:"single", name:"Deshi i luftës",            emoji:"🛡️", cost:50,  x:8,  y:52, size:1.7 },
-  { id:"barrel",   group:"single", name:"Muri i kalasë",     emoji:"🧱", cost:55,  x:20, y:76, size:1.5 },
-  { id:"beehive",  group:"single", name:"Muri me derë",     emoji:"🚪", cost:60,  x:88, y:78, size:1.4 },
-  { id:"sun",      group:"single", name:"Trebusheti",      emoji:"⚔️", cost:200, x:88, y:6,  size:2.2 },
-  { id:"rainbow",  group:"single", name:"Ura e lëvizshme",   emoji:"🌉", cost:260, x:50, y:4,  size:3.2 }
+/* ---------- DATA: artikujt e dyqanit ---------- */
+// Kategoritë: food, drink, furniture, toy, deco, care
+// Mobiliet (placed: true) mund të vendosen në dhomë; të tjerat janë konsumueshme.
+const PANDA_ITEMS = [
+  // 🍎 Ushqim
+  { id:"apple",   cat:"food",  emoji:"🍎", cost:6,  effect:{hunger:+25, mood:+3}, weight:+1.0 },
+  { id:"bamboo",  cat:"food",  emoji:"🎋", cost:10, effect:{hunger:+45, mood:+6}, weight:+1.5 },
+  { id:"cake",    cat:"food",  emoji:"🍰", cost:14, effect:{hunger:+30, mood:+12}, weight:+4.0 },
+  { id:"salad",   cat:"food",  emoji:"🥗", cost:8,  effect:{hunger:+30, mood:+2, health:+3}, weight:+0.3 },
+  // 🥤 Pije
+  { id:"water",   cat:"drink", emoji:"💧", cost:3,  effect:{thirst:+40} },
+  { id:"juice",   cat:"drink", emoji:"🧃", cost:7,  effect:{thirst:+35, mood:+6}, weight:+1.0 },
+  { id:"milk",    cat:"drink", emoji:"🥛", cost:6,  effect:{thirst:+30, energy:+5} },
+  // 🧼 Kujdes
+  { id:"soap",    cat:"care",  emoji:"🧼", cost:8,  effect:{hygiene:+50, mood:+4} },
+  { id:"medicine",cat:"care",  emoji:"💊", cost:20, effect:{health:+40} },
+  // 🧸 Lodra (të vendosshme)
+  { id:"ball",    cat:"toy",   emoji:"🎾", cost:50,  placed:true, size:0.5 },
+  { id:"teddy",   cat:"toy",   emoji:"🧸", cost:70,  placed:true, size:0.6 },
+  // 🛋️ Mobilie (të vendosshme) — secila me funksion për pandën
+  { id:"bowl",    cat:"furniture", emoji:"🥣", cost:40,  placed:true, size:0.6, use:"food" },
+  { id:"wbowl",   cat:"furniture", emoji:"🫗", cost:40,  placed:true, size:0.6, use:"water" },
+  { id:"bed",     cat:"furniture", emoji:"🛏️", cost:100, placed:true, size:1.6, use:"sleep" },
+  { id:"sofa",    cat:"furniture", emoji:"🛋️", cost:80,  placed:true, size:1.5, use:"rest" },
+  { id:"toilet",  cat:"furniture", emoji:"🚽", cost:120, placed:true, size:0.7, use:"toilet" },
+  { id:"bathtub", cat:"furniture", emoji:"🛁", cost:150, placed:true, size:1.5, use:"bath" },
+  { id:"table",   cat:"furniture", emoji:"🪑", cost:60,  placed:true, size:1.1 },
+  { id:"desk",    cat:"furniture", emoji:"🖥️", cost:110, placed:true, size:1.3, bonus:"learn" },
+  { id:"shelf",   cat:"furniture", emoji:"📚", cost:90,  placed:true, size:1.0, bonus:"learn" },
+  { id:"wardrobe",cat:"furniture", emoji:"🚪", cost:95,  placed:true, size:1.1 },
+  // 🌱 Dekor (të vendosshme)
+  { id:"plant",   cat:"deco",  emoji:"🌱", cost:40,  placed:true, size:0.5, comfort:2 },
+  { id:"lamp",    cat:"deco",  emoji:"💡", cost:45,  placed:true, size:0.4, comfort:2 },
+  { id:"rug",     cat:"deco",  emoji:"🟫", cost:55,  placed:true, size:1.8, comfort:3, flat:true },
+  { id:"picture", cat:"deco",  emoji:"🖼️", cost:35,  placed:true, size:0.6, comfort:2, wall:true }
 ];
+const PANDA_CATS = ["food","drink","furniture","toy","deco","care"];
 
-function ensureFarmCoins() {
+// Përputhshmëri me kodin ekzistues (prestige/HUD/llogaria): "FARM_ITEMS" = mobiliet e pandës.
+const FARM_ITEMS = PANDA_ITEMS.filter(i => i.placed);
+const FARM_COST_SCALE = 1;
+function itemCost(item) { return item.cost; }
+
+/* ---------- SAVE SYSTEM ---------- */
+const PANDA_DEFAULT = () => ({
+  name: "Panda", level: 1, xp: 0,
+  hunger: 80, thirst: 80, energy: 85, mood: 75, hygiene: 85, toilet: 20, affection: 60, health: 90, weight: 50,
+  inventory: {},            // { itemId: count }
+  furniture: {},            // { itemId: {x, z, rot} }  (të vendosura në dhomë)
+  learnMinutesTotal: 0, learnStreak: 0, lastLearnDay: null, lastUpdated: Date.now(),
+  daily: { day: null, tasks: {} },
+  petCooldownUntil: 0
+});
+
+function ensurePanda() {
+  ensureStats();
+  if (!stats.panda) stats.panda = PANDA_DEFAULT();
+  const d = PANDA_DEFAULT();
+  for (const k in d) if (stats.panda[k] === undefined) stats.panda[k] = d[k];
   if (typeof stats.farmCoins !== "number") stats.farmCoins = 0;
-  if (!stats.farmBuilt) stats.farmBuilt = {};      // { itemId: ISO-datë kur u ndërtua }
-  // Përdoruesit që tashmë kishin nivel të lartë PARA se të ekzistonte fshati:
-  // marrin një herë monedha për pikët që kishin fituar tashmë, që të mos fillojnë bosh.
+  if (!stats.farmBuilt) stats.farmBuilt = {};
+  // Sinkronizo: stats.farmBuilt = mobiliet që zotërohen (për prestige/HUD)
+  for (const id in stats.panda.furniture) stats.farmBuilt[id] = stats.farmBuilt[id] || new Date().toISOString();
+  return stats.panda;
+}
+function ensureFarmCoins() {
+  ensurePanda();
   if (!stats.farmMigrated) {
     stats.farmMigrated = true;
-    if (totalPoints > 0) {
-      stats.farmCoins += totalPoints;
-      queueSave();
-      setTimeout(() => mascotSay(
-        fmt(`Për punën që ke bërë deri tani{name}, të kalova ${totalPoints} monedha në fshat. Shiko te „Fshati" ç'mund të ndërtosh!`),
-        { duration: 12000 }
-      ), 1500);
-    }
+    if (totalPoints > 0) { stats.farmCoins += totalPoints; queueSave(); }
   }
 }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function savePanda() { queueSave(); }
 
-// Nivelet e mëparshme te një grup (house/field) duhen ndërtuar para tjetrës
-function farmItemUnlocked(item) {
-  if (item.group === "single" || item.stage === 1) return true;
-  const prevId = item.group + (item.stage - 1);
-  return !!stats.farmBuilt[prevId];
+/* ---------- TIME SYSTEM: rënia e nevojave + koha offline ---------- */
+// Për orë: pandaja duhet të durojë disa orë pa kujdes (lojë e qetë, jo stres).
+const DECAY_PER_HOUR = { hunger: -8, thirst: -10, energy: -6, hygiene: -4, toilet: +9, affection: -5 };
+
+function applyDecay(hours, p) {
+  p.hunger    = clamp(p.hunger    + DECAY_PER_HOUR.hunger    * hours, 0, 100);
+  p.thirst    = clamp(p.thirst    + DECAY_PER_HOUR.thirst    * hours, 0, 100);
+  p.hygiene   = clamp(p.hygiene   + DECAY_PER_HOUR.hygiene   * hours, 0, 100);
+  p.toilet    = clamp(p.toilet    + DECAY_PER_HOUR.toilet    * hours, 0, 100);
+  p.affection = clamp(p.affection + DECAY_PER_HOUR.affection * hours, 0, 100);
+  // Energjia: bie kur është zgjuar, rritet kur fle (AI vendos "sleeping")
+  if (p._sleeping) p.energy = clamp(p.energy + 25 * hours, 0, 100);
+  else p.energy = clamp(p.energy + DECAY_PER_HOUR.energy * hours, 0, 100);
+  // Pesha ndryshon NGADALË sipas ushqimit (dhjetë herë më ngadalë se uria)
+  if (p.hunger < 25) p.weight = clamp(p.weight - 0.6 * hours, 15, 100);
+  // Shëndeti: bie pak nëse nevojat janë keq për gjatë
+  const bad = [p.hunger, p.thirst, p.hygiene, 100 - p.toilet].filter(v => v < 20).length;
+  p.health = clamp(p.health + (bad ? -2 * bad * hours : +1.5 * hours), 0, 100);
+  // Humori derivohet nga gjithçka
+  p.mood = clamp(
+    0.25 * p.hunger + 0.15 * p.thirst + 0.15 * p.energy + 0.10 * p.hygiene +
+    0.10 * (100 - p.toilet) + 0.15 * p.affection + 0.10 * roomScore() * 10, 0, 100);
 }
 
-function farmCanAfford(item) { return stats.farmCoins >= itemCost(item); }
+// Koha offline: simulohet orë për orë. Pandaja kujdeset pak vetë (fle kur lodhet),
+// dhe pas 12 orësh efekti nuk thellohet më — ideja është "ngadalë, pa stres":
+// mungesa e gjatë e bën të uritur/të trishtuar, por KURRË të sëmurë vetëm nga mungesa.
+const OFFLINE_FLOOR = { hunger: 15, thirst: 15, hygiene: 15, affection: 10, energy: 20, health: 45 };
+function updateOfflineTime() {
+  const p = ensurePanda();
+  const now = Date.now();
+  const hoursReal = Math.max(0, (now - (p.lastUpdated || now)) / 3600000);
+  if (hoursReal >= 0.05) {
+    const before = { ...p };
+    const hours = Math.min(12, hoursReal);
+    let left = hours;
+    while (left > 0) {
+      const step = Math.min(1, left);
+      p._sleeping = p.energy < 25 || (p._forceSleep && p.energy < 95);
+      applyDecay(step, p);
+      left -= step;
+    }
+    p._sleeping = false;
+    for (const k in OFFLINE_FLOOR) if (p[k] < OFFLINE_FLOOR[k]) p[k] = OFFLINE_FLOOR[k];
+    p.toilet = Math.min(p.toilet, 85);
+    if (hoursReal >= 1) pandaShowAwayReport(hoursReal, before, p);
+  }
+  p.lastUpdated = now;
+}
+function pandaTick(dtSec) {
+  const p = ensurePanda();
+  applyDecay(dtSec / 3600, p);
+  p.lastUpdated = Date.now();
+}
 
-function buildFarmItem(id) {
-  ensureFarmCoins();
-  const item = FARM_ITEMS.find(i => i.id === id);
-  if (!item || stats.farmBuilt[id]) return;
-  if (!farmItemUnlocked(item) || !farmCanAfford(item)) return;
+/* ---------- ROOM SCORE ---------- */
+function roomScore() {
+  const p = ensurePanda();
+  let s = 0;
+  for (const id in p.furniture) {
+    const it = PANDA_ITEMS.find(i => i.id === id);
+    if (!it) continue;
+    s += 1 + (it.comfort || 0) * 0.5 + (it.use ? 1 : 0);
+  }
+  return clamp(s, 0, 10);
+}
 
-  const before = FARM_ITEMS.filter(i => stats.farmBuilt[i.id]).length;
-  const stageBefore = villageStageFor(before, FARM_ITEMS.length);
+/* ---------- EMOTION SYSTEM ---------- */
+function getPetEmotion() {
+  const p = ensurePanda();
+  if (p.health < 25) return "sick";
+  if (p.toilet > 85) return "urgent";
+  if (p.hunger < 20) return "hungry";
+  if (p.thirst < 20) return "thirsty";
+  if (p.energy < 20) return "tired";
+  if (p.hygiene < 20) return "dirty";
+  if (p.affection < 20) return "lonely";
+  if (p.mood < 25) return "sad";
+  if (p._excitedUntil && Date.now() < p._excitedUntil) return "excited";
+  if (p.mood > 80) return "happy";
+  return "neutral";
+}
 
-  stats.farmCoins -= itemCost(item);
-  stats.farmBuilt[id] = new Date().toISOString();
-  queueSave();
+/* ---------- PROGRESSION ---------- */
+function pandaAddXp(n) {
+  const p = ensurePanda();
+  p.xp += n;
+  const need = () => 100 + (p.level - 1) * 60;
+  let leveled = false;
+  while (p.xp >= need()) { p.xp -= need(); p.level++; leveled = true; }
+  if (leveled) {
+    spawnConfetti(); playFanfare(); vibrate([40, 50, 40]);
+    pandaSay(pt("lvl") + " " + p.level + "! ✨", 5000);
+    if (window.Panda3D) window.Panda3D.setGrowth(pandaGrowthStage());
+  }
+  savePanda();
+}
+function pandaGrowthStage() {
+  const l = ensurePanda().level;
+  return l >= 40 ? 5 : l >= 25 ? 4 : l >= 15 ? 3 : l >= 6 ? 2 : 1;
+}
 
-  const after = before + 1;
-  const stageAfter = villageStageFor(after, FARM_ITEMS.length);
-
-  if (stageAfter > stageBefore) {
-    // Faza e re e fshatit u zbulua — festë më e madhe se një blerje e zakonshme
-    spawnConfetti(); setTimeout(spawnConfetti, 300); setTimeout(spawnConfetti, 600);
-    playFanfare();
-    vibrate([35, 45, 35, 45, 120]);
-    mascotSay(fmt(`Fshati po merr formë{name}! Tashmë ${after} ndërtime — shiko sa bukur po duket.`), { duration: 8000 });
+/* ---------- ECONOMY / SHOP / INVENTORY ---------- */
+function pandaBuy(id) {
+  const it = PANDA_ITEMS.find(i => i.id === id);
+  const p = ensurePanda();
+  if (!it) return;
+  if (it.placed && p.furniture[id]) return;              // mobilie tashmë e vendosur
+  if (stats.farmCoins < it.cost) { pandaSay(pt("nomoney"), 3000); return; }
+  stats.farmCoins -= it.cost;
+  if (it.placed) {
+    // Mobiliet vendosen direkt në dhomë, në një vend të lirë; pastaj mund të zhvendosen
+    const spot = window.Panda3D ? window.Panda3D.findFreeSpot(it) : { x: 0, z: 0 };
+    p.furniture[id] = { x: spot.x, z: spot.z, rot: 0 };
+    stats.farmBuilt[id] = new Date().toISOString();
+    if (window.Panda3D) window.Panda3D.syncFurniture();
+    pandaSay(pt("newitem").replace("{item}", it.emoji + " " + pandaItemName(it)), 5000);
+    p._excitedUntil = Date.now() + 6000;
+    pandaAddXp(15);
   } else {
-    spawnConfetti();
-    playMilestoneFanfare();
-    vibrate([25, 30, 25, 30, 70]);
-    mascotSay(fmt(`„${item.name}" u shtua në fshat{name}! ${item.emoji}`), { duration: 4500 });
+    p.inventory[id] = (p.inventory[id] || 0) + 1;
   }
-  renderFarmView();
+  playMilestoneFanfare(); spawnConfetti();
+  savePanda(); renderPandaView(); renderHudFarmRow();
 }
 
-const VILLAGE_STAGE_COUNT = 10;
-
-// Sa ndërtime duhen për secilën fazë (progresive, jo lineare — fillimi lëviz shpejt,
-// fazat e fundit kërkojnë më shumë, si në foto: fillon bosh, mbaron fshat i plotë)
-function villageStageFor(builtCount, totalCount) {
-  if (builtCount <= 0) return 1;
-  if (builtCount >= totalCount) return VILLAGE_STAGE_COUNT;
-  const pct = builtCount / totalCount;
-  return Math.min(VILLAGE_STAGE_COUNT, Math.max(1, Math.ceil(pct * VILLAGE_STAGE_COUNT)));
+function pandaUse(id) {
+  const it = PANDA_ITEMS.find(i => i.id === id);
+  const p = ensurePanda();
+  if (!it || !p.inventory[id]) return;
+  p.inventory[id]--;
+  if (p.inventory[id] <= 0) delete p.inventory[id];
+  const e = it.effect || {};
+  for (const k in e) p[k] = clamp(p[k] + e[k], 0, 100);
+  if (it.weight) p.weight = clamp(p.weight + it.weight, 15, 100);
+  p.affection = clamp(p.affection + 3, 0, 100);
+  const anim = it.cat === "drink" ? "drink" : it.cat === "care" ? "bath" : "eat";
+  if (window.Panda3D) window.Panda3D.doAction(anim);
+  pandaSay(it.cat === "drink" ? pt("drank") : it.cat === "care" ? pt("clean") : pt("ate"), 3500);
+  pandaAddXp(4);
+  savePanda(); renderPandaView();
 }
 
-/* ============ SKENA E FSHATIT: çdo ndërtesë vizatohet veç, në truallin e vet ============ */
-// Ndryshe nga emojit: këto janë forma vektoriale, secila me pozicionin dhe madhësinë e vet.
-// Ndërtesat e mëdha vizatohen para atyre të voglave, që të mos mbulojnë njëra-tjetrën gabimisht.
+/* ---------- INTERACTIONS ---------- */
+function pandaPet() {
+  const p = ensurePanda();
+  const now = Date.now();
+  if (now < p.petCooldownUntil) { pandaSay(pt("again"), 2000); return; }
+  p.petCooldownUntil = now + 20000;
+  p.affection = clamp(p.affection + 12, 0, 100);
+  p.mood = clamp(p.mood + 5, 0, 100);
+  if (window.Panda3D) { window.Panda3D.doAction("happy"); window.Panda3D.hearts(); }
+  pandaSay(pt("petted"), 3000);
+  pandaAddXp(3); pandaTaskTick("pet");
+  savePanda(); renderPandaView();
+}
+function pandaPlay() {
+  const p = ensurePanda();
+  if (p.energy < 15) { pandaSay(pt("tootired"), 3000); return; }
+  p.mood = clamp(p.mood + 12, 0, 100);
+  p.affection = clamp(p.affection + 6, 0, 100);
+  p.energy = clamp(p.energy - 8, 0, 100);
+  p.weight = clamp(p.weight - 0.4, 15, 100);
+  p._excitedUntil = Date.now() + 8000;
+  if (window.Panda3D) window.Panda3D.doAction("play");
+  pandaSay(pt("fun"), 3000);
+  pandaAddXp(5); pandaTaskTick("play");
+  savePanda(); renderPandaView();
+}
+function pandaSleepToggle() {
+  const p = ensurePanda();
+  p._forceSleep = !p._forceSleep;
+  if (window.Panda3D) window.Panda3D.doAction(p._forceSleep ? "sleep" : "wake");
+  pandaSay(p._forceSleep ? pt("sleepy") : pt("awake"), 3000);
+  renderPandaView();
+}
+function pandaFeedQuick() {
+  const p = ensurePanda();
+  const first = ["bamboo","apple","salad","cake"].find(id => p.inventory[id]);
+  if (first) pandaUse(first); else { pandaSay(pt("nofood"), 3500); openPandaShop("food"); }
+  pandaTaskTick("feed");
+}
+function pandaDrinkQuick() {
+  const p = ensurePanda();
+  const first = ["water","milk","juice"].find(id => p.inventory[id]);
+  if (first) pandaUse(first); else { pandaSay(pt("nodrink"), 3500); openPandaShop("drink"); }
+}
+function pandaWashQuick() {
+  const p = ensurePanda();
+  if (p.furniture.bathtub) {
+    p.hygiene = clamp(p.hygiene + 45, 0, 100); p.mood = clamp(p.mood + 5, 0, 100);
+    if (window.Panda3D) window.Panda3D.goUse("bath");
+    pandaSay(pt("clean"), 3000); pandaAddXp(3); savePanda(); renderPandaView();
+  } else if (p.inventory.soap) pandaUse("soap");
+  else { pandaSay(pt("nosoap"), 3500); openPandaShop("care"); }
+}
 
-function svgHouse(stage) {
-  // stage 1=themel, 2=mure, 3=çati, 4=i zbukuruar
-  let s = `<g>`;
-  s += `<ellipse cx="0" cy="34" rx="52" ry="9" fill="rgba(0,0,0,.18)"/>`;
-  // Themeli: gurë të dukshëm + skela, që faza 1 të mos duket bosh
-  s += `<rect x="-46" y="6" width="92" height="28" rx="3" fill="#a99a86" stroke="#6b5b47" stroke-width="3"/>`;
-  s += `<path d="M-46 16 H46 M-24 6 V34 M0 6 V34 M24 6 V34" stroke="#6b5b47" stroke-width="2.5" opacity=".8"/>`;
-  if (stage < 2) {
-    s += `<g stroke="#c98b4b" stroke-width="4" stroke-linecap="round">
-      <line x1="-50" y1="6" x2="-50" y2="-26"/><line x1="50" y1="6" x2="50" y2="-26"/>
-      <line x1="-54" y1="-26" x2="54" y2="-26"/><line x1="-50" y1="-10" x2="50" y2="-10"/>
-    </g>`;
+/* ---------- LEARNING SYSTEM (kohëmatës real) ---------- */
+const LEARN_REWARDS = { 15: 5, 25: 10, 30: 15, 45: 25, 60: 40 };
+let learnTimer = null, learnEndsAt = 0, learnMinutes = 0;
+
+function startLearnSession(min) {
+  if (learnTimer) return;
+  learnMinutes = min;
+  learnEndsAt = Date.now() + min * 60000;
+  document.getElementById("pandaLearnPick").classList.add("hidden");
+  document.getElementById("pandaLearnRun").classList.remove("hidden");
+  if (window.Panda3D) window.Panda3D.goUse("desk");
+  pandaSay(pt("learnstart"), 4000);
+  learnTimer = setInterval(learnTick, 1000);
+  learnTick();
+}
+function learnTick() {
+  const left = Math.max(0, learnEndsAt - Date.now());
+  const m = Math.floor(left / 60000), s = Math.floor((left % 60000) / 1000);
+  const el = document.getElementById("pandaLearnClock");
+  if (el) el.textContent = String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+  if (Math.floor(left / 1000) % 240 === 0 && left > 5000) {
+    const msgs = pt("cheer"); pandaSay(msgs[Math.floor(Math.random() * msgs.length)], 3500);
   }
-  if (stage >= 2) {
-    s += `<rect x="-42" y="-18" width="84" height="38" fill="#f0e2c8"/>`;          // muret
-    s += `<rect x="-42" y="-18" width="84" height="38" fill="none" stroke="#6b4f30" stroke-width="3"/>`;
-    s += `<path d="M-42 -18 L0 -6 L42 -18" stroke="#6b4f30" stroke-width="3" fill="none"/>`; // trarë
-    s += `<rect x="-8" y="2" width="16" height="18" fill="#7d5a38"/>`;             // dera
+  if (left <= 0) finishLearnSession();
+}
+function finishLearnSession() {
+  clearInterval(learnTimer); learnTimer = null;
+  const p = ensurePanda();
+  let coins = LEARN_REWARDS[learnMinutes] || 5;
+  const hasDesk = !!p.furniture.desk, hasShelf = !!p.furniture.shelf;
+  if (hasDesk) coins = Math.round(coins * 1.15);
+  if (hasShelf) coins = Math.round(coins * 1.10);
+  // Seria e mësimit (ditë radhazi)
+  const today = todayStr();
+  if (p.lastLearnDay !== today) {
+    const y = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    p.learnStreak = p.lastLearnDay === y ? p.learnStreak + 1 : 1;
+    p.lastLearnDay = today;
   }
-  if (stage >= 3) {
-    s += `<path d="M-52 -18 L0 -52 L52 -18 Z" fill="#c1502e"/>`;                   // çatia
-    s += `<path d="M-52 -18 L0 -52 L52 -18 Z" fill="none" stroke="#8f3a20" stroke-width="3" stroke-linejoin="round"/>`;
-    s += `<rect x="-30" y="-8" width="14" height="13" fill="#8fd0e8" stroke="#6b4f30" stroke-width="2.5"/>`;
-    s += `<rect x="16" y="-8" width="14" height="13" fill="#8fd0e8" stroke="#6b4f30" stroke-width="2.5"/>`;
-  }
-  if (stage >= 4) {
-    s += `<rect x="20" y="-46" width="11" height="20" fill="#a8563a" stroke="#7a3a26" stroke-width="2"/>`; // oxhaku
-    s += `<circle cx="0" cy="-30" r="7" fill="#ffe08a" stroke="#6b4f30" stroke-width="2.5"/>`;             // dritare rrethore
-    s += `<rect x="-46" y="20" width="92" height="5" fill="#c98b4b"/>`;
-    s += `<circle cx="-38" cy="26" r="5" fill="#e8607a"/><circle cx="38" cy="26" r="5" fill="#e8607a"/>`;  // lule
-  }
-  return s + `</g>`;
+  const streakBonus = Math.min(20, p.learnStreak * 2);
+  stats.farmCoins += coins + streakBonus;
+  p.learnMinutesTotal += learnMinutes;
+  p.mood = clamp(p.mood + 10, 0, 100); p.affection = clamp(p.affection + 8, 0, 100);
+  p._excitedUntil = Date.now() + 8000;
+  addPoints(learnMinutes);            // pikë në sistemin e përgjithshëm
+  pandaAddXp(learnMinutes * 2); pandaTaskTick("learn", learnMinutes);
+  if (window.Panda3D) { window.Panda3D.doAction("happy"); window.Panda3D.hearts(); }
+  spawnConfetti(); playFanfare();
+  pandaSay(pt("learndone").replace("{c}", coins + streakBonus), 6000);
+  document.getElementById("pandaLearnRun").classList.add("hidden");
+  document.getElementById("pandaLearnPick").classList.remove("hidden");
+  savePanda(); renderPandaView(); renderHudFarmRow();
+}
+function cancelLearnSession() {
+  if (!learnTimer) return;
+  clearInterval(learnTimer); learnTimer = null;
+  document.getElementById("pandaLearnRun").classList.add("hidden");
+  document.getElementById("pandaLearnPick").classList.remove("hidden");
+  pandaSay(pt("learncancel"), 3000);
 }
 
-function svgField(stage) {
-  // 1=lëruar, 2=mbjellë, 3=domate të pjekura
-  let s = `<g>`;
-  s += `<rect x="-56" y="-26" width="112" height="52" rx="4" fill="${stage>=1?"#8a6a44":"#7fa34f"}" stroke="#6b4f30" stroke-width="3"/>`;
-  for (let i = 0; i < 4; i++) {
-    const y = -18 + i * 12;
-    s += `<line x1="-50" y1="${y}" x2="50" y2="${y}" stroke="#6b4f30" stroke-width="2" opacity=".45"/>`;
-  }
-  if (stage >= 2) {
-    for (let r = 0; r < 4; r++) for (let c = 0; c < 7; c++) {
-      s += `<circle cx="${-42 + c * 14}" cy="${-18 + r * 12}" r="3.4" fill="#4caf7d"/>`;
-    }
-  }
-  if (stage >= 3) {
-    for (let r = 0; r < 4; r++) for (let c = 0; c < 7; c++) {
-      s += `<circle cx="${-42 + c * 14}" cy="${-20 + r * 12}" r="3" fill="#e8503a"/>`;
-    }
-  }
-  return s + `</g>`;
+/* ---------- DAILY TASKS ---------- */
+const DAILY_TASKS = [
+  { id:"learn", icon:"📚", target:25, reward:15 },
+  { id:"pet",   icon:"❤️", target:3,  reward:5 },
+  { id:"feed",  icon:"🍎", target:1,  reward:5 },
+  { id:"play",  icon:"🎾", target:1,  reward:5 }
+];
+function ensureDaily() {
+  const p = ensurePanda(); const today = todayStr();
+  if (p.daily.day !== today) p.daily = { day: today, tasks: {} };
+  return p.daily;
+}
+function pandaTaskTick(id, n) {
+  const d = ensureDaily(); const t = DAILY_TASKS.find(x => x.id === id); if (!t) return;
+  const cur = d.tasks[id] || 0; if (cur >= t.target) return;
+  const after = Math.min(t.target, cur + (n || 1));
+  d.tasks[id] = after;
+  if (after >= t.target) { stats.farmCoins += t.reward; pandaAddXp(10); pandaSay(pt("taskdone"), 3500); }
+  savePanda();
 }
 
-function svgBarn() {
-  return `<g>
-    <ellipse cx="0" cy="26" rx="42" ry="7" fill="rgba(0,0,0,.18)"/>
-    <rect x="-34" y="-8" width="68" height="34" fill="#b5482f" stroke="#7a2f1e" stroke-width="3"/>
-    <path d="M-40 -8 Q0 -44 40 -8 Z" fill="#c1502e" stroke="#7a2f1e" stroke-width="3" stroke-linejoin="round"/>
-    <rect x="-12" y="6" width="24" height="20" fill="#f0e2c8" stroke="#7a2f1e" stroke-width="2.5"/>
-    <line x1="0" y1="6" x2="0" y2="26" stroke="#7a2f1e" stroke-width="2.5"/>
-    <circle cx="0" cy="-16" r="6" fill="#ffe08a" stroke="#7a2f1e" stroke-width="2.5"/>
-  </g>`;
+/* ---------- SPEECH ---------- */
+let pandaBubbleTimer = null;
+function pandaSay(text, ms) {
+  const b = document.getElementById("pandaBubble"); if (!b) return;
+  b.textContent = text; b.classList.remove("hidden");
+  clearTimeout(pandaBubbleTimer);
+  pandaBubbleTimer = setTimeout(() => b.classList.add("hidden"), ms || 3000);
+}
+function pandaShowAwayReport(hours, before, after) {
+  const h = Math.round(hours);
+  const parts = [];
+  if (after.hunger < before.hunger - 5) parts.push(pt("away_hungry"));
+  if (before.energy < 40 && after.energy > before.energy) parts.push(pt("away_slept"));
+  if (after.toilet > 70) parts.push(pt("away_toilet"));
+  pandaSay(pt("away").replace("{h}", h) + (parts.length ? " " + parts.join(" ") : ""), 8000);
 }
 
-function svgSilo() {
-  return `<g>
-    <ellipse cx="0" cy="30" rx="20" ry="6" fill="rgba(0,0,0,.18)"/>
-    <rect x="-16" y="-30" width="32" height="60" rx="4" fill="#cfd6dd" stroke="#8a949e" stroke-width="3"/>
-    <path d="M-20 -30 Q0 -52 20 -30 Z" fill="#8a949e" stroke="#6d757d" stroke-width="3" stroke-linejoin="round"/>
-    <line x1="-16" y1="-10" x2="16" y2="-10" stroke="#8a949e" stroke-width="2.5"/>
-    <line x1="-16" y1="8" x2="16" y2="8" stroke="#8a949e" stroke-width="2.5"/>
-  </g>`;
-}
+/* ---------- TEXTS (sq / de / en) ---------- */
+const PANDA_TEXT = {
+  sq: { lvl:"Niveli", nomoney:"S'kam mjaft monedha… mëso pak! 📚", newitem:"Uau! {item}! 😍", ate:"Mmm, faleminderit! 🍽️", drank:"Freskuese! 💧",
+        clean:"Tani jam i pastër! ✨", again:"Prit pak… hehe 😊", petted:"Kjo më pëlqen! ❤️", tootired:"Jam shumë i lodhur… 😴", fun:"Sa argëtuese! 🎾",
+        sleepy:"Natën e mirë… 💤", awake:"U zgjova! ☀️", nofood:"S'kemi ushqim. Blej diçka? 🍎", nodrink:"S'kemi pije. 🥤", nosoap:"S'kemi sapun. 🧼",
+        learnstart:"Le të mësojmë bashkë! 💪", learndone:"Bravo! +{c} monedha 🪙", learncancel:"Herën tjetër, mirë? 🙂", taskdone:"Detyra u krye! ⭐",
+        away:"Ndërsa ishe larg ({h} orë)…", away_hungry:"Më mori uria.", away_slept:"Fjeta pak.", away_toilet:"Duhet të shkoj në tualet!",
+        cheer:["Ti e bën! 💪","Jam krenar për ty!","Edhe pak!","E bëjmë bashkë!"],
+        hungry:"Kam uri… 🥺", thirsty:"Do doja diçka për të pirë.", tired:"Jam i lodhur… 😴", urgent:"Duhet të shkoj! 🚽", dirty:"Kam nevojë për një banjë.",
+        lonely:"Më mungon…", sad:"Jam pak i trishtuar…", happy:"Sa mirë që je këtu! ❤️", sick:"Nuk ndihem mirë… 🤒", excited:"Yeee! 🎉", neutral:"Hmm, ç'të bëjmë?" },
+  de: { lvl:"Level", nomoney:"Nicht genug Münzen… lern ein bisschen! 📚", newitem:"Wow! {item}! 😍", ate:"Mmm, danke! 🍽️", drank:"Erfrischend! 💧",
+        clean:"Jetzt bin ich sauber! ✨", again:"Warte kurz… hehe 😊", petted:"Das gefällt mir! ❤️", tootired:"Ich bin zu müde… 😴", fun:"Das macht Spaß! 🎾",
+        sleepy:"Gute Nacht… 💤", awake:"Ich bin wach! ☀️", nofood:"Wir haben kein Essen. Kaufen? 🍎", nodrink:"Wir haben nichts zu trinken. 🥤", nosoap:"Keine Seife da. 🧼",
+        learnstart:"Lass uns zusammen lernen! 💪", learndone:"Super! +{c} Münzen 🪙", learncancel:"Nächstes Mal, ok? 🙂", taskdone:"Tagesziel geschafft! ⭐",
+        away:"Während du weg warst ({h} Std.)…", away_hungry:"Ich bekam Hunger.", away_slept:"Ich habe geschlafen.", away_toilet:"Ich muss dringend!",
+        cheer:["Du schaffst das! 💪","Ich bin stolz auf dich!","Noch ein bisschen!","Wir schaffen das zusammen!"],
+        hungry:"Ich habe Hunger… 🥺", thirsty:"Ich hätte gern etwas zu trinken.", tired:"Ich bin müde… 😴", urgent:"Ich muss mal! 🚽", dirty:"Ich brauche ein Bad.",
+        lonely:"Ich vermisse dich…", sad:"Ich bin etwas traurig…", happy:"Schön, dass du da bist! ❤️", sick:"Mir geht's nicht gut… 🤒", excited:"Juhu! 🎉", neutral:"Hmm, was machen wir?" },
+  en: { lvl:"Level", nomoney:"Not enough coins… study a bit! 📚", newitem:"Wow! {item}! 😍", ate:"Mmm, thanks! 🍽️", drank:"Refreshing! 💧",
+        clean:"I'm clean now! ✨", again:"Wait a sec… hehe 😊", petted:"I like that! ❤️", tootired:"I'm too tired… 😴", fun:"That's fun! 🎾",
+        sleepy:"Good night… 💤", awake:"I'm awake! ☀️", nofood:"We have no food. Buy some? 🍎", nodrink:"Nothing to drink. 🥤", nosoap:"No soap here. 🧼",
+        learnstart:"Let's study together! 💪", learndone:"Great! +{c} coins 🪙", learncancel:"Next time, ok? 🙂", taskdone:"Daily goal done! ⭐",
+        away:"While you were away ({h} h)…", away_hungry:"I got hungry.", away_slept:"I slept a bit.", away_toilet:"I really need the toilet!",
+        cheer:["You can do it! 💪","I'm proud of you!","Just a bit more!","We'll do it together!"],
+        hungry:"I'm hungry… 🥺", thirsty:"I'd like something to drink.", tired:"I'm tired… 😴", urgent:"I need to go! 🚽", dirty:"I need a bath.",
+        lonely:"I miss you…", sad:"I'm a little sad…", happy:"So glad you're here! ❤️", sick:"I don't feel well… 🤒", excited:"Yay! 🎉", neutral:"Hmm, what shall we do?" }
+};
+function pt(key) { const L = PANDA_TEXT[menuLang] || PANDA_TEXT.sq; return L[key] !== undefined ? L[key] : (PANDA_TEXT.sq[key] || key); }
 
-function svgTower() {
-  return `<g>
-    <ellipse cx="0" cy="40" rx="26" ry="8" fill="rgba(0,0,0,.2)"/>
-    <rect x="-20" y="-40" width="40" height="80" fill="#e8e0d0" stroke="#6b4f30" stroke-width="3"/>
-    <path d="M-27 -40 L0 -78 L27 -40 Z" fill="#3f6fb5" stroke="#2b4d80" stroke-width="3" stroke-linejoin="round"/>
-    <rect x="-7" y="-26" width="14" height="16" fill="#8fd0e8" stroke="#6b4f30" stroke-width="2.5"/>
-    <rect x="-8" y="10" width="16" height="30" fill="#7d5a38" stroke="#5a3f28" stroke-width="2.5"/>
-    <path d="M0 -78 L0 -90 L18 -84 L0 -78" fill="#e8503a"/>
-  </g>`;
-}
-
-function svgWell() {
-  return `<g>
-    <ellipse cx="0" cy="20" rx="24" ry="6" fill="rgba(0,0,0,.18)"/>
-    <path d="M-18 4 Q0 -4 18 4 L16 20 Q0 26 -16 20 Z" fill="#9aa3ab" stroke="#6d757d" stroke-width="3"/>
-    <ellipse cx="0" cy="4" rx="18" ry="7" fill="#4aa3d6" stroke="#6d757d" stroke-width="3"/>
-    <line x1="-14" y1="2" x2="-14" y2="-24" stroke="#7d5a38" stroke-width="4"/>
-    <line x1="14" y1="2" x2="14" y2="-24" stroke="#7d5a38" stroke-width="4"/>
-    <path d="M-20 -24 L0 -36 L20 -24 Z" fill="#c1502e" stroke="#8f3a20" stroke-width="3" stroke-linejoin="round"/>
-    <rect x="-5" y="-20" width="10" height="9" fill="#7d5a38"/>
-  </g>`;
-}
-
-function svgMill() {
-  return `<g>
-    <ellipse cx="0" cy="36" rx="30" ry="8" fill="rgba(0,0,0,.2)"/>
-    <path d="M-22 36 L-14 -24 L14 -24 L22 36 Z" fill="#e8e0d0" stroke="#6b4f30" stroke-width="3"/>
-    <path d="M-18 -24 L0 -44 L18 -24 Z" fill="#8f6a45" stroke="#5a3f28" stroke-width="3" stroke-linejoin="round"/>
-    <rect x="-7" y="10" width="14" height="26" fill="#7d5a38" stroke="#5a3f28" stroke-width="2.5"/>
-    <g stroke="#7d5a38" stroke-width="4" stroke-linecap="round">
-      <line x1="0" y1="-32" x2="0" y2="-70"/><line x1="0" y1="-32" x2="34" y2="-32"/>
-      <line x1="0" y1="-32" x2="0" y2="4"/><line x1="0" y1="-32" x2="-34" y2="-32"/>
-    </g>
-    <circle cx="0" cy="-32" r="5" fill="#c98b4b" stroke="#6b4f30" stroke-width="2.5"/>
-  </g>`;
-}
-
-function svgMarket() {
-  return `<g>
-    <ellipse cx="0" cy="22" rx="34" ry="7" fill="rgba(0,0,0,.18)"/>
-    <rect x="-28" y="2" width="56" height="20" fill="#c98b4b" stroke="#6b4f30" stroke-width="3"/>
-    <path d="M-34 2 L-34 -10 L34 -10 L34 2 Z" fill="#e8503a" stroke="#8f3a20" stroke-width="3"/>
-    <path d="M-34 -10 L-24 -10 L-24 2 L-34 2 Z" fill="#f5f0e6"/>
-    <path d="M-10 -10 L0 -10 L0 2 L-10 2 Z" fill="#f5f0e6"/>
-    <path d="M14 -10 L24 -10 L24 2 L14 2 Z" fill="#f5f0e6"/>
-    <line x1="-28" y1="-10" x2="-28" y2="22" stroke="#6b4f30" stroke-width="3"/>
-    <line x1="28" y1="-10" x2="28" y2="22" stroke="#6b4f30" stroke-width="3"/>
-    <circle cx="-14" cy="8" r="4" fill="#e8503a"/><circle cx="0" cy="8" r="4" fill="#ffc857"/><circle cx="14" cy="8" r="4" fill="#4caf7d"/>
-  </g>`;
-}
-
-function svgFence() {
-  let s = `<g>`;
-  for (let i = 0; i < 6; i++) s += `<rect x="${-46 + i * 18}" y="-14" width="6" height="28" rx="2" fill="#a8794a" stroke="#7a5533" stroke-width="2"/>`;
-  s += `<rect x="-48" y="-8" width="98" height="5" fill="#a8794a" stroke="#7a5533" stroke-width="2"/>`;
-  s += `<rect x="-48" y="4" width="98" height="5" fill="#a8794a" stroke="#7a5533" stroke-width="2"/>`;
-  return s + `</g>`;
-}
-
-function svgTree() {
-  return `<g>
-    <ellipse cx="0" cy="30" rx="20" ry="6" fill="rgba(0,0,0,.18)"/>
-    <rect x="-6" y="0" width="12" height="30" fill="#7d5a38" stroke="#5a3f28" stroke-width="2.5"/>
-    <circle cx="0" cy="-16" r="26" fill="#3f9e6b" stroke="#2a7d54" stroke-width="3"/>
-    <circle cx="-16" cy="-4" r="16" fill="#4caf7d" stroke="#2a7d54" stroke-width="3"/>
-    <circle cx="16" cy="-4" r="16" fill="#4caf7d" stroke="#2a7d54" stroke-width="3"/>
-  </g>`;
-}
-
-function svgFlowers() {
-  let s = `<g>`;
-  const cols = ["#ffc857","#e8607a","#8f7bff","#ffffff"];
-  for (let i = 0; i < 7; i++) {
-    const x = -30 + i * 10, y = (i % 2 ? 4 : -4);
-    s += `<line x1="${x}" y1="${y+10}" x2="${x}" y2="${y}" stroke="#4caf7d" stroke-width="2.5"/>`;
-    s += `<circle cx="${x}" cy="${y}" r="5" fill="${cols[i%4]}" stroke="#6b4f30" stroke-width="1.6"/>`;
-  }
-  return s + `</g>`;
-}
-
-function svgCart() {
-  return `<g>
-    <ellipse cx="0" cy="20" rx="30" ry="6" fill="rgba(0,0,0,.18)"/>
-    <path d="M-26 -6 L26 -6 L22 12 L-22 12 Z" fill="#c98b4b" stroke="#6b4f30" stroke-width="3"/>
-    <rect x="-26" y="-12" width="52" height="7" fill="#a8794a" stroke="#6b4f30" stroke-width="2.5"/>
-    <circle cx="-15" cy="14" r="8" fill="#7d5a38" stroke="#5a3f28" stroke-width="3"/>
-    <circle cx="15" cy="14" r="8" fill="#7d5a38" stroke="#5a3f28" stroke-width="3"/>
-    <path d="M-20 -12 L-14 -22 L10 -22 L16 -12" fill="#ffd97a" stroke="#c98b4b" stroke-width="2.5"/>
-  </g>`;
-}
-
-function svgHay() {
-  return `<g>
-    <ellipse cx="0" cy="16" rx="24" ry="6" fill="rgba(0,0,0,.18)"/>
-    <ellipse cx="0" cy="2" rx="22" ry="16" fill="#e8c76a" stroke="#c98b4b" stroke-width="3"/>
-    <path d="M-16 -6 Q0 0 16 -6 M-16 4 Q0 10 16 4" stroke="#c98b4b" stroke-width="2.5" fill="none"/>
-  </g>`;
-}
-
-function svgPond() {
-  return `<g>
-    <ellipse cx="0" cy="0" rx="38" ry="20" fill="#4aa3d6" stroke="#2f7fae" stroke-width="3"/>
-    <ellipse cx="-10" cy="-5" rx="14" ry="6" fill="#7fc4e6" opacity=".8"/>
-    <ellipse cx="16" cy="6" rx="9" ry="4" fill="#7fc4e6" opacity=".7"/>
-    <ellipse cx="-26" cy="8" rx="8" ry="4" fill="#4caf7d"/>
-  </g>`;
-}
-
-function svgAnimal(kind) {
-  const body = { cow:"#f5f0e6", sheep:"#f0ece2", goat:"#d8cfc0", chicken:"#f7e7a8", dog:"#c98b4b" }[kind] || "#f0ece2";
-  const spot = kind === "cow" ? `<ellipse cx="-5" cy="-2" rx="7" ry="5" fill="#4a4a4a"/><ellipse cx="8" cy="3" rx="5" ry="4" fill="#4a4a4a"/>` : "";
-  const size = kind === "cow" ? 1.15 : kind === "chicken" ? .65 : .9;
-  return `<g transform="scale(${size})">
-    <ellipse cx="0" cy="14" rx="18" ry="4" fill="rgba(0,0,0,.16)"/>
-    <ellipse cx="0" cy="0" rx="17" ry="12" fill="${body}" stroke="#6b4f30" stroke-width="2.5"/>
-    ${spot}
-    <circle cx="-16" cy="-6" r="8" fill="${body}" stroke="#6b4f30" stroke-width="2.5"/>
-    <circle cx="-19" cy="-8" r="1.7" fill="#3a2c1e"/>
-    <line x1="-8" y1="11" x2="-8" y2="16" stroke="#6b4f30" stroke-width="3"/>
-    <line x1="7" y1="11" x2="7" y2="16" stroke="#6b4f30" stroke-width="3"/>
-  </g>`;
-}
-
-function svgBeehive() {
-  return `<g>
-    <ellipse cx="0" cy="16" rx="16" ry="5" fill="rgba(0,0,0,.16)"/>
-    <path d="M-13 14 Q-16 -2 0 -14 Q16 -2 13 14 Z" fill="#e8c76a" stroke="#c98b4b" stroke-width="3"/>
-    <path d="M-13 4 H13 M-15 9 H15" stroke="#c98b4b" stroke-width="2.5"/>
-    <circle cx="0" cy="8" r="3" fill="#6b4f30"/>
-    <circle cx="18" cy="-8" r="2.6" fill="#ffc857"/><circle cx="-19" cy="-4" r="2.2" fill="#ffc857"/>
-  </g>`;
-}
-
-function svgBarrels() {
-  return `<g>
-    <ellipse cx="0" cy="16" rx="26" ry="6" fill="rgba(0,0,0,.16)"/>
-    <rect x="-22" y="-6" width="18" height="22" rx="5" fill="#a8794a" stroke="#6b4f30" stroke-width="2.5"/>
-    <rect x="4" y="-6" width="18" height="22" rx="5" fill="#a8794a" stroke="#6b4f30" stroke-width="2.5"/>
-    <line x1="-22" y1="2" x2="-4" y2="2" stroke="#6b4f30" stroke-width="2"/>
-    <line x1="4" y1="2" x2="22" y2="2" stroke="#6b4f30" stroke-width="2"/>
-  </g>`;
-}
-
-function svgLamp() {
-  return `<g>
-    <ellipse cx="0" cy="26" rx="10" ry="4" fill="rgba(0,0,0,.18)"/>
-    <rect x="-3" y="-14" width="6" height="40" fill="#5a5f6b" stroke="#3f434d" stroke-width="2"/>
-    <path d="M-9 -14 L0 -26 L9 -14 Z" fill="#ffe08a" stroke="#c98b4b" stroke-width="2.5"/>
-    <circle cx="0" cy="-16" r="12" fill="#ffe08a" opacity=".28"/>
-  </g>`;
-}
-
-function svgBridge() {
-  return `<g>
-    <path d="M-44 10 Q0 -18 44 10" stroke="#a8794a" stroke-width="9" fill="none" stroke-linecap="round"/>
-    <path d="M-44 10 Q0 -18 44 10" stroke="#7a5533" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <line x1="-30" y1="4" x2="-30" y2="16" stroke="#7a5533" stroke-width="3.5"/>
-    <line x1="0" y1="-10" x2="0" y2="14" stroke="#7a5533" stroke-width="3.5"/>
-    <line x1="30" y1="4" x2="30" y2="16" stroke="#7a5533" stroke-width="3.5"/>
-  </g>`;
-}
-
-/* --- Peizazhi bazë: qielli, malet, lumi, rrugët --- */
-function villageBackdrop() {
-  return `
-  <defs>
-    <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#7ec9ef"/><stop offset="100%" stop-color="#b9e6f7"/>
-    </linearGradient>
-    <linearGradient id="grassG" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#7fc45f"/><stop offset="100%" stop-color="#5da743"/>
-    </linearGradient>
-  </defs>
-  <rect x="0" y="0" width="1000" height="620" fill="url(#skyG)"/>
-  <!-- retë -->
-  <g fill="#ffffff" opacity=".92">
-    <ellipse cx="180" cy="78" rx="46" ry="24"/><ellipse cx="222" cy="70" rx="34" ry="20"/><ellipse cx="140" cy="86" rx="30" ry="17"/>
-    <ellipse cx="700" cy="60" rx="42" ry="21"/><ellipse cx="742" cy="54" rx="30" ry="17"/>
-  </g>
-  <!-- malet -->
-  <path d="M0 250 L120 140 L230 250 Z" fill="#6f93c4"/>
-  <path d="M160 250 L300 120 L440 250 Z" fill="#5e83b8"/>
-  <path d="M380 250 L520 150 L660 250 Z" fill="#6f93c4"/>
-  <path d="M600 250 L740 130 L880 250 Z" fill="#5e83b8"/>
-  <path d="M820 250 L940 160 L1000 220 L1000 250 Z" fill="#6f93c4"/>
-  <!-- pylli në sfond -->
-  <g fill="#2f7d4f">
-    ${Array.from({length: 22}, (_, i) => `<circle cx="${i * 48 + 12}" cy="${248 - (i % 3) * 8}" r="${28 + (i % 4) * 5}"/>`).join("")}
-  </g>
-  <!-- livadhi -->
-  <rect x="0" y="250" width="1000" height="370" fill="url(#grassG)"/>
-  <!-- lumi -->
-  <path d="M0 560 Q160 520 300 556 Q470 596 660 552 Q830 512 1000 548 L1000 620 L0 620 Z" fill="#4aa3d6"/>
-  <path d="M0 560 Q160 520 300 556 Q470 596 660 552 Q830 512 1000 548" stroke="#2f7fae" stroke-width="4" fill="none"/>
-  <!-- rrugët -->
-  <path d="M500 300 L500 520" stroke="#cbb489" stroke-width="34" stroke-linecap="round"/>
-  <path d="M180 430 Q500 380 830 430" stroke="#cbb489" stroke-width="30" fill="none" stroke-linecap="round"/>
-  <circle cx="500" cy="418" r="46" fill="#cbb489"/>
-  `;
-}
-
-/* --- Truallet: ku qëndron secila ndërtesë (koordinata në sistemin 1000x620) --- */
-const VILLAGE_PLOTS = {
-  house:   { x: 300, y: 360, s: 2.56 },
-  field:   { x: 760, y: 330, s: 2.18 },
-  barn:    { x: 200, y: 470, s: 2.09 },
-  silo:    { x: 118, y: 430, s: 1.8 },
-  tower:   { x: 640, y: 300, s: 1.99 },
-  mill:    { x: 880, y: 430, s: 1.9 },
-  market:  { x: 500, y: 500, s: 1.9 },
-  well:    { x: 500, y: 418, s: 1.8 },
-  fence:   { x: 700, y: 470, s: 1.9 },
-  tree1:   { x: 70,  y: 320, s: 1.9 },
-  tree2:   { x: 940, y: 300, s: 1.9 },
-  flowers: { x: 390, y: 300, s: 1.9 },
-  cart:    { x: 330, y: 500, s: 1.9 },
-  hay:     { x: 262, y: 520, s: 1.9 },
-  pond:    { x: 860, y: 520, s: 1.9 },
-  beehive: { x: 60,  y: 500, s: 1.9 },
-  barrel:  { x: 148, y: 520, s: 1.9 },
-  lamp:    { x: 430, y: 470, s: 1.9 },
-  bridge:  { x: 300, y: 556, s: 1.9 },
-  chicken: { x: 640, y: 486, s: 1.9 },
-  dog:     { x: 380, y: 430, s: 1.9 },
-  sheep:   { x: 706, y: 452, s: 1.9 },
-  cow:     { x: 748, y: 470, s: 1.9 },
-  goat:    { x: 672, y: 466, s: 1.9 }
+const PANDA_ITEM_NAMES = {
+  sq: { apple:"Mollë", bamboo:"Bambu", cake:"Tortë", salad:"Sallatë", water:"Ujë", juice:"Lëng", milk:"Qumësht", soap:"Sapun", medicine:"Ilaç",
+        ball:"Top", teddy:"Arush pelushi", bowl:"Enë ushqimi", wbowl:"Enë uji", bed:"Krevat", sofa:"Divan", toilet:"Tualet", bathtub:"Vaskë",
+        table:"Tavolinë", desk:"Tryezë pune", shelf:"Raft librash", wardrobe:"Dollap", plant:"Bimë", lamp:"Llambë", rug:"Qilim", picture:"Pikturë" },
+  de: { apple:"Apfel", bamboo:"Bambus", cake:"Kuchen", salad:"Salat", water:"Wasser", juice:"Saft", milk:"Milch", soap:"Seife", medicine:"Medizin",
+        ball:"Ball", teddy:"Teddy", bowl:"Futternapf", wbowl:"Wassernapf", bed:"Bett", sofa:"Sofa", toilet:"Toilette", bathtub:"Badewanne",
+        table:"Tisch", desk:"Schreibtisch", shelf:"Bücherregal", wardrobe:"Schrank", plant:"Pflanze", lamp:"Lampe", rug:"Teppich", picture:"Bild" },
+  en: { apple:"Apple", bamboo:"Bamboo", cake:"Cake", salad:"Salad", water:"Water", juice:"Juice", milk:"Milk", soap:"Soap", medicine:"Medicine",
+        ball:"Ball", teddy:"Teddy bear", bowl:"Food bowl", wbowl:"Water bowl", bed:"Bed", sofa:"Sofa", toilet:"Toilet", bathtub:"Bathtub",
+        table:"Table", desk:"Desk", shelf:"Bookshelf", wardrobe:"Wardrobe", plant:"Plant", lamp:"Lamp", rug:"Rug", picture:"Picture" }
+};
+function pandaItemName(it) { const L = PANDA_ITEM_NAMES[menuLang] || PANDA_ITEM_NAMES.sq; return L[it.id] || it.id; }
+const PANDA_CAT_NAMES = {
+  sq: { food:"🍎 Ushqim", drink:"🥤 Pije", furniture:"🛋️ Mobilie", toy:"🧸 Lodra", deco:"🌱 Dekor", care:"🧼 Kujdes" },
+  de: { food:"🍎 Essen", drink:"🥤 Getränke", furniture:"🛋️ Möbel", toy:"🧸 Spielzeug", deco:"🌱 Dekoration", care:"🧼 Pflege" },
+  en: { food:"🍎 Food", drink:"🥤 Drinks", furniture:"🛋️ Furniture", toy:"🧸 Toys", deco:"🌱 Decor", care:"🧼 Care" }
 };
 
-// Cila fazë e shtëpisë/arës është arritur
-function groupStageBuilt(group) {
-  let n = 0;
-  for (let i = 1; i <= 4; i++) if (stats.farmBuilt[group + i]) n = i;
-  return n;
+/* ---------- COMPAT: funksionet e vjetra që përdoren nga prestige/HUD ---------- */
+function villageFullyBuilt() { return FARM_ITEMS.every(i => stats.farmBuilt && stats.farmBuilt[i.id]); }
+function farmItemUnlocked() { return true; }
+function farmCanAfford(item) { return stats.farmCoins >= itemCost(item); }
+function buildFarmItem(id) { pandaBuy(id); }
+
+
+/* ---------- UI RENDER ---------- */
+let pandaShopCat = "food";
+let panda3DStarted = false, pandaTickTimer = null;
+
+function pandaEmotionIcon(e) {
+  return { happy:"😊", sad:"😢", hungry:"🍽️", thirsty:"💧", tired:"😴", excited:"🤩", lonely:"🥺", sick:"🤒", urgent:"🚽", dirty:"🧼", neutral:"🙂" }[e] || "🙂";
 }
 
-function buildVillageSVG() {
-  ensureFarmCoins();
-  let parts = "";
-  const put = (plot, inner) => {
-    if (!plot) return;
-    parts += `<g class="vg-item" transform="translate(${plot.x},${plot.y}) scale(${plot.s})">${inner}</g>`;
-  };
+function renderPandaView() {
+  const p = ensurePanda();
+  ensureFarmCoins(); ensurePrestige();
 
-  // Renditja: gjërat e largëta/të mëdha para, të voglat pas
-  const hs = groupStageBuilt("house");
-  const fs = groupStageBuilt("field");
-  if (fs) put(VILLAGE_PLOTS.field, svgField(fs));
-  if (stats.farmBuilt.tower) put(VILLAGE_PLOTS.tower, svgTower());
-  if (stats.farmBuilt.silo) put(VILLAGE_PLOTS.silo, svgSilo());
-  if (stats.farmBuilt.tree1) put(VILLAGE_PLOTS.tree1, svgTree());
-  if (stats.farmBuilt.tree2) put(VILLAGE_PLOTS.tree2, svgTree());
-  if (stats.farmBuilt.mill) put(VILLAGE_PLOTS.mill, svgMill());
-  if (hs) put(VILLAGE_PLOTS.house, svgHouse(hs));
-  if (stats.farmBuilt.barn) put(VILLAGE_PLOTS.barn, svgBarn());
-  if (stats.farmBuilt.pond) put(VILLAGE_PLOTS.pond, svgPond());
-  if (stats.farmBuilt.fence) put(VILLAGE_PLOTS.fence, svgFence());
-  if (stats.farmBuilt.market) put(VILLAGE_PLOTS.market, svgMarket());
-  if (stats.farmBuilt.well) put(VILLAGE_PLOTS.well, svgWell());
-  if (stats.farmBuilt.bridge) put(VILLAGE_PLOTS.bridge, svgBridge());
-  if (stats.farmBuilt.cart) put(VILLAGE_PLOTS.cart, svgCart());
-  if (stats.farmBuilt.haybale) put(VILLAGE_PLOTS.hay, svgHay());
-  if (stats.farmBuilt.barrel) put(VILLAGE_PLOTS.barrel, svgBarrels());
-  if (stats.farmBuilt.beehive) put(VILLAGE_PLOTS.beehive, svgBeehive());
-  if (stats.farmBuilt.flowers) put(VILLAGE_PLOTS.flowers, svgFlowers());
-  if (stats.farmBuilt.lamp) put(VILLAGE_PLOTS.lamp, svgLamp());
-  if (stats.farmBuilt.cow) put(VILLAGE_PLOTS.cow, svgAnimal("cow"));
-  if (stats.farmBuilt.sheep) put(VILLAGE_PLOTS.sheep, svgAnimal("sheep"));
-  if (stats.farmBuilt.goat) put(VILLAGE_PLOTS.goat, svgAnimal("goat"));
-  if (stats.farmBuilt.chicken) put(VILLAGE_PLOTS.chicken, svgAnimal("chicken"));
-  if (stats.farmBuilt.dog) put(VILLAGE_PLOTS.dog, svgAnimal("dog"));
-
-  return `<svg viewBox="0 0 1000 620" class="village-svg" role="img" aria-label="Fshati im">
-    ${villageBackdrop()}
-    ${parts}
-  </svg>`;
-}
-
-let village3DStarted = false;
-let village3DFailed = false;
-
-function renderFarmScene() {
-  ensureFarmCoins();
-  const built = FARM_ITEMS.filter(i => stats.farmBuilt[i.id]);
-  const scene = document.getElementById("farmScene");
-  if (!scene) return;
-
-  const mode = (!village3DFailed && village3DStarted) ? "3D" : "2D";
-  const badge = built.length
-    ? `<div class="farm-stage-badge">${built.length} / ${FARM_ITEMS.length} ndërtime · ${mode}</div>`
-    : `<div class="farm-empty-badge">🏗️ Trualli të pret — blej ndërtimin e parë! (${mode})</div>`;
-
-  // 1) Provo skenën 3D
-  if (!village3DFailed && typeof window.initVillage3D === "function") {
-    if (!village3DStarted) {
-      const holder = document.createElement("div");
-      holder.id = "village3DHolder";
-      holder.className = "village-3d";
-      scene.innerHTML = "";
-      scene.appendChild(holder);
-      const ok = window.initVillage3D(holder);
-      if (ok) {
-        village3DStarted = true;
-      } else {
-        village3DFailed = true;
-      }
-    }
-    if (village3DStarted) {
-      window.updateVillage3D(built.map(i => i.id));
-      let b = scene.querySelector(".farm-stage-badge, .farm-empty-badge");
-      if (b) b.remove();
-      scene.insertAdjacentHTML("beforeend", badge);
-      // Nëse modelet nuk u ngarkuan (p.sh. mungon dosja "models"),
-      // kalo automatikisht te skena 2D, që të mos mbetet ekrani bosh.
-      setTimeout(() => {
-        if (window.village3DError && !village3DFailed) {
-          village3DFailed = true;
-          village3DStarted = false;
-          console.warn("Kalohet te skena 2D:", window.village3DError);
-          renderFarmScene();
-        }
-      }, 1500);
-      return;
-    }
+  // 3D-Szene starten (einmalig)
+  const holder = document.getElementById("pandaScene");
+  if (holder && !panda3DStarted && window.Panda3D) {
+    panda3DStarted = window.Panda3D.init(holder, {
+      items: PANDA_ITEMS, getState: () => ensurePanda(), getEmotion: getPetEmotion,
+      onMove: (id, pos) => { p.furniture[id] = pos; savePanda(); },
+      onArrive: (use) => pandaOnArrive(use),
+      onPet: () => pandaPet(),
+      say: (k) => pandaSay(pt(k), 3500)
+    });
+    if (panda3DStarted) window.Panda3D.setGrowth(pandaGrowthStage());
+  }
+  if (!pandaTickTimer) {
+    pandaTickTimer = setInterval(() => {
+      pandaTick(10);
+      if (window.Panda3D) window.Panda3D.syncState();
+      if (!document.getElementById("view-stats").classList.contains("hidden")) renderPandaStatus();
+      pandaAutoTalk();
+    }, 10000);
   }
 
-  // 2) Rezervë: skena vektoriale 2D, nëse 3D nuk funksionon
-  scene.innerHTML = buildVillageSVG() + badge;
+  renderPandaStatus();
+  renderPandaInventory();
+  renderPandaShop();
+  renderPandaDaily();
+  renderPrestigeBadge();
+  document.getElementById("farmCoinsValue").textContent = stats.farmCoins;
+
+  // Prestige-Fortschritt (Dhoma e plotë = të gjitha mobiliet)
+  const builtCount = FARM_ITEMS.filter(i => stats.farmBuilt[i.id]).length;
+  document.getElementById("farmProgressFill").style.width = Math.round((builtCount / FARM_ITEMS.length) * 100) + "%";
+  const full = builtCount === FARM_ITEMS.length;
+  const lbl = document.getElementById("farmProgressLabel");
+  if (full && stats.prestige < MAX_PRESTIGE) {
+    lbl.innerHTML = `${builtCount} / ${FARM_ITEMS.length} 🎉<br><button class="btn btn-primary" id="btnGoPrestige" style="width:100%;margin-top:10px;padding:13px;">${islandMedalHtml(stats.prestige + 1, 64, "medal-img medal-img-btn")} ${uiText("panda.next_island")} ${currentIslandNumber() + 1} →</button>`;
+    const b = document.getElementById("btnGoPrestige"); if (b) b.addEventListener("click", confirmPrestige);
+  } else {
+    lbl.textContent = builtCount + " / " + FARM_ITEMS.length + " " + uiText("panda.furniture_count");
+  }
 }
 
-function renderFarmShop() {
-  ensureFarmCoins();
-  const shop = document.getElementById("farmShop");
-  if (!shop) return;
+function renderPandaStatus() {
+  const p = ensurePanda();
+  const em = getPetEmotion();
+  document.getElementById("pandaName").textContent = p.name;
+  document.getElementById("pandaEmotion").textContent = pandaEmotionIcon(em);
+  document.getElementById("pandaLevel").textContent = "⭐ " + p.level;
+  document.getElementById("pandaStreak").textContent = "🔥 " + (p.learnStreak || 0);
+  const need = 100 + (p.level - 1) * 60;
+  document.getElementById("pandaXpFill").style.width = Math.round((p.xp / need) * 100) + "%";
+  const rows = [
+    ["hunger","🍎",p.hunger],["thirst","💧",p.thirst],["energy","⚡",p.energy],["mood","❤️",p.mood],
+    ["hygiene","🧼",p.hygiene],["toilet","🚽",100 - p.toilet],["affection","🤗",p.affection],["health","💚",p.health]
+  ];
+  document.getElementById("pandaNeeds").innerHTML = rows.map(([k, ic, v]) => {
+    const col = v > 60 ? "var(--green)" : v > 30 ? "var(--gold)" : "var(--red)";
+    return `<div class="pn-row"><span class="pn-ic">${ic}</span><span class="pn-lbl">${uiText("panda.need." + k)}</span>
+      <div class="pn-track"><div class="pn-fill" style="width:${Math.round(v)}%;background:${col}"></div></div><span class="pn-val">${Math.round(v)}</span></div>`;
+  }).join("");
+  const w = p.weight;
+  const wLbl = w < 30 ? uiText("panda.w.thin") : w > 75 ? uiText("panda.w.round") : uiText("panda.w.ok");
+  document.getElementById("pandaWeight").textContent = "⚖️ " + wLbl;
+  const sl = document.getElementById("btnPandaSleep");
+  if (sl) sl.textContent = p._forceSleep ? uiText("panda.wake") : uiText("panda.sleep");
+}
 
-  const groupsOrder = ["house", "field", "single"];
-  const groupLabel = { house: "🏰 Kulla kryesore", field: "🗼 Kulla e dytë", single: "🧱 Ndërtime të tjera" };
-  let html = "";
-  groupsOrder.forEach(g => {
-    const items = FARM_ITEMS.filter(i => i.group === g);
-    html += `<div class="farm-shop-group"><h4>${groupLabel[g]}</h4>`;
-    items.forEach(item => {
-      const built = !!stats.farmBuilt[item.id];
-      const unlocked = farmItemUnlocked(item);
-      const afford = farmCanAfford(item);
-      const disabled = built || !unlocked || !afford;
-      let stateLabel = "";
-      if (built) stateLabel = "✓ E ndërtuar";
-      else if (!unlocked) stateLabel = "🔒 Kërkon fazën e mëparshme";
-      else if (!afford) stateLabel = `Mungojnë ${itemCost(item) - stats.farmCoins} 🪙`;
-      html += `<div class="farm-shop-item ${built ? "built" : ""}">
-        <div class="fsi-emoji">${item.emoji}</div>
-        <div class="fsi-body">
-          <div class="fsi-name">${esc(item.name)}</div>
-          <div class="fsi-cost">${built ? stateLabel : (unlocked ? itemCost(item) + " 🪙" : stateLabel)}</div>
-        </div>
-        <button class="fsi-btn" data-id="${item.id}" ${disabled ? "disabled" : ""}>${built ? "✓" : "Ndërto"}</button>
-      </div>`;
-    });
-    html += `</div>`;
+function renderPandaInventory() {
+  const p = ensurePanda();
+  const ids = Object.keys(p.inventory);
+  const el = document.getElementById("pandaInventory");
+  if (!ids.length) { el.innerHTML = `<div class="pn-empty">${uiText("panda.inv_empty")}</div>`; return; }
+  el.innerHTML = ids.map(id => {
+    const it = PANDA_ITEMS.find(i => i.id === id); if (!it) return "";
+    return `<button class="pinv-item" data-use="${id}"><span class="pinv-emoji">${it.emoji}</span><span class="pinv-name">${esc(pandaItemName(it))}</span><span class="pinv-count">×${p.inventory[id]}</span></button>`;
+  }).join("");
+  el.querySelectorAll("[data-use]").forEach(b => b.addEventListener("click", () => pandaUse(b.dataset.use)));
+}
+
+function openPandaShop(cat) { pandaShopCat = cat; renderPandaShop(); document.getElementById("pandaShop").scrollIntoView({ behavior: "smooth", block: "start" }); }
+
+function renderPandaShop() {
+  const p = ensurePanda();
+  const tabs = document.getElementById("pandaShopTabs");
+  const names = PANDA_CAT_NAMES[menuLang] || PANDA_CAT_NAMES.sq;
+  tabs.innerHTML = PANDA_CATS.map(c => `<button class="pshop-tab ${c === pandaShopCat ? "active" : ""}" data-cat="${c}">${names[c]}</button>`).join("");
+  tabs.querySelectorAll("[data-cat]").forEach(b => b.addEventListener("click", () => { pandaShopCat = b.dataset.cat; renderPandaShop(); }));
+  const list = document.getElementById("pandaShopList");
+  list.innerHTML = PANDA_ITEMS.filter(i => i.cat === pandaShopCat).map(it => {
+    const owned = it.placed && p.furniture[it.id];
+    const can = stats.farmCoins >= it.cost;
+    return `<div class="farm-shop-item ${owned ? "built" : ""}">
+      <div class="fsi-emoji">${it.emoji}</div>
+      <div class="fsi-body"><div class="fsi-name">${esc(pandaItemName(it))}</div>
+      <div class="fsi-cost">${owned ? "✓ " + uiText("panda.owned") : it.cost + " 🪙"}</div></div>
+      <button class="fsi-btn" data-buy="${it.id}" ${owned || !can ? "disabled" : ""}>${owned ? "✓" : uiText("panda.buy")}</button></div>`;
+  }).join("");
+  list.querySelectorAll("[data-buy]:not([disabled])").forEach(b => b.addEventListener("click", () => pandaBuy(b.dataset.buy)));
+}
+
+function renderPandaDaily() {
+  const d = ensureDaily();
+  const el = document.getElementById("pandaDaily");
+  el.innerHTML = DAILY_TASKS.map(t => {
+    const cur = Math.min(t.target, d.tasks[t.id] || 0); const done = cur >= t.target;
+    return `<div class="pdaily ${done ? "done" : ""}"><span>${done ? "✅" : t.icon}</span><span class="pdaily-lbl">${uiText("panda.task." + t.id).replace("{n}", t.target)}</span><span class="pdaily-val">${cur}/${t.target}</span></div>`;
+  }).join("");
+}
+
+// Pandaja flet vetë sipas emocionit (rrallë, jo bezdisshëm)
+let lastAutoTalk = 0;
+function pandaAutoTalk() {
+  if (Date.now() - lastAutoTalk < 45000) return;
+  const em = getPetEmotion();
+  if (em === "neutral" && Math.random() < 0.7) return;
+  lastAutoTalk = Date.now();
+  pandaSay(pt(em), 4000);
+}
+
+// Kur pandaja arrin te një mobilie (AI autonom), plotëso nevojën përkatëse
+function pandaOnArrive(use) {
+  const p = ensurePanda();
+  if (use === "toilet") { p.toilet = clamp(p.toilet - 70, 0, 100); pandaSay(pt("clean"), 2500); }
+  if (use === "sleep")  { p._sleeping = true; }
+  if (use === "bath")   { p.hygiene = clamp(p.hygiene + 40, 0, 100); }
+  if (use === "food"  && p.inventory.bamboo) pandaUse("bamboo");
+  else if (use === "food" && p.inventory.apple) pandaUse("apple");
+  if (use === "water" && p.inventory.water) pandaUse("water");
+  savePanda();
+}
+
+/* ---------- DEBUG (i fshehur: 5 trokitje mbi emrin) ---------- */
+let pandaNameTaps = 0;
+function pandaDebug(action) {
+  const p = ensurePanda();
+  if (action === "coins") stats.farmCoins += 100;
+  if (action === "xp") pandaAddXp(100);
+  if (action === "hungry") p.hunger = 10;
+  if (action === "full") { p.hunger = 100; p.thirst = 100; p.energy = 100; p.hygiene = 100; p.toilet = 0; p.affection = 100; }
+  if (action === "tired") p.energy = 10;
+  if (action === "fat") p.weight = 90;
+  if (action === "thin") p.weight = 20;
+  if (action === "skip8h") { p.lastUpdated -= 8 * 3600000; updateOfflineTime(); }
+  if (action === "reset") { stats.panda = null; stats.farmBuilt = {}; ensurePanda(); if (window.Panda3D) window.Panda3D.syncFurniture(); }
+  savePanda(); renderPandaView(); renderHudFarmRow();
+  if (window.Panda3D) { window.Panda3D.syncState(); window.Panda3D.setGrowth(pandaGrowthStage()); }
+}
+
+/* ---------- WIRING ---------- */
+(function wirePanda() {
+  const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener("click", fn); };
+  on("btnPandaPet", pandaPet);
+  on("btnPandaFeed", pandaFeedQuick);
+  on("btnPandaDrink", pandaDrinkQuick);
+  on("btnPandaPlay", pandaPlay);
+  on("btnPandaWash", pandaWashQuick);
+  on("btnPandaSleep", pandaSleepToggle);
+  document.querySelectorAll("[data-learn]").forEach(b => b.addEventListener("click", () => startLearnSession(parseInt(b.dataset.learn))));
+  on("btnPandaLearnCancel", cancelLearnSession);
+  on("btnPandaRotate", () => { if (window.Panda3D) window.Panda3D.rotateSelected(); });
+  on("pandaName", () => {
+    pandaNameTaps++;
+    if (pandaNameTaps >= 5) { pandaNameTaps = 0; document.getElementById("pandaDebug").classList.toggle("hidden"); }
+    setTimeout(() => { pandaNameTaps = 0; }, 3000);
   });
-  shop.innerHTML = html;
-  shop.querySelectorAll(".fsi-btn:not([disabled])").forEach(b =>
-    b.addEventListener("click", () => buildFarmItem(b.dataset.id)));
-}
+  document.querySelectorAll("[data-dbg]").forEach(b => b.addEventListener("click", () => pandaDebug(b.dataset.dbg)));
+  on("btnPandaRename", () => {
+    const n = prompt(uiText("panda.rename_prompt"), ensurePanda().name);
+    if (n && n.trim()) { ensurePanda().name = n.trim().slice(0, 16); savePanda(); renderPandaStatus(); }
+  });
+})();
+
 
 /* ============ PRESTIGE: nga ishulli në ishull (deri në 10) ============ */
 const MAX_PRESTIGE = 9;  // Ishulli 1 (fillestar) + 9 herë prestige = 10 ishuj gjithsej
@@ -9037,7 +9242,6 @@ function ensurePrestige() {
 
 function currentIslandNumber() { ensurePrestige(); return stats.prestige + 1; }
 
-function villageFullyBuilt() { return FARM_ITEMS.every(i => stats.farmBuilt[i.id]); }
 
 function renderPrestigeBadge() {
   ensurePrestige();
@@ -9093,35 +9297,6 @@ function confirmPrestige() {
     "Vazhdo?"
   );
   if (ok) doPrestige();
-}
-
-function renderFarmView() {
-  ensureFarmCoins();
-  ensurePrestige();
-  document.getElementById("farmCoinsValue").textContent = stats.farmCoins;
-  const builtCount = FARM_ITEMS.filter(i => stats.farmBuilt[i.id]).length;
-  document.getElementById("farmProgressFill").style.width =
-    Math.round((builtCount / FARM_ITEMS.length) * 100) + "%";
-
-  const full = builtCount === FARM_ITEMS.length;
-  if (full && stats.prestige < MAX_PRESTIGE) {
-    document.getElementById("farmProgressLabel").innerHTML =
-      `${builtCount} / ${FARM_ITEMS.length} ndërtime — fshati u plotësua! 🎉<br>
-       <button class="btn btn-primary" id="btnGoPrestige" style="width:100%;margin-top:10px;padding:13px;">
-         ${islandMedalHtml(stats.prestige + 1, 64, "medal-img medal-img-btn")} Kalo në ishullin ${currentIslandNumber() + 1} →
-       </button>`;
-    const btn = document.getElementById("btnGoPrestige");
-    if (btn) btn.addEventListener("click", confirmPrestige);
-  } else if (full && stats.prestige >= MAX_PRESTIGE) {
-    document.getElementById("farmProgressLabel").textContent =
-      `${builtCount} / ${FARM_ITEMS.length} ndërtime — të gjitha ${MAX_PRESTIGE + 1} ishujt u plotësuan! 🏆`;
-  } else {
-    document.getElementById("farmProgressLabel").textContent = builtCount + " / " + FARM_ITEMS.length + " ndërtime";
-  }
-
-  renderPrestigeBadge();
-  renderFarmScene();
-  renderFarmShop();
 }
 
 /* ============ PROFILI: statistika, emri, prestige ============ */
@@ -9217,7 +9392,7 @@ function renderPrestigeAccountCard() {
     btn.classList.remove("hidden");
     btn.onclick = () => { confirmPrestige(); setTimeout(renderProfileView, 300); };
   } else {
-    sub.textContent = `${built} / ${total} ndërtime deri sa të hapet ishulli tjetër. Shiko te „Fshati".`;
+    sub.textContent = `${built} / ${total} ${uiText("panda.furniture_count")} — ${uiText("panda.next_island_hint")}`;
     btn.classList.add("hidden");
   }
 
@@ -9271,6 +9446,7 @@ renderModeButtons();
 showLangOnboardIfNeeded();
 if (lastSeenTreeStage === null) lastSeenTreeStage = treeStageFor(Math.floor(totalPoints / 100) + 1).idx;
 
+ensurePanda(); updateOfflineTime();
 const hudFarmRowEl = document.getElementById("hudFarmRow");
 if (hudFarmRowEl) hudFarmRowEl.addEventListener("click", () => goToView("stats"));
 
@@ -9283,750 +9459,413 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-  }
-}
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+               "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
 </script>
 <script type="module">
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-// Harta: ID e artikullit -> modeli 3D, pozicioni në rrjet, lartësia (për kullat me kate)
-const V3_MAP = {
-  house1:  { model: "tower-square-base",           x: -2,   z: -1,   y: 0     },
-  house2:  { model: "tower-square-mid-windows",    x: -2,   z: -1,   y: 1.010 },
-  house3:  { model: "tower-square-top",            x: -2,   z: -1,   y: 2.020 },
-  house4:  { model: "tower-square-top-roof-high",  x: -2,   z: -1,   y: 2.320 },
-  field1:  { model: "tower-hexagon-base",          x: 2.5,  z: -1.5, y: 0     },
-  field2:  { model: "tower-hexagon-mid",           x: 2.5,  z: -1.5, y: 1.310 },
-  field3:  { model: "tower-hexagon-roof",          x: 2.5,  z: -1.5, y: 1.770 },
-  barn:    { model: "gate",                        x: 0,    z: 1.6,  y: 0    },
-  silo:    { model: "tower-square-arch",           x: -3.6, z: 1,    y: 0    },
-  well:    { model: "wall-narrow-stairs",          x: 1.2,  z: 1.6,  y: 0    },
-  pond:    { model: "bridge-straight",             x: 0,    z: 3.4,  y: 0    },
-  haybale: { model: "tree-log",                    x: -3,   z: 2.6,  y: 0    },
-  tractor: { model: "siege-catapult",              x: 3.6,  z: 2.4,  y: 0, rot: -0.6 },
-  tree1:   { model: "tree-large",                  x: -4.4, z: -2.2, y: 0    },
-  tree2:   { model: "tree-small",                  x: 4.4,  z: -2.6, y: 0    },
-  flowers: { model: "wall-corner",                 x: -3,   z: -2.6, y: 0    },
-  chicken: { model: "flag",                        x: -1,   z: 2.4,  y: 0    },
-  dog:     { model: "flag-pennant",                x: 1,    z: 2.4,  y: 0    },
-  sheep:   { model: "wall-narrow-wood-fence",      x: 3.4,  z: 0.6,  y: 0    },
-  cow:     { model: "siege-ballista",              x: -4.2, z: 2.2,  y: 0, rot: 0.5 },
-  goat:    { model: "rocks-large",                 x: 4.6,  z: 1.4,  y: 0    },
-  cart:    { model: "siege-ram",                   x: 2.2,  z: 3.2,  y: 0, rot: 0.3 },
-  barrel:  { model: "wall",                        x: -1,   z: -2.6, y: 0    },
-  beehive: { model: "wall-doorway",                x: 1,    z: -2.6, y: 0    },
-  sun:     { model: "siege-trebuchet",             x: -2.4, z: 3.4,  y: 0, rot: 0.9 },
-  rainbow: { model: "bridge-draw",                 x: 3.4,  z: -3.4, y: 0    }
+/* ================================================================
+   PANDA 3D — skena, dhoma, pandaja, AI, mobiliet, drag&drop
+   ASSET-ARKITEKTURA: çdo model ka një hyrje te ASSETS. Nëse "glb" është null,
+   përdoret PLACEHOLDER procedural (i shënuar qartë). Për të zëvendësuar:
+   thjesht vendos rrugën e skedarit .glb — logjika e lojës nuk ndryshon.
+   ================================================================ */
+const ASSETS = {
+  panda:    { glb: null, placeholder: "PLACEHOLDER_PANDA" },
+  bed:      { glb: null, placeholder: "PLACEHOLDER_BED" },
+  sofa:     { glb: null, placeholder: "PLACEHOLDER_SOFA" },
+  toilet:   { glb: null, placeholder: "PLACEHOLDER_TOILET" },
+  bathtub:  { glb: null, placeholder: "PLACEHOLDER_BATHTUB" },
+  table:    { glb: null, placeholder: "PLACEHOLDER_TABLE" },
+  desk:     { glb: null, placeholder: "PLACEHOLDER_DESK" },
+  shelf:    { glb: null, placeholder: "PLACEHOLDER_SHELF" },
+  wardrobe: { glb: null, placeholder: "PLACEHOLDER_WARDROBE" },
+  plant:    { glb: null, placeholder: "PLACEHOLDER_PLANT" },
+  lamp:     { glb: null, placeholder: "PLACEHOLDER_LAMP" },
+  rug:      { glb: null, placeholder: "PLACEHOLDER_RUG" },
+  picture:  { glb: null, placeholder: "PLACEHOLDER_PICTURE" },
+  bowl:     { glb: null, placeholder: "PLACEHOLDER_BOWL" },
+  wbowl:    { glb: null, placeholder: "PLACEHOLDER_WBOWL" },
+  ball:     { glb: null, placeholder: "PLACEHOLDER_BALL" },
+  teddy:    { glb: null, placeholder: "PLACEHOLDER_TEDDY" }
 };
 
-let v3 = null;              // { renderer, scene, camera, loader, cache, placed }
-let v3Ready = false;
+const ROOM = { w: 8, d: 7, h: 3.2 };        // gjerësia (x), thellësia (z), lartësia
+const HALF_W = ROOM.w / 2, HALF_D = ROOM.d / 2;
+const PASTEL = { wall: 0xf3e6ee, wall2: 0xe6eef6, floor: 0xe9d8c4, base: 0xd9c3a8 };
 
-/* ---- Teksturë organike për tokën, vetëm materiali ndryshon, jo gjeometria ---- */
-function buildGrassTexture() {
-  const size = 512;
-  const cnv = document.createElement("canvas");
-  cnv.width = size; cnv.height = size;
-  const ctx = cnv.getContext("2d");
+let S = null;   // gjendja e skenës
+const loader = new GLTFLoader();
 
-  // Bazë: gradient i lehtë mes dy jeshileve, jo ngjyrë e sheshtë
-  const base = ctx.createLinearGradient(0, 0, size, size);
-  base.addColorStop(0, "#7fbd58");
-  base.addColorStop(0.5, "#74b356");
-  base.addColorStop(1, "#6aa84e");
-  ctx.fillStyle = base;
-  ctx.fillRect(0, 0, size, size);
+/* ---------- MATERIALS ---------- */
+const mat = (c, opts = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.85, metalness: 0 }, opts));
 
-  // Njolla organike (të buta, të mjegulluara) — variacion natyror, jo kaos
-  const blotchColors = ["#8bc766", "#699a4a", "#5f9143", "#87c060"];
-  ctx.globalAlpha = 0.35;
-  for (let i = 0; i < 46; i++) {
-    const x = Math.random() * size, y = Math.random() * size;
-    const r = 18 + Math.random() * 46;
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-    const c = blotchColors[i % blotchColors.length];
-    grad.addColorStop(0, c);
-    grad.addColorStop(1, "transparent");
-    ctx.fillStyle = grad;
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+/* ---------- ROOM ---------- */
+function buildRoom(scene) {
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.d), mat(PASTEL.floor));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; floor.name = "floor";
+  scene.add(floor);
+  // Dërrasa dyshemeje (linja të holla)
+  for (let i = 1; i < 8; i++) {
+    const l = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, 0.02), mat(0xd6c2ac));
+    l.rotation.x = -Math.PI / 2; l.position.set(0, 0.002, -HALF_D + i * (ROOM.d / 8));
+    scene.add(l);
   }
-  ctx.globalAlpha = 1;
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.h), mat(PASTEL.wall));
+  back.position.set(0, ROOM.h / 2, -HALF_D); back.receiveShadow = true; scene.add(back);
+  const left = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.d, ROOM.h), mat(PASTEL.wall2));
+  left.rotation.y = Math.PI / 2; left.position.set(-HALF_W, ROOM.h / 2, 0); left.receiveShadow = true; scene.add(left);
+  // Buzë dyshemeje
+  const skirt = new THREE.Mesh(new THREE.BoxGeometry(ROOM.w, 0.12, 0.05), mat(0xffffff));
+  skirt.position.set(0, 0.06, -HALF_D + 0.03); scene.add(skirt);
+  const skirt2 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.12, ROOM.d), mat(0xffffff));
+  skirt2.position.set(-HALF_W + 0.03, 0.06, 0); scene.add(skirt2);
+  // Dritare në murin e pasmë
+  const win = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.2), mat(0xbfe4ff, { emissive: 0x88c6ff, emissiveIntensity: 0.35 }));
+  win.position.set(1.6, 1.9, -HALF_D + 0.01); scene.add(win);
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(1.75, 1.35, 0.06), mat(0xffffff));
+  frame.position.set(1.6, 1.9, -HALF_D + 0.02); scene.add(frame);
+  win.position.z += 0.05;
+}
 
-  // Pak "rrugica" të holla dheu, shumë delikate, jo dominuese
-  ctx.globalAlpha = 0.12;
-  ctx.strokeStyle = "#a98a55";
-  for (let i = 0; i < 5; i++) {
-    ctx.lineWidth = 2 + Math.random() * 3;
-    ctx.beginPath();
-    let x = Math.random() * size, y = Math.random() * size;
-    ctx.moveTo(x, y);
-    for (let j = 0; j < 4; j++) {
-      x += (Math.random() - 0.5) * 140;
-      y += (Math.random() - 0.5) * 140;
-      ctx.lineTo(x, y);
+/* ---------- PANDA (PLACEHOLDER procedural, i animueshëm) ---------- */
+function buildPlaceholderPanda() {
+  const g = new THREE.Group(); g.name = ASSETS.panda.placeholder;
+  const white = mat(0xffffff, { roughness: 0.95 }), black = mat(0x1e1e22, { roughness: 0.95 });
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 18), white); body.scale.set(1, 1.05, 0.9); body.position.y = 0.55; body.castShadow = true;
+  const belly = new THREE.Mesh(new THREE.SphereGeometry(0.30, 20, 16), mat(0xfff5f7)); belly.scale.set(1, 0.9, 0.6); belly.position.set(0, 0.5, 0.25);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 24, 18), white); head.position.y = 1.18; head.castShadow = true;
+  const earL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 14, 10), black); earL.position.set(-0.26, 1.46, 0);
+  const earR = earL.clone(); earR.position.x = 0.26;
+  const patchL = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 10), black); patchL.scale.set(1, 1.3, 0.5); patchL.position.set(-0.13, 1.2, 0.29);
+  const patchR = patchL.clone(); patchR.position.x = 0.13;
+  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), white); eyeL.position.set(-0.13, 1.21, 0.36);
+  const eyeR = eyeL.clone(); eyeR.position.x = 0.13;
+  const pupilL = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 6), black); pupilL.position.set(-0.13, 1.21, 0.4);
+  const pupilR = pupilL.clone(); pupilR.position.x = 0.13;
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), black); nose.scale.set(1.3, 0.8, 0.8); nose.position.set(0, 1.09, 0.34);
+  const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.012, 6, 12, Math.PI), black); mouth.rotation.x = Math.PI; mouth.rotation.z = Math.PI; mouth.position.set(0, 1.03, 0.33);
+  const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.3, 6, 10), black); armL.position.set(-0.42, 0.62, 0.05); armL.rotation.z = 0.5; armL.castShadow = true;
+  const armR = armL.clone(); armR.position.x = 0.42; armR.rotation.z = -0.5;
+  const legL = new THREE.Mesh(new THREE.CapsuleGeometry(0.13, 0.18, 6, 10), black); legL.position.set(-0.2, 0.17, 0.05); legL.castShadow = true;
+  const legR = legL.clone(); legR.position.x = 0.2;
+  const tail = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), black); tail.position.set(0, 0.45, -0.4);
+  [body, belly, head, earL, earR, patchL, patchR, eyeL, eyeR, pupilL, pupilR, nose, mouth, armL, armR, legL, legR, tail].forEach(m => g.add(m));
+  g.userData.parts = { body, belly, head, armL, armR, legL, legR, eyeL, eyeR, mouth };
+  return g;
+}
+
+/* ---------- FURNITURE (PLACEHOLDER procedural) ---------- */
+function buildPlaceholderFurniture(id) {
+  const g = new THREE.Group(); g.name = (ASSETS[id] && ASSETS[id].placeholder) || ("PLACEHOLDER_" + id.toUpperCase());
+  const add = (m) => { m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
+  const box = (w, h, d, c, x = 0, y = 0, z = 0) => { const m = add(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c))); m.position.set(x, y, z); return m; };
+  const cyl = (r, h, c, x = 0, y = 0, z = 0, rt = r) => { const m = add(new THREE.Mesh(new THREE.CylinderGeometry(rt, r, h, 18), mat(c))); m.position.set(x, y, z); return m; };
+  switch (id) {
+    case "bed": box(1.5, 0.3, 1.0, 0xffffff, 0, 0.15); box(1.5, 0.2, 1.0, 0xc8e6ff, 0, 0.4); box(1.5, 0.7, 0.1, 0xb98b5a, 0, 0.45, -0.5); box(0.5, 0.12, 0.3, 0xfff5f7, 0, 0.56, -0.3); break;
+    case "sofa": box(1.5, 0.35, 0.7, 0xf4a6b2, 0, 0.18); box(1.5, 0.5, 0.2, 0xf4a6b2, 0, 0.55, -0.25); box(0.2, 0.5, 0.7, 0xf4a6b2, -0.65, 0.5); box(0.2, 0.5, 0.7, 0xf4a6b2, 0.65, 0.5); break;
+    case "toilet": cyl(0.28, 0.4, 0xffffff, 0, 0.2); box(0.4, 0.5, 0.25, 0xffffff, 0, 0.55, -0.22); cyl(0.3, 0.06, 0xf0f0f0, 0, 0.43, 0, 0.32); break;
+    case "bathtub": box(1.5, 0.55, 0.8, 0xffffff, 0, 0.28); box(1.3, 0.05, 0.6, 0x9fd9ff, 0, 0.52); cyl(0.03, 0.4, 0xc0c0c0, 0.55, 0.7, -0.3); break;
+    case "table": box(1.1, 0.06, 0.8, 0xc99a63, 0, 0.72); [[-0.5,-0.35],[0.5,-0.35],[-0.5,0.35],[0.5,0.35]].forEach(([x,z]) => cyl(0.04, 0.72, 0xa87d4d, x, 0.36, z)); break;
+    case "desk": box(1.3, 0.06, 0.6, 0xd8b58a, 0, 0.75); box(0.05, 0.75, 0.6, 0xd8b58a, -0.62, 0.37); box(0.05, 0.75, 0.6, 0xd8b58a, 0.62, 0.37); box(0.5, 0.35, 0.04, 0x1f2937, 0.2, 0.98, -0.1); box(0.15, 0.2, 0.15, 0x6b7280, 0.2, 0.86, -0.1); break;
+    case "shelf": box(1.0, 1.8, 0.35, 0xb98b5a, 0, 0.9); [0.4, 0.85, 1.3].forEach(y => box(0.9, 0.04, 0.32, 0xd8b58a, 0, y)); [[-0.3,0.55,0xef4444],[-0.1,0.55,0x3b82f6],[0.12,0.55,0x22c55e],[-0.25,1.0,0xf59e0b],[0.05,1.0,0x8b5cf6],[0.28,1.0,0xec4899]].forEach(([x,y,c]) => box(0.12, 0.28, 0.2, c, x, y + 0.02, 0.02)); break;
+    case "wardrobe": box(1.1, 2.0, 0.6, 0xd8b58a, 0, 1.0); box(0.02, 1.8, 0.02, 0x8a6a45, 0, 1.0, 0.31); box(0.06, 0.06, 0.06, 0xfacc15, -0.12, 1.0, 0.32); box(0.06, 0.06, 0.06, 0xfacc15, 0.12, 1.0, 0.32); break;
+    case "plant": cyl(0.18, 0.28, 0xd97757, 0, 0.14, 0, 0.22); add(new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 10), mat(0x4ade80))).position.y = 0.55; add(new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), mat(0x22c55e))).position.set(0.15, 0.7, 0.05); break;
+    case "lamp": cyl(0.15, 0.05, 0x374151, 0, 0.025); cyl(0.02, 1.2, 0x9ca3af, 0, 0.65); { const s = add(new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.3, 18, 1, true), mat(0xfde68a, { emissive: 0xfde68a, emissiveIntensity: 0.6, side: THREE.DoubleSide }))); s.position.y = 1.3; s.rotation.x = Math.PI; } break;
+    case "rug": { const r = add(new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.02, 32), mat(0xf9a8d4))); r.position.y = 0.01; const r2 = add(new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.025, 32), mat(0xfbcfe8))); r2.position.y = 0.012; } break;
+    case "picture": box(0.6, 0.45, 0.04, 0xb98b5a, 0, 1.6); box(0.5, 0.35, 0.02, 0x93c5fd, 0, 1.6, 0.02); box(0.2, 0.12, 0.01, 0x22c55e, -0.1, 1.5, 0.04); break;
+    case "bowl": cyl(0.2, 0.12, 0xef4444, 0, 0.06, 0, 0.25); cyl(0.18, 0.04, 0x84cc16, 0, 0.13, 0, 0.2); break;
+    case "wbowl": cyl(0.2, 0.12, 0x60a5fa, 0, 0.06, 0, 0.25); cyl(0.18, 0.03, 0xbfdbfe, 0, 0.125, 0, 0.2); break;
+    case "ball": add(new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), mat(0xfacc15))).position.y = 0.18; break;
+    case "teddy": add(new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 10), mat(0xc4884f))).position.y = 0.2; add(new THREE.Mesh(new THREE.SphereGeometry(0.15, 14, 10), mat(0xc4884f))).position.y = 0.47; break;
+    default: box(0.5, 0.5, 0.5, 0xcccccc, 0, 0.25);
+  }
+  return g;
+}
+
+function loadAsset(id) {
+  const a = ASSETS[id];
+  if (a && a.glb) {
+    return new Promise((res) => loader.load(a.glb, (g) => { g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); res({ obj: g.scene, anims: g.animations }); },
+      undefined, () => res({ obj: id === "panda" ? buildPlaceholderPanda() : buildPlaceholderFurniture(id), anims: [] })));
+  }
+  return Promise.resolve({ obj: id === "panda" ? buildPlaceholderPanda() : buildPlaceholderFurniture(id), anims: [] });
+}
+
+/* ---------- INIT ---------- */
+async function init(container, api) {
+  if (S) return true;
+  try {
+    const scene = new THREE.Scene(); scene.background = new THREE.Color(0xfdf2f8);
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 60);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    container.innerHTML = ""; container.appendChild(renderer.domElement);
+    renderer.domElement.style.cssText = "width:100%;height:100%;display:block;touch-action:none;";
+    scene.add(new THREE.HemisphereLight(0xfff4e6, 0xd9c3a8, 1.1));
+    const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(3, 6, 4); sun.castShadow = true;
+    sun.shadow.mapSize.set(1024, 1024); sun.shadow.camera.left = -6; sun.shadow.camera.right = 6; sun.shadow.camera.top = 6; sun.shadow.camera.bottom = -6;
+    scene.add(sun);
+    buildRoom(scene);
+
+    const furnGroup = new THREE.Group(); scene.add(furnGroup);
+    const fx = new THREE.Group(); scene.add(fx);
+
+    const { obj: panda, anims } = await loadAsset("panda");
+    panda.position.set(0, 0, 0.5); scene.add(panda);
+    const mixer = anims.length ? new THREE.AnimationMixer(panda) : null;
+    const clips = {}; anims.forEach(c => { clips[c.name.toLowerCase()] = c; });
+
+    S = { scene, camera, renderer, container, api, panda, mixer, clips, furnGroup, fx, furn: {}, sel: null,
+          ai: { state: "idle", target: null, timer: 1.5, use: null, speed: 0.55 },
+          anim: { name: "idle", t: 0 }, growth: 1, zoom: 1, dragging: null, lastT: performance.now() };
+
+    setupCamera(); resize(); window.addEventListener("resize", resize);
+    setupPointer();
+    syncFurniture();
+    requestAnimationFrame(loop);
+    return true;
+  } catch (e) { console.warn("Panda3D nuk u nis:", e); return false; }
+}
+
+function setupCamera() { S.camera.position.set(4.2 * S.zoom, 4.6 * S.zoom, 6.2 * S.zoom); S.camera.lookAt(0, 0.8, 0); }
+function resize() {
+  if (!S) return;
+  const w = S.container.clientWidth || 320, h = Math.round(Math.max(220, Math.min(w * 0.72, 460)));
+  S.container.style.height = h + "px"; S.renderer.setSize(w, h, false); S.camera.aspect = w / h; S.camera.updateProjectionMatrix();
+}
+
+/* ---------- FURNITURE SYNC (nga gjendja e lojës) ---------- */
+async function syncFurniture() {
+  if (!S) return;
+  const st = S.api.getState();
+  const wanted = st.furniture || {};
+  for (const id in S.furn) if (!wanted[id]) { S.furnGroup.remove(S.furn[id]); delete S.furn[id]; }
+  for (const id in wanted) {
+    if (!S.furn[id]) {
+      const { obj } = await loadAsset(id);
+      obj.userData.itemId = id; obj.traverse(o => { o.userData.itemId = id; });
+      S.furnGroup.add(obj); S.furn[id] = obj;
     }
-    ctx.stroke();
+    const p = wanted[id]; const item = S.api.items.find(i => i.id === id);
+    if (item && item.wall) { S.furn[id].position.set(clamp(p.x, -HALF_W + 0.5, HALF_W - 0.5), 0, -HALF_D + 0.05); S.furn[id].rotation.y = 0; }
+    else { S.furn[id].position.set(p.x, 0, p.z); S.furn[id].rotation.y = p.rot || 0; }
   }
-  ctx.globalAlpha = 1;
-
-  // Grimca të imëta bari — jep ndjesinë e strukturës nga afër, pa u dukur e trazuar nga larg
-  ctx.globalAlpha = 0.5;
-  for (let i = 0; i < 2200; i++) {
-    const x = Math.random() * size, y = Math.random() * size;
-    const shade = Math.random();
-    ctx.fillStyle = shade > 0.5 ? "rgba(255,255,255,.08)" : "rgba(30,50,20,.10)";
-    ctx.fillRect(x, y, 1.4, 1.4);
-  }
-  ctx.globalAlpha = 1;
-
-  const tex = new THREE.CanvasTexture(cnv);
-  tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(5, 5);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
 }
-
-/* ---- Teksturë e butë për shesh/rrugë, po ashtu vetëm material ---- */
-function buildPathTexture() {
-  const size = 256;
-  const cnv = document.createElement("canvas");
-  cnv.width = size; cnv.height = size;
-  const ctx = cnv.getContext("2d");
-  ctx.fillStyle = "#c7ad82";
-  ctx.fillRect(0, 0, size, size);
-  ctx.globalAlpha = 0.25;
-  for (let i = 0; i < 60; i++) {
-    const x = Math.random() * size, y = Math.random() * size;
-    const r = 6 + Math.random() * 16;
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-    grad.addColorStop(0, Math.random() > 0.5 ? "#d9c39a" : "#b6976a");
-    grad.addColorStop(1, "transparent");
-    ctx.fillStyle = grad;
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-  const tex = new THREE.CanvasTexture(cnv);
-  tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(3, 3);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
-
-/* ============ KAFSHË DEKORATIVE: sillen ngadalë, rrinë, kthehen ============ */
-function makeChicken() {
-  const g = new THREE.Group();
-  const white = new THREE.MeshStandardMaterial({ color: 0xfaf3e4, roughness: 0.9 });
-  const orange = new THREE.MeshStandardMaterial({ color: 0xffa726, roughness: 0.7 });
-  const red = new THREE.MeshStandardMaterial({ color: 0xd8453a, roughness: 0.7 });
-
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), white);
-  body.scale.set(1, 0.9, 1.25); body.position.y = 0.15; body.castShadow = true;
-  g.add(body);
-
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), white);
-  head.position.set(0, 0.27, 0.14); head.castShadow = true;
-  g.add(head);
-
-  const comb = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.045, 6), red);
-  comb.position.set(0, 0.335, 0.14);
-  g.add(comb);
-
-  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.022, 0.05, 6), orange);
-  beak.rotation.x = Math.PI / 2; beak.position.set(0, 0.27, 0.21);
-  g.add(beak);
-
-  [-0.045, 0.045].forEach(dx => {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.1, 5), orange);
-    leg.position.set(dx, 0.05, 0); leg.castShadow = true;
-    g.add(leg);
-  });
-
-  g.userData.bodyRef = body;
-  g.userData.headRef = head;
-  return g;
-}
-
-function makeSheep() {
-  const g = new THREE.Group();
-  const wool = new THREE.MeshStandardMaterial({ color: 0xf3efe4, roughness: 1, flatShading: true });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x453c33, roughness: 0.9 });
-
-  const body = new THREE.Mesh(new THREE.IcosahedronGeometry(0.19, 1), wool);
-  body.position.y = 0.24; body.scale.set(1, 0.9, 1.15); body.castShadow = true;
-  g.add(body);
-
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), dark);
-  head.position.set(0, 0.26, 0.22); head.castShadow = true;
-  g.add(head);
-
-  [[-0.09, 0], [0.09, 0], [-0.08, 0.19], [0.08, 0.19]].forEach(([dx, dz]) => {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.15, 5), dark);
-    leg.position.set(dx, 0.075, dz); leg.castShadow = true;
-    g.add(leg);
-  });
-
-  g.userData.bodyRef = body;
-  g.userData.headRef = head;
-  return g;
-}
-
-function makeCow() {
-  const g = new THREE.Group();
-  const white = new THREE.MeshStandardMaterial({ color: 0xf7f5ef, roughness: 0.85 });
-  const black = new THREE.MeshStandardMaterial({ color: 0x2e2a26, roughness: 0.85 });
-  const pink = new THREE.MeshStandardMaterial({ color: 0xf0a8ae, roughness: 0.7 });
-
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.22, 0.5), white);
-  body.position.y = 0.28; body.castShadow = true;
-  g.add(body);
-
-  [[0.1, 0.06, 0.1], [-0.08, 0.03, -0.05], [0.06, -0.03, -0.15]].forEach(([dx, dy, dz], i) => {
-    const patch = new THREE.Mesh(new THREE.SphereGeometry(0.07 + i * 0.01, 6, 5), black);
-    patch.position.set(dx, 0.28 + dy, dz);
-    patch.scale.set(1, 0.6, 1);
-    g.add(patch);
-  });
-
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.16, 0.16), white);
-  head.position.set(0, 0.3, 0.32); head.castShadow = true;
-  g.add(head);
-  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 5), pink);
-  nose.position.set(0, 0.26, 0.4);
-  g.add(nose);
-
-  [[-0.12, -0.2], [0.12, -0.2], [-0.12, 0.15], [0.12, 0.15]].forEach(([dx, dz]) => {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.24, 6), white);
-    leg.position.set(dx, 0.12, dz); leg.castShadow = true;
-    g.add(leg);
-  });
-
-  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.16, 5), black);
-  tail.position.set(0, 0.24, -0.27); tail.rotation.x = 0.3;
-  g.add(tail);
-
-  g.userData.bodyRef = body;
-  g.userData.headRef = head;
-  return g;
-}
-
-const ANIMAL_BUILDERS = { chicken: makeChicken, sheep: makeSheep, cow: makeCow };
-
-// Distanca minimale nga çdo truall ndërtese (edhe të pandërtuara), që kafshët të mos kalojnë përmes tyre
-function farFromPlots(x, z, minDist) {
-  for (const key in V3_MAP) {
-    const c = V3_MAP[key];
-    const bx = c.x * 1.7, bz = c.z * 1.7;
-    if (Math.hypot(x - bx, z - bz) < minDist) return false;
-  }
-  return true;
-}
-
-function randomGrassSpot() {
-  for (let i = 0; i < 40; i++) {
-    const ang = Math.random() * Math.PI * 2;
-    const rad = 2.1 + Math.random() * 6.1;
-    const x = Math.cos(ang) * rad, z = Math.sin(ang) * rad;
-    if (farFromPlots(x, z, 1.35)) return { x, z };
+function findFreeSpot(item) {
+  const st = S ? S.api.getState() : { furniture: {} };
+  if (item.wall) return { x: -1.5 + Math.random() * 3, z: -HALF_D };
+  for (let t = 0; t < 40; t++) {
+    const x = -HALF_W + 0.9 + Math.random() * (ROOM.w - 1.8), z = -HALF_D + 0.9 + Math.random() * (ROOM.d - 1.8);
+    if (!collides(x, z, (item.size || 0.8) / 2 + 0.3, st.furniture, null)) return { x, z };
   }
   return { x: 0, z: 0 };
 }
-
-function addVillageAnimals(scene) {
-  const plan = ["chicken", "chicken", "sheep", "sheep", "cow"];
-  const animals = [];
-  plan.forEach((type, i) => {
-    const mesh = ANIMAL_BUILDERS[type]();
-    const spot = randomGrassSpot();
-    mesh.position.set(spot.x, 0, spot.z);
-    mesh.rotation.y = Math.random() * Math.PI * 2;
-    mesh.scale.setScalar(0.001);
-    scene.add(mesh);
-    const a = {
-      mesh, type, seed: Math.random() * 10,
-      state: "idle", stateTimer: 1 + Math.random() * 3,
-      target: new THREE.Vector3(spot.x, 0, spot.z),
-      speed: type === "cow" ? 0.22 : type === "sheep" ? 0.28 : 0.34
-    };
-    animals.push(a);
-    // Rritje e butë kur shfaqet
-    const t0 = performance.now();
-    (function grow() {
-      const p = Math.min(1, (performance.now() - t0) / 500);
-      mesh.scale.setScalar(1 - Math.pow(1 - p, 3));
-      if (p < 1) requestAnimationFrame(grow);
-    })();
-  });
-  return animals;
+function collides(x, z, r, furniture, ignoreId) {
+  for (const id in furniture) {
+    if (id === ignoreId) continue;
+    const it = S.api.items.find(i => i.id === id); if (!it || it.flat || it.wall) continue;
+    const p = furniture[id]; const rr = (it.size || 0.8) / 2 + r;
+    if (Math.hypot(p.x - x, p.z - z) < rr) return true;
+  }
+  return false;
 }
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-function updateAnimals(animals, dt) {
-  if (!animals || !animals.length) return;
-  const t = performance.now() / 1000;
-  animals.forEach(a => {
-    a.stateTimer -= dt;
-    if (a.state === "idle") {
-      // lëkundje e lehtë, jo hektike — vetëm frymëmarrje/shikim
-      const bob = Math.sin(t * 1.6 + a.seed) * 0.012;
-      a.mesh.position.y = bob;
-      if (a.mesh.userData.headRef) a.mesh.userData.headRef.rotation.y = Math.sin(t * 0.6 + a.seed) * 0.25;
-      if (a.stateTimer <= 0) {
-        const spot = randomGrassSpot();
-        a.target.set(spot.x, 0, spot.z);
-        a.state = "walk";
-        a.stateTimer = 2.5 + Math.random() * 3.5;
-      }
-    } else {
-      const dx = a.target.x - a.mesh.position.x, dz = a.target.z - a.mesh.position.z;
-      const dist = Math.hypot(dx, dz);
-      if (dist < 0.1 || a.stateTimer <= 0) {
-        a.state = "idle";
-        a.stateTimer = 2 + Math.random() * 3;
-      } else {
-        const nx = dx / dist, nz = dz / dist;
-        a.mesh.position.x += nx * a.speed * dt;
-        a.mesh.position.z += nz * a.speed * dt;
-        const targetAngle = Math.atan2(nx, nz);
-        let diff = targetAngle - a.mesh.rotation.y;
-        while (diff > Math.PI) diff -= Math.PI * 2;
-        while (diff < -Math.PI) diff += Math.PI * 2;
-        a.mesh.rotation.y += diff * Math.min(1, dt * 5);
-        a.mesh.position.y = Math.abs(Math.sin(t * 7 + a.seed)) * 0.02;
-      }
+/* ---------- POINTER: drag & drop mobiliesh, klik mbi pandën ---------- */
+function setupPointer() {
+  const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hit = new THREE.Vector3();
+  const el = S.renderer.domElement;
+  const toPtr = (e) => { const r = el.getBoundingClientRect(); ptr.x = ((e.clientX - r.left) / r.width) * 2 - 1; ptr.y = -((e.clientY - r.top) / r.height) * 2 + 1; };
+  el.addEventListener("pointerdown", (e) => {
+    toPtr(e); ray.setFromCamera(ptr, S.camera);
+    const hitP = ray.intersectObject(S.panda, true);
+    if (hitP.length) { if (S.api.onPet) S.api.onPet(); else { doAction("happy"); hearts(); } return; }
+    const hits = ray.intersectObjects(S.furnGroup.children, true);
+    if (hits.length) {
+      const id = hits[0].object.userData.itemId;
+      const item = S.api.items.find(i => i.id === id);
+      if (item && !item.wall) { S.dragging = id; select(id); el.setPointerCapture(e.pointerId); }
+    } else select(null);
+  });
+  el.addEventListener("pointermove", (e) => {
+    if (!S.dragging) return;
+    toPtr(e); ray.setFromCamera(ptr, S.camera);
+    if (ray.ray.intersectPlane(plane, hit)) {
+      const item = S.api.items.find(i => i.id === S.dragging); const half = (item.size || 0.8) / 2;
+      const x = clamp(hit.x, -HALF_W + half, HALF_W - half), z = clamp(hit.z, -HALF_D + half, HALF_D - half);
+      S.furn[S.dragging].position.set(x, 0, z);
     }
   });
+  const end = () => {
+    if (!S.dragging) return;
+    const id = S.dragging; const o = S.furn[id]; S.dragging = null;
+    const st = S.api.getState();
+    if (collides(o.position.x, o.position.z, ((S.api.items.find(i => i.id === id).size || 0.8) / 2), st.furniture, id)) {
+      const p = st.furniture[id]; o.position.set(p.x, 0, p.z); // kthehu, ishte mbi diçka tjetër
+    } else S.api.onMove(id, { x: o.position.x, z: o.position.z, rot: o.rotation.y });
+  };
+  el.addEventListener("pointerup", end); el.addEventListener("pointercancel", end);
+  // zoom me rrotë / pinch të thjeshtë
+  el.addEventListener("wheel", (e) => { e.preventDefault(); S.zoom = clamp(S.zoom + (e.deltaY > 0 ? 0.06 : -0.06), 0.7, 1.4); setupCamera(); }, { passive: false });
+}
+let selRing = null;
+function select(id) {
+  S.sel = id;
+  if (!selRing) { selRing = new THREE.Mesh(new THREE.RingGeometry(0.45, 0.55, 32), mat(0xfbbf24, { emissive: 0xfbbf24, emissiveIntensity: 0.5, side: THREE.DoubleSide })); selRing.rotation.x = -Math.PI / 2; selRing.position.y = 0.015; S.scene.add(selRing); }
+  selRing.visible = !!id;
+  if (id) { const it = S.api.items.find(i => i.id === id); const s = (it.size || 0.8) / 2 + 0.15; selRing.scale.set(s / 0.5, s / 0.5, 1); selRing.position.x = S.furn[id].position.x; selRing.position.z = S.furn[id].position.z; }
+  const btn = document.getElementById("btnPandaRotate"); if (btn) btn.classList.toggle("hidden", !id);
+}
+function rotateSelected() {
+  if (!S || !S.sel) return;
+  const o = S.furn[S.sel]; o.rotation.y += Math.PI / 2;
+  S.api.onMove(S.sel, { x: o.position.x, z: o.position.z, rot: o.rotation.y });
 }
 
-/* ============ HIMMELSKUPPEL: verlaufender Himmel statt einfarbig ============ */
-function buildSkyTexture() {
-  const w = 512, h = 512;
-  const cnv = document.createElement("canvas");
-  cnv.width = w; cnv.height = h;
-  const ctx = cnv.getContext("2d");
-
-  const g = ctx.createLinearGradient(0, 0, 0, h);
-  g.addColorStop(0, "#5fa8dc");
-  g.addColorStop(0.45, "#9fd0ea");
-  g.addColorStop(0.78, "#d9ecf0");
-  g.addColorStop(1, "#eef6ee");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, w, h);
-
-  // Re të buta, të mjegulluara — jo forma të mprehta
-  ctx.globalAlpha = 0.5;
-  for (let i = 0; i < 9; i++) {
-    const cx = Math.random() * w, cy = h * 0.12 + Math.random() * h * 0.28;
-    const rw = 60 + Math.random() * 90, rh = 16 + Math.random() * 14;
-    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rw);
-    grad.addColorStop(0, "rgba(255,255,255,.85)");
-    grad.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.save();
-    ctx.translate(cx, cy); ctx.scale(1, rh / rw);
-    ctx.fillStyle = grad;
-    ctx.beginPath(); ctx.arc(0, 0, rw, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
+/* ---------- PANDA AI (state machine) ---------- */
+function decide(st, em) {
+  const f = st.furniture || {};
+  if (st._forceSleep) return f.bed ? { state: "seek", use: "sleep" } : { state: "sleep" };
+  if (st.toilet > 80 && f.toilet)  return { state: "seek", use: "toilet" };
+  if (st.energy < 18)              return f.bed ? { state: "seek", use: "sleep" } : { state: "sleep" };
+  if (st.hunger < 22 && f.bowl && (st.inventory.bamboo || st.inventory.apple)) return { state: "seek", use: "food" };
+  if (st.thirst < 22 && f.wbowl && st.inventory.water) return { state: "seek", use: "water" };
+  if (st.hygiene < 18 && f.bathtub) return { state: "seek", use: "bath" };
+  if (st.energy > 55 && Math.random() < 0.15 && (f.ball || f.teddy)) return { state: "seek", use: "toy" };
+  if (st.energy > 40 && Math.random() < 0.2 && f.sofa) return { state: "seek", use: "rest" };
+  return Math.random() < 0.55 ? { state: "wander" } : { state: "idle" };
+}
+function targetFor(use, st) {
+  const map = { sleep: "bed", toilet: "toilet", food: "bowl", water: "wbowl", bath: "bathtub", rest: "sofa", desk: "desk", toy: st.furniture.ball ? "ball" : "teddy" };
+  const id = map[use]; const p = st.furniture[id]; if (!p) return null;
+  const it = S.api.items.find(i => i.id === id); const off = (it.size || 0.8) / 2 + 0.35;
+  return { x: clamp(p.x, -HALF_W + 0.5, HALF_W - 0.5), z: clamp(p.z + off, -HALF_D + 0.5, HALF_D - 0.5), id };
+}
+function randomSpot(st) {
+  for (let t = 0; t < 25; t++) {
+    const x = -HALF_W + 0.7 + Math.random() * (ROOM.w - 1.4), z = -HALF_D + 0.9 + Math.random() * (ROOM.d - 1.6);
+    if (!collides(x, z, 0.45, st.furniture, null)) return { x, z };
   }
-  ctx.globalAlpha = 1;
-
-  const tex = new THREE.CanvasTexture(cnv);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
+  return { x: 0, z: 0 };
 }
-
-function buildSkyDome(scene) {
-  const geo = new THREE.SphereGeometry(70, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.55);
-  const mat = new THREE.MeshBasicMaterial({ map: buildSkyTexture(), side: THREE.BackSide, fog: false });
-  const dome = new THREE.Mesh(geo, mat);
-  dome.position.y = -4;
-  scene.add(dome);
-  return dome;
-}
-
-/* ============ MALE NË HORIZONT: silueta të buta, larg fshatit ============ */
-function hillColorFor(ring) {
-  // sa më larg, aq më e zbehtë/e kaltërt ngjyra — efekt thellësie natyror
-  const cols = ["#5f8f6a", "#729a86", "#8fb0a6", "#a9c3c2", "#c3d7dc"];
-  return cols[Math.min(ring, cols.length - 1)];
-}
-
-function buildHillMesh(radius, height, color) {
-  const geo = new THREE.ConeGeometry(radius, height, 6 + Math.floor(Math.random() * 3), 1);
-  // Jo kon perfekt — çrregullojmë pak majat për siluetë natyrale
-  const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const y = pos.getY(i);
-    if (y < height * 0.4) {
-      pos.setX(i, pos.getX(i) * (0.9 + Math.random() * 0.25));
-      pos.setZ(i, pos.getZ(i) * (0.9 + Math.random() * 0.25));
+function aiStep(dt) {
+  const st = S.api.getState(), ai = S.ai, em = S.api.getEmotion();
+  ai.speed = st.energy < 30 || st.weight > 75 ? 0.38 : 0.55;
+  if (ai.state === "seek" || ai.state === "wander") {
+    if (!ai.target) { ai.state = "idle"; ai.timer = 1; return; }
+    const dx = ai.target.x - S.panda.position.x, dz = ai.target.z - S.panda.position.z, d = Math.hypot(dx, dz);
+    if (d < 0.12) {
+      if (ai.state === "seek" && ai.use) { arrive(ai.use); } else { ai.state = "idle"; ai.timer = 1.5 + Math.random() * 3; setAnim("idle"); }
+      ai.target = null; return;
     }
+    S.panda.position.x += (dx / d) * ai.speed * dt; S.panda.position.z += (dz / d) * ai.speed * dt;
+    S.panda.rotation.y = Math.atan2(dx, dz);
+    setAnim("walk");
+    return;
   }
-  geo.computeVertexNormals();
-  const mat = new THREE.MeshStandardMaterial({ color, roughness: 1, fog: true });
-  return new THREE.Mesh(geo, mat);
+  if (ai.state === "busy") { ai.timer -= dt; if (ai.timer <= 0) { ai.state = "idle"; ai.timer = 1; st._sleeping = false; setAnim("idle"); } return; }
+  if (ai.state === "sleep") { st._sleeping = true; setAnim("sleep"); if (st.energy >= 95 && !st._forceSleep) { st._sleeping = false; ai.state = "idle"; ai.timer = 1; } return; }
+  // idle
+  ai.timer -= dt;
+  if (ai.timer > 0) { setAnim(st.energy < 25 ? "tired" : "idle"); return; }
+  const d = decide(st, em);
+  if (d.state === "seek") { const t = targetFor(d.use, st); if (t) { ai.state = "seek"; ai.use = d.use; ai.target = t; return; } }
+  if (d.state === "sleep") { ai.state = "sleep"; return; }
+  if (d.state === "wander") { ai.state = "wander"; ai.target = randomSpot(st); return; }
+  ai.state = "idle"; ai.timer = 1.5 + Math.random() * 2.5;
+}
+function arrive(use) {
+  const ai = S.ai; ai.use = null;
+  if (use === "sleep") { ai.state = "sleep"; setAnim("sleep"); return; }
+  const anims = { toilet: "sit", food: "eat", water: "drink", bath: "bath", rest: "sit", desk: "sit", toy: "play" };
+  setAnim(anims[use] || "idle"); ai.state = "busy"; ai.timer = use === "rest" ? 6 : use === "desk" ? 8 : 3;
+  if (["toilet", "food", "water", "bath"].includes(use)) S.api.onArrive(use);
+}
+function goUse(use) { const st = S.api.getState(); const t = targetFor(use, st); if (t) { S.ai.state = "seek"; S.ai.use = use; S.ai.target = t; } else doAction(use === "bath" ? "bath" : "sit"); }
+function doAction(name) {
+  const ai = S.ai;
+  if (name === "sleep") { ai.state = "sleep"; setAnim("sleep"); return; }
+  if (name === "wake") { const st = S.api.getState(); st._sleeping = false; ai.state = "idle"; ai.timer = 1; setAnim("idle"); return; }
+  ai.state = "busy"; ai.timer = name === "play" ? 4 : 2.5; ai.target = null; setAnim(name);
 }
 
-function buildMountainRing(scene) {
-  const rings = [
-    { dist: 17, count: 10, hMin: 2.2, hMax: 3.6, rMin: 3.5, rMax: 5.5 },
-    { dist: 23, count: 12, hMin: 3.2, hMax: 5.2, rMin: 5,   rMax: 8   },
-    { dist: 30, count: 12, hMin: 4.5, hMax: 7,   rMin: 7,   rMax: 11  }
-  ];
-  rings.forEach((ring, ringIdx) => {
-    for (let i = 0; i < ring.count; i++) {
-      const ang = (i / ring.count) * Math.PI * 2 + Math.random() * 0.3;
-      const dist = ring.dist + (Math.random() - 0.5) * 3;
-      const h = ring.hMin + Math.random() * (ring.hMax - ring.hMin);
-      const r = ring.rMin + Math.random() * (ring.rMax - ring.rMin);
-      const hill = buildHillMesh(r, h, hillColorFor(ringIdx + 1));
-      hill.position.set(Math.cos(ang) * dist, h / 2 - 0.6, Math.sin(ang) * dist);
-      hill.rotation.y = Math.random() * Math.PI;
-      scene.add(hill);
-    }
-  });
-}
-
-/* ============ TERRENI I JASHTËM: bën që fusha kryesore të mos duket si ishull ============ */
-function buildOuterTerrainTexture() {
-  const size = 512;
-  const cnv = document.createElement("canvas");
-  cnv.width = size; cnv.height = size;
-  const ctx = cnv.getContext("2d");
-  ctx.fillStyle = "#5d8f52";
-  ctx.fillRect(0, 0, size, size);
-  const blotches = ["#4f7d46", "#6a9a58", "#557f4c", "#729e5f"];
-  ctx.globalAlpha = 0.4;
-  for (let i = 0; i < 60; i++) {
-    const x = Math.random() * size, y = Math.random() * size;
-    const r = 20 + Math.random() * 60;
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-    grad.addColorStop(0, blotches[i % blotches.length]);
-    grad.addColorStop(1, "transparent");
-    ctx.fillStyle = grad;
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-  const tex = new THREE.CanvasTexture(cnv);
-  tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(6, 6);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
-
-// Rreth i çrregullt (jo rreth perfekt) me shumë kulme, buzë natyrale
-function buildOuterTerrainGeometry(baseR, segs) {
-  const shape = new THREE.Shape();
-  const seed1 = Math.random() * 10, seed2 = Math.random() * 10;
-  for (let i = 0; i <= segs; i++) {
-    const t = (i / segs) * Math.PI * 2;
-    const r = baseR
-      + Math.sin(t * 3 + seed1) * baseR * 0.09
-      + Math.sin(t * 5 + seed2) * baseR * 0.05
-      + Math.sin(t * 9) * baseR * 0.02;
-    const x = Math.cos(t) * r, y = Math.sin(t) * r;
-    if (i === 0) shape.moveTo(x, y); else shape.lineTo(x, y);
-  }
-  const geo = new THREE.ShapeGeometry(shape, 1);
-  return geo;
-}
-
-function buildOuterTerrain(scene) {
-  const geo = buildOuterTerrainGeometry(15.5, 64);
-  const mat = new THREE.MeshStandardMaterial({ map: buildOuterTerrainTexture(), roughness: 1 });
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.rotation.x = -Math.PI / 2;
-  mesh.position.y = -0.06;
-  mesh.receiveShadow = true;
-  scene.add(mesh);
-  return mesh;
-}
-
-/* ============ VEGJETACION: shkurre, gurë, lule, pemë shtesë ============ */
-function buildBush() {
-  const g = new THREE.Group();
-  const cols = [0x3f9e6b, 0x4caf7d, 0x2f8d5f];
-  for (let i = 0; i < 3; i++) {
-    const mat = new THREE.MeshStandardMaterial({ color: cols[i % cols.length], roughness: 1, flatShading: true });
-    const s = new THREE.Mesh(new THREE.IcosahedronGeometry(0.16 + Math.random() * 0.07, 0), mat);
-    s.position.set((Math.random() - 0.5) * 0.18, 0.13 + Math.random() * 0.06, (Math.random() - 0.5) * 0.18);
-    s.castShadow = true;
-    g.add(s);
-  }
-  return g;
-}
-
-function buildRockDeco() {
-  const mat = new THREE.MeshStandardMaterial({ color: 0x9aa0a6, roughness: 0.95, flatShading: true });
-  const geo = new THREE.DodecahedronGeometry(0.09 + Math.random() * 0.08, 0);
-  const rock = new THREE.Mesh(geo, mat);
-  rock.rotation.set(Math.random(), Math.random(), Math.random());
-  rock.scale.y = 0.6 + Math.random() * 0.3;
-  rock.castShadow = true;
-  return rock;
-}
-
-function buildFlowerPatch() {
-  const g = new THREE.Group();
-  const petalCols = [0xffe08a, 0xff9ec4, 0xffffff, 0x8f7bff];
-  const n = 3 + Math.floor(Math.random() * 3);
-  for (let i = 0; i < n; i++) {
-    const stem = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.004, 0.004, 0.09, 4),
-      new THREE.MeshStandardMaterial({ color: 0x3f9e6b, roughness: 1 })
-    );
-    const dx = (Math.random() - 0.5) * 0.16, dz = (Math.random() - 0.5) * 0.16;
-    stem.position.set(dx, 0.045, dz);
-    g.add(stem);
-    const bloom = new THREE.Mesh(
-      new THREE.SphereGeometry(0.018, 6, 5),
-      new THREE.MeshStandardMaterial({ color: petalCols[i % petalCols.length], roughness: 0.8 })
-    );
-    bloom.position.set(dx, 0.095, dz);
-    g.add(bloom);
-  }
-  return g;
-}
-
-async function scatterVegetation(scene) {
-  // Buzë e brendshme (rrethi kryesor prej 9) deri te terreni i jashtëm — fsheh "buzën" e ishullit
-  const spots = [];
-  for (let i = 0; i < 26; i++) {
-    const ang = Math.random() * Math.PI * 2;
-    const rad = 8.3 + Math.random() * 5.5; // pikërisht mbi tegelin
-    spots.push({ x: Math.cos(ang) * rad, z: Math.sin(ang) * rad, kind: "edge" });
-  }
-  // Të shpërndara nëpër bar, larg ndërtesave
-  for (let i = 0; i < 22; i++) {
-    const p = randomGrassSpot();
-    spots.push({ x: p.x, z: p.z, kind: "inner" });
-  }
-
-  spots.forEach(spot => {
-    if (!farFromPlots(spot.x, spot.z, 1.1)) return;
-    const roll = Math.random();
-    let obj;
-    if (roll < 0.4) obj = buildBush();
-    else if (roll < 0.65) obj = buildRockDeco();
-    else obj = buildFlowerPatch();
-    obj.position.set(spot.x, 0, spot.z);
-    obj.rotation.y = Math.random() * Math.PI * 2;
-    obj.scale.setScalar(0.85 + Math.random() * 0.4);
-    scene.add(obj);
-  });
-
-  // Pak pemë shtesë (ripërdorim modelet ekzistuese GLB, tashmë të ngarkuara në cache)
-  const extraTreeSpots = [];
-  for (let i = 0; i < 7; i++) {
-    const ang = Math.random() * Math.PI * 2;
-    const rad = 9.5 + Math.random() * 4.5;
-    extraTreeSpots.push({ x: Math.cos(ang) * rad, z: Math.sin(ang) * rad });
-  }
-  for (const p of extraTreeSpots) {
-    if (!farFromPlots(p.x, p.z, 1.2)) continue;
-    try {
-      const name = Math.random() > 0.5 ? "tree-large" : "tree-small";
-      const tree = await loadModel(name);
-      const s = 1.3 + Math.random() * 0.6;
-      tree.position.set(p.x, 0, p.z);
-      tree.scale.setScalar(s);
-      tree.rotation.y = Math.random() * Math.PI * 2;
-      scene.add(tree);
-    } catch (e) { /* modeli mungon — thjesht anashkalo, s'prish asgjë */ }
+/* ---------- ANIMATION (GLB nëse ka; përndryshe procedurale) ---------- */
+function setAnim(name) {
+  if (S.anim.name === name) return;
+  S.anim.name = name; S.anim.t = 0;
+  if (S.mixer) {
+    const clip = S.clips[name] || S.clips.idle; if (!clip) return;
+    S.mixer.stopAllAction(); S.mixer.clipAction(clip).reset().fadeIn(0.2).play();
   }
 }
-
-function setupVillage3D(container) {
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xeef6ee);   // rezervë, kupola mbulon gjithçka
-  scene.fog = new THREE.Fog(0xcfe6e0, 21, 40);     // përputhet me horizontin e qiellit
-  buildSkyDome(scene);
-  buildMountainRing(scene);
-
-  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
-
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.outputColorSpace = THREE.SRGBColorSpace;   // ngjyrat e vërteta të teksturës
-  container.innerHTML = "";
-  container.appendChild(renderer.domElement);
-  renderer.domElement.style.width = "100%";
-  renderer.domElement.style.height = "100%";
-  renderer.domElement.style.display = "block";
-  renderer.domElement.style.touchAction = "pan-y";
-
-  // Drita
-  const sun = new THREE.DirectionalLight(0xffffff, 2.1);
-  sun.position.set(6, 10, 5);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(1024, 1024);
-  sun.shadow.camera.left = -10; sun.shadow.camera.right = 10;
-  sun.shadow.camera.top = 10; sun.shadow.camera.bottom = -10;
-  scene.add(sun);
-  scene.add(new THREE.HemisphereLight(0xbfe9ff, 0x6a9b4a, 1.5));
-  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-
-  // Toka — e njëjta gjeometri/madhësi si më parë, vetëm materiali është më i pasur
-  const grassTex = buildGrassTexture();
-  const groundMat = new THREE.MeshStandardMaterial({ map: grassTex, roughness: 1 });
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(9, 48), groundMat);
-  ground.rotation.x = -Math.PI / 2;
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  // Sheshi qendror me rrugë
-  const pathTex = buildPathTexture();
-  const plaza = new THREE.Mesh(
-    new THREE.CircleGeometry(1.7, 32),
-    new THREE.MeshStandardMaterial({ map: pathTex, roughness: 1 })
-  );
-  plaza.rotation.x = -Math.PI / 2; plaza.position.y = 0.02;
-  plaza.receiveShadow = true;
-  scene.add(plaza);
-
-  const roadMat = new THREE.MeshStandardMaterial({ map: pathTex, roughness: 1 });
-  [[0, 3, 1.4, 5], [0, -3, 1.4, 5], [3.5, 0, 6, 1.2]].forEach(([x, z, w, d]) => {
-    const road = new THREE.Mesh(new THREE.PlaneGeometry(w, d), roadMat);
-    road.rotation.x = -Math.PI / 2; road.position.set(x, 0.015, z);
-    road.receiveShadow = true;
-    scene.add(road);
-  });
-
-  const group = new THREE.Group();
-  scene.add(group);
-
-  // Terreni i jashtëm dhe vegjetacioni — vetëm zbukurim, nuk prekin trojet e ndërtesave
-  buildOuterTerrain(scene);
-  scatterVegetation(scene);
-
-  // Kafshë dekorative — nuk prekin ndërtesat apo pozicionet ekzistuese
-  const animals = addVillageAnimals(scene);
-
-  v3 = { renderer, scene, camera, group, animals, loader: new GLTFLoader(), cache: {}, placed: {}, angle: 0.6, container };
-
-  // Rrotullim me gisht / mouse
-  let dragging = false, lastX = 0;
-  const el = renderer.domElement;
-  const start = (x) => { dragging = true; lastX = x; };
-  const move = (x) => { if (!dragging) return; v3.angle += (x - lastX) * 0.008; lastX = x; };
-  const end = () => { dragging = false; };
-  el.addEventListener("pointerdown", e => start(e.clientX));
-  window.addEventListener("pointermove", e => move(e.clientX));
-  window.addEventListener("pointerup", end);
-  window.addEventListener("pointercancel", end);
-
-  resizeV3();
-  window.addEventListener("resize", resizeV3);
-
-  let autoRotate = true;
-  el.addEventListener("pointerdown", () => { autoRotate = false; });
-
-  let lastFrame = performance.now();
-  function animate() {
-    requestAnimationFrame(animate);
-    if (!v3) return;
-    const now = performance.now();
-    const dt = Math.min(0.1, (now - lastFrame) / 1000);
-    lastFrame = now;
-    if (autoRotate && !dragging) v3.angle += 0.0016;
-    const r = 13.5;
-    v3.camera.position.set(Math.sin(v3.angle) * r, 9.0, Math.cos(v3.angle) * r);
-    v3.camera.lookAt(0, 1.6, 0);
-    updateAnimals(v3.animals, dt);
-    v3.renderer.render(v3.scene, v3.camera);
-  }
-  animate();
-  v3Ready = true;
-}
-
-function resizeV3() {
-  if (!v3) return;
-  const w = v3.container.clientWidth || 320;
-  const h = Math.round(w * 0.62);
-  v3.container.style.height = h + "px";
-  v3.renderer.setSize(w, h, false);
-  v3.camera.aspect = w / h;
-  v3.camera.updateProjectionMatrix();
-}
-
-function loadModel(name) {
-  if (v3.cache[name]) return Promise.resolve(v3.cache[name].clone(true));
-  return new Promise((resolve, reject) => {
-    v3.loader.load("models/" + name + ".glb", gltf => {
-      const obj = gltf.scene;
-      obj.traverse(o => {
-        if (!o.isMesh) return;
-        o.castShadow = true; o.receiveShadow = true;
-        const mats = Array.isArray(o.material) ? o.material : [o.material];
-        mats.forEach(m => {
-          if (!m) return;
-          if (m.map) {
-            m.map.colorSpace = THREE.SRGBColorSpace;
-            m.map.magFilter = THREE.NearestFilter;   // paleta e Kenney-t: pa turbullim
-            m.map.minFilter = THREE.LinearMipmapLinearFilter;
-            m.map.needsUpdate = true;
-          }
-          m.metalness = 0;
-          m.roughness = 0.85;
-          m.needsUpdate = true;
-        });
-      });
-      v3.cache[name] = obj;
-      resolve(obj.clone(true));
-    }, undefined, reject);
-  });
-}
-
-// Vendos/hiq ndërtesat sipas listës së blerjeve
-async function updateVillage3D(builtIds) {
-  if (!v3 || !v3Ready) return;
-  const want = new Set(builtIds.filter(id => V3_MAP[id]));
-
-  // Hiq ato që s'janë më (p.sh. pas prestige)
-  Object.keys(v3.placed).forEach(id => {
-    if (!want.has(id)) {
-      v3.group.remove(v3.placed[id]);
-      delete v3.placed[id];
-    }
-  });
-
-  for (const id of want) {
-    if (v3.placed[id]) continue;
-    const cfg = V3_MAP[id];
-    try {
-      const obj = await loadModel(cfg.model);
-      const S = 1.7;                       // modelet janë ~1 njësi -> i zmadhojmë
-      obj.position.set(cfg.x * S, cfg.y * S, cfg.z * S);
-      if (cfg.rot) obj.rotation.y = cfg.rot;
-      obj.userData.finalScale = S;
-      obj.scale.setScalar(0.001);
-      v3.group.add(obj);
-      v3.placed[id] = obj;
-      // Animacion i vogël kur shfaqet
-      const t0 = performance.now();
-      (function grow() {
-        const p = Math.min(1, (performance.now() - t0) / 420);
-        const e = 1 - Math.pow(1 - p, 3);
-        obj.scale.setScalar(e * (obj.userData.finalScale || 1));
-        if (p < 1) requestAnimationFrame(grow);
-      })();
-    } catch (e) {
-      console.warn("Modeli nuk u ngarkua:", cfg.model, e);
-      window.village3DError = "Modeli '" + cfg.model + "' nuk u ngarkua";
-    }
+function procAnim(dt) {
+  const P = S.panda.userData.parts; if (!P) return;
+  S.anim.t += dt; const t = S.anim.t, n = S.anim.name, st = S.api.getState();
+  const g = S.panda; const base = g.userData.baseScale || 1;
+  // Pesha: barku dhe trupi rrumbullakohen vazhdimisht sipas peshës (15..100)
+  const w = (st.weight - 50) / 50; // -0.7 .. 1.0
+  P.body.scale.set(1 + w * 0.18, 1.05 - Math.max(0, w) * 0.05, 0.9 + w * 0.22);
+  P.belly.scale.set(1 + w * 0.3, 0.9, 0.6 + w * 0.35);
+  // reset pozicionesh bazë
+  P.armL.rotation.set(0, 0, 0.5); P.armR.rotation.set(0, 0, -0.5); P.legL.rotation.set(0, 0, 0); P.legR.rotation.set(0, 0, 0);
+  P.head.position.y = 1.18; P.head.rotation.set(0, 0, 0); g.rotation.x = 0; g.rotation.z = 0; g.position.y = 0;
+  P.eyeL.scale.y = P.eyeR.scale.y = 1; P.mouth.rotation.z = Math.PI;
+  const em = S.api.getEmotion();
+  if (n === "walk") { const s = Math.sin(t * 8); P.legL.rotation.x = s * 0.6; P.legR.rotation.x = -s * 0.6; P.armL.rotation.x = -s * 0.5; P.armR.rotation.x = s * 0.5; g.position.y = Math.abs(Math.sin(t * 8)) * 0.03; }
+  else if (n === "sleep") { g.rotation.z = 1.2; g.position.y = -0.15; P.eyeL.scale.y = P.eyeR.scale.y = 0.15; g.position.y += Math.sin(t * 1.5) * 0.01; }
+  else if (n === "eat" || n === "drink") { P.head.rotation.x = 0.35 + Math.sin(t * 9) * 0.12; P.armL.rotation.x = -0.9; P.armR.rotation.x = -0.9; }
+  else if (n === "happy" || n === "play") { g.position.y = Math.abs(Math.sin(t * 7)) * 0.18; P.armL.rotation.z = 0.5 + Math.sin(t * 10) * 0.9 + 1.2; P.armR.rotation.z = -0.5 - Math.sin(t * 10) * 0.9 - 1.2; P.head.rotation.z = Math.sin(t * 6) * 0.15; }
+  else if (n === "sit") { g.position.y = -0.12; P.legL.rotation.x = -1.3; P.legR.rotation.x = -1.3; }
+  else if (n === "bath") { g.position.y = -0.1; P.armL.rotation.x = Math.sin(t * 5) * 0.5; P.armR.rotation.x = -Math.sin(t * 5) * 0.5; }
+  else if (n === "tired") { P.head.rotation.x = 0.25; P.eyeL.scale.y = P.eyeR.scale.y = 0.45; g.position.y = Math.sin(t * 1.2) * 0.01; }
+  else { // idle: frymëmarrje + shikim përreth
+    g.position.y = Math.sin(t * 1.8) * 0.02; P.head.rotation.y = Math.sin(t * 0.7) * 0.25;
+    if (em === "sad" || em === "lonely") { P.head.rotation.x = 0.3; P.mouth.rotation.z = 0; }
+    if (em === "hungry") { P.head.rotation.x = 0.15; P.head.rotation.y = 0.5; }
+    if (em === "excited" || em === "happy") { g.position.y = Math.abs(Math.sin(t * 4)) * 0.05; }
   }
 }
+function setGrowth(stage) { if (!S) return; S.growth = stage; const s = [0, 0.7, 0.82, 0.95, 1.08, 1.2][stage] || 1; S.panda.scale.setScalar(s); S.panda.userData.baseScale = s; }
 
-window.initVillage3D = function (container) {
-  try { setupVillage3D(container); return true; }
-  catch (e) { console.warn("3D nuk u nis:", e); return false; }
-};
-window.updateVillage3D = updateVillage3D;
-window.village3DReady = () => v3Ready;
+/* ---------- FX: zemra ---------- */
+function hearts() {
+  if (!S) return;
+  for (let i = 0; i < 6; i++) {
+    const h = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), mat(0xff6b81, { emissive: 0xff6b81, emissiveIntensity: 0.6 }));
+    h.position.copy(S.panda.position); h.position.y += 1.3; h.position.x += (Math.random() - 0.5) * 0.6;
+    h.userData = { vy: 0.8 + Math.random() * 0.5, life: 1.4, vx: (Math.random() - 0.5) * 0.4 };
+    S.fx.add(h);
+  }
+}
+function fxStep(dt) {
+  S.fx.children.slice().forEach(h => { h.position.y += h.userData.vy * dt; h.position.x += h.userData.vx * dt; h.userData.life -= dt; h.scale.setScalar(Math.max(0.01, h.userData.life)); if (h.userData.life <= 0) S.fx.remove(h); });
+}
+
+/* ---------- LOOP ---------- */
+function loop() {
+  requestAnimationFrame(loop);
+  if (!S) return;
+  const now = performance.now(); const dt = Math.min(0.1, (now - S.lastT) / 1000); S.lastT = now;
+  aiStep(dt);
+  if (S.mixer) S.mixer.update(dt); else procAnim(dt);
+  fxStep(dt);
+  if (selRing && S.sel && S.furn[S.sel]) { selRing.position.x = S.furn[S.sel].position.x; selRing.position.z = S.furn[S.sel].position.z; }
+  // flluska e të folurit ndjek pandën
+  const b = document.getElementById("pandaBubble");
+  if (b && !b.classList.contains("hidden")) {
+    const v = S.panda.position.clone(); v.y += 1.75 * (S.panda.userData.baseScale || 1); v.project(S.camera);
+    const r = S.renderer.domElement.getBoundingClientRect();
+    b.style.left = ((v.x + 1) / 2 * r.width) + "px"; b.style.top = ((1 - v.y) / 2 * r.height) + "px";
+  }
+  S.renderer.render(S.scene, S.camera);
+}
+function syncState() { /* gjendja lexohet live nga api.getState(); asgjë për të kopjuar */ }
+
+window.Panda3D = { init, syncFurniture, findFreeSpot, doAction, goUse, hearts, setGrowth, rotateSelected, syncState };
 </script>
 
 </body>
