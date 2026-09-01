@@ -6732,6 +6732,59 @@ try {
   if (window.supabase) sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 } catch (e) { console.warn("Supabase nicht verfügbar:", e); }
 
+/* ============ RIVENDOSJA E FJALËKALIMIT: kap lidhjen e email-it, cilëndo formë që ketë ============ */
+// Supabase përdor dy formate lidhjesh sipas konfigurimit: ose #access_token=...&type=recovery
+// (format i vjetër), ose ?code=... (PKCE, më i ri). I trajtojmë të dyja, që të mos varemi
+// vetëm nga event-i automatik i librarisë, i cili ndonjëherë nuk arrin dëgjuesin tonë me kohë.
+(function handlePasswordRecoveryLink() {
+  if (!sb) return;
+  const hash = window.location.hash || "";
+  const search = window.location.search || "";
+  const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
+  const queryParams = new URLSearchParams(search);
+  const isRecoveryHash = hashParams.get("type") === "recovery" && hashParams.get("access_token");
+  const code = queryParams.get("code");
+  const linkError = hashParams.get("error_description") || queryParams.get("error_description");
+
+  if (linkError) {
+    console.warn("Lidhja e rivendosjes ka skaduar ose është përdorur tashmë:", linkError);
+    setTimeout(() => {
+      goToView("account");
+      showAuthPanel("login");
+      setAuthMsg(decodeURIComponent(linkError).replace(/\+/g, " "), "err");
+    }, 300);
+    history.replaceState(null, "", window.location.pathname);
+    return;
+  }
+
+  if (isRecoveryHash) {
+    console.log("Rivendosje e zbuluar (format hash) — po pres sesionin nga Supabase…");
+    // supabase-js e lexon vetë hash-in dhe do të nxjerrë PASSWORD_RECOVERY te onAuthStateChange më poshtë.
+    return;
+  }
+
+  if (code) {
+    console.log("Rivendosje e zbuluar (format kod/PKCE) — po shkëmbej kodin…");
+    sb.auth.exchangeCodeForSession(window.location.href).then(({ data, error }) => {
+      history.replaceState(null, "", window.location.pathname); // hiq kodin nga URL, s'ripërdoret
+      if (error) {
+        console.warn("Gabim gjatë shkëmbimit të kodit të rivendosjes:", error);
+        setTimeout(() => {
+          goToView("account");
+          showAuthPanel("login");
+          setAuthMsg("Lidhja e rivendosjes nuk është më e vlefshme. Kërko një lidhje të re.", "err");
+        }, 300);
+        return;
+      }
+      console.log("Sesioni i rivendosjes u krijua me sukses.");
+      setTimeout(() => {
+        goToView("account");
+        showAuthPanel("reset");
+      }, 200);
+    });
+  }
+})();
+
 function setAccountBar(loggedIn, email) {
   const status = document.getElementById("accountStatus");
   const action = document.getElementById("btnAccountAction");
