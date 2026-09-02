@@ -9702,6 +9702,7 @@ if ("serviceWorker" in navigator) {
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 
 /* ================================================================
    PANDA 3D — skena, dhoma, pandaja, AI, mobiliet, drag&drop
@@ -9710,7 +9711,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
    thjesht vendos rrugën e skedarit .glb — logjika e lojës nuk ndryshon.
    ================================================================ */
 const ASSETS = {
-  panda:    { glb: null, placeholder: "PLACEHOLDER_PANDA" },
+  panda:    { glb: null, obj: "models/panda/panda_parts.obj", placeholder: "PLACEHOLDER_PANDA" },   // GLB ka përparësi nëse vendoset
   bed:      { glb: null, placeholder: "PLACEHOLDER_BED" },
   sofa:     { glb: null, placeholder: "PLACEHOLDER_SOFA" },
   toilet:   { glb: null, placeholder: "PLACEHOLDER_TOILET" },
@@ -9854,7 +9855,8 @@ function buildPlaceholderPanda() {
   const zzz = new THREE.Group(); zzz.position.set(0.5, 0.5, 0); zzz.visible = false; headG.add(zzz);
   [0, 0.14, 0.28].forEach((y, i) => { const z = new THREE.Mesh(new THREE.TorusGeometry(0.03 + i * 0.012, 0.01, 6, 10), pbrMat(0x9fb3ff)); z.position.set(i * 0.06, y, 0); zzz.add(z); });
 
-  g.userData.parts = { bodyG, body, belly, armL, armR, legL, legR, footL, footR, headG, head, earL, earR, eyeL, eyeR, browL, browR, mouthG, mouth, tongue, smileL, cheekL, cheekR, tearL, tearR, zzz };
+  g.userData.parts = { bodyG, body, belly, armL, armR, legL, legR, footL, footR, headG, head, earL, earR, eyeL, eyeR, browL, browR, mouthG, mouth, tongue, smileL, cheekL, cheekR, tearL, tearR, zzz,
+    jawMode: false, rest: { headY: 1.5, armLx: -0.46, armRx: 0.46, legLx: -0.21, legRx: 0.21, armL: [-0.6, 0, 0.9], armR: [-0.6, 0, -0.9], bodyScale: [1, 1, 0.92] } };
   g.userData.expr = { eyeOpen: 1, pupil: 1, brow: 0, mouthOpen: 0.5, smile: 0.5, cheeks: 0.55, tears: 0, target: {} };
   return g;
 }
@@ -9895,17 +9897,24 @@ function applyExpression(dt, emotion, animName) {
   else if (emotion === "sad" || emotion === "lonely" || emotion === "sick") { P2.earL.rotation.z = 0.25; P2.earR.rotation.z = -0.25; }
   [P.eyeL, P.eyeR].forEach(e => {
     const u = e.userData;
-    u.w.scale.y = 1.15 * Math.max(0.08, eyeOpen); u.ir.scale.set(E.pupil, 1.1 * E.pupil, 0.5); u.pu.scale.set(E.pupil, 1.1 * E.pupil, 0.5);
+    const zs = u.flat ? 1 : 0.5;
+    u.w.scale.y = (u.flat ? 1 : 1.15) * Math.max(0.08, eyeOpen); u.ir.scale.set(E.pupil, 1.1 * E.pupil, zs); u.pu.scale.set(E.pupil, 1.1 * E.pupil, zs);
     u.ir.scale.y *= Math.max(0.08, eyeOpen); u.pu.scale.y *= Math.max(0.08, eyeOpen);
-    u.lid.visible = eyeOpen < 0.35; u.lid.rotation.x = -Math.PI / 2 * (1 - eyeOpen);
+    if (u.lidContinuous) { u.lid.visible = eyeOpen < 0.92; u.lid.rotation.x = (1 - eyeOpen) * Math.PI / 2; }
+    else { u.lid.visible = eyeOpen < 0.35; u.lid.rotation.x = -Math.PI / 2 * (1 - eyeOpen); }
   });
   // Vetullat: brow>0 = të trishtuara (të ngritura brenda), brow<0 = të zemëruara/urgjencë
   const bv = Math.abs(E.brow) > 0.15; P.browL.visible = P.browR.visible = bv;
   P.browL.rotation.z = Math.PI / 2 + E.brow * 0.5; P.browR.rotation.z = Math.PI / 2 - E.brow * 0.5;
   P.browL.position.y = P.browR.position.y = 0.27 + Math.max(0, E.brow) * 0.06;
   // Goja: e hapur (sferë) vs buzëqeshje (hark)
-  P.mouthG.visible = E.mouthOpen > 0.25; P.mouthG.scale.set(0.6 + E.mouthOpen * 0.7 + E.smile * 0.9, 0.4 + E.mouthOpen * 0.9, 1); P.mouthG.position.y = -0.25 + E.smile * 0.02;
-  P.tongue.visible = E.mouthOpen > 0.5; P.smileL.visible = !P.mouthG.visible;
+  if (P.jawMode) {
+    // Modeli OBJ: goja hapet duke rrotulluar nofullën rreth nyjes prapa gojës
+    P.mouthG.visible = true; P.mouthG.rotation.x = E.mouthOpen * 0.55; P.tongue.visible = E.mouthOpen > 0.45; P.smileL.visible = false;
+  } else {
+    P.mouthG.visible = E.mouthOpen > 0.25; P.mouthG.scale.set(0.6 + E.mouthOpen * 0.7 + E.smile * 0.9, 0.4 + E.mouthOpen * 0.9, 1); P.mouthG.position.y = -0.25 + E.smile * 0.02;
+    P.tongue.visible = E.mouthOpen > 0.5; P.smileL.visible = !P.mouthG.visible;
+  }
   P.smileL.rotation.x = E.smile > 0.4 ? Math.PI : 0; P.smileL.position.y = E.smile > 0.4 ? -0.23 : -0.27;
   P.cheekL.material.opacity = P.cheekR.material.opacity = 0.2 + E.cheeks * 0.5;
   P.tearL.visible = P.tearR.visible = E.tears > 0.3;
@@ -9919,6 +9928,98 @@ function applyMorphs(E, eyeOpen) {
   const set = (names, v) => S.morphMeshes.forEach(m => names.forEach(n => { const i = m.morphTargetDictionary[n]; if (i !== undefined) m.morphTargetInfluences[i] = v; }));
   set(MORPH_MAP.eyeOpen, 1 - eyeOpen); set(MORPH_MAP.mouthOpen, E.mouthOpen); set(MORPH_MAP.smile, E.smile);
   set(MORPH_MAP.sad, Math.max(0, E.brow)); set(MORPH_MAP.browSad, Math.max(0, E.brow)); set(MORPH_MAP.browAngry, Math.max(0, -E.brow));
+}
+
+
+/* ---------- PANDA NGA OBJ: montim i pjesëve në grupe nyjesh (PandaModel) ----------
+   panda_parts.obj përmban: BODY, HEAD, ARM_L/R, LEG_L/R, NOSE, EYE_WHITE_L/R, PUPIL_L/R, JAW, TONGUE.
+   Këtu ndërtohet e njëjta strukturë "parts" si te placeholder-i, që
+   PandaAnimationController (procAnim) dhe PandaEmotionController (applyExpression)
+   të punojnë pa ndryshime. Modeli skalohet në ~2.2 njësi lartësi, këmbët në y=0. */
+const OBJ_COLORS = { PANDA_BLACK_: 0x24242a, PANDA_WHITE: 0xf6efe4, NOSE: 0x111111, MOUTH: 0x5a1f2a, JAW: 0x5a1f2a, TEETH: 0xffffff, TONGUE: 0xe0607a, Material: 0x0a0a0a, "Material.008": 0xffffff };
+const OBJ_SCALE = 0.5;               // 4.37 → 2.19 njësi
+const OBJ_FEET_Y = 2.19;             // minY i modelit (negativ) → ngrihet në dysheme
+
+function objMaterialFor(name) {
+  const c = OBJ_COLORS[name] !== undefined ? OBJ_COLORS[name] : 0xff00ff;
+  if (name === "NOSE") return pbrMat(c, { roughness: 0.25, clearcoat: 1 });
+  if (name === "Material.008") return new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.15, clearcoat: 1, clearcoatRoughness: 0.05 });
+  if (name === "Material") return new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.1, clearcoat: 1 });
+  if (name === "TEETH") return pbrMat(c, { roughness: 0.4 });
+  return pbrMat(c, { roughness: name === "PANDA_WHITE" ? 0.7 : 0.75, clearcoat: name === "PANDA_WHITE" ? 0.3 : 0.2 });
+}
+
+function buildPandaFromParts(objRoot) {
+  const byName = {};
+  objRoot.children.forEach(m => { byName[m.name] = m; });
+  objRoot.traverse(o => {
+    if (!o.isMesh) return;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    const nm = mats.map(m => objMaterialFor(m.name));
+    o.material = nm.length === 1 ? nm[0] : nm;
+    o.castShadow = true; o.receiveShadow = true;
+  });
+  const need = ["BODY","HEAD","ARM_L","ARM_R","LEG_L","LEG_R","JAW","TONGUE","EYE_WHITE_L","EYE_WHITE_R","PUPIL_L","PUPIL_R","NOSE"];
+  for (const n of need) if (!byName[n]) { console.warn("Panda OBJ: mungon pjesa", n, "→ placeholder"); return null; }
+
+  const g = new THREE.Group(); g.name = "PANDA_OBJ";
+  const model = new THREE.Group(); model.scale.setScalar(OBJ_SCALE); model.position.y = OBJ_FEET_Y * OBJ_SCALE; g.add(model);
+  const pivotGroup = (mesh, px, py, pz) => { const grp = new THREE.Group(); grp.position.set(px, py, pz); mesh.position.set(-px, -py, -pz); grp.add(mesh); return grp; };
+  const jointBall = (r, x, y, z, black = true) => { const s = new THREE.Mesh(new THREE.SphereGeometry(r, 18, 14), objMaterialFor(black ? "PANDA_BLACK_" : "PANDA_WHITE")); s.position.set(x, y, z); s.castShadow = true; return s; };
+
+  // Trupi: pivot në qendër (për peshën skalohet vetëm trupi)
+  const bodyG = pivotGroup(byName.BODY, 0, -0.5, -0.05); model.add(bodyG);
+  // Koka + gjithçka e fytyrës, pivot te qafa
+  const headG = pivotGroup(byName.HEAD, 0, 0.35, 0.1); model.add(headG);
+  [byName.NOSE, byName.EYE_WHITE_L, byName.EYE_WHITE_R, byName.PUPIL_L, byName.PUPIL_R].forEach(m => { m.position.set(0, -0.35, -0.1); headG.add(m); });
+  // Nofulla: pivot prapa gojës → goja hapet me rrotullim
+  const jawG = new THREE.Group(); jawG.position.set(0, 0.55, 0.35); [byName.JAW, byName.TONGUE].forEach(m => { m.position.set(0, -0.55, -0.35); jawG.add(m); });
+  jawG.position.sub(new THREE.Vector3(0, 0.35, 0.1)); headG.add(jawG);
+  // Krahët: pivot te supi; brenda pivot-it krahu rrotullohet që të VARET poshtë (si te placeholder-i)
+  const mkArm = (mesh, sx) => {
+    const grp = new THREE.Group(); grp.position.set(sx * 1.0, -0.1, 0);
+    const inner = new THREE.Group(); inner.rotation.z = -sx * 1.35; mesh.position.set(-sx * 1.0, 0.1, 0); inner.add(mesh); grp.add(inner);
+    grp.add(jointBall(0.42, 0, 0, 0)); bodyG.add(grp); grp.position.sub(bodyG.position); return grp;
+  };
+  const armL = mkArm(byName.ARM_L, -1), armR = mkArm(byName.ARM_R, 1);
+  // Këmbët: pivot te ijet
+  const mkLeg = (mesh, sx) => { const grp = pivotGroup(mesh, sx * 0.42, -1.4, 0); grp.add(jointBall(0.38, 0, 0.02, 0)); model.add(grp); return grp; };
+  const legL = mkLeg(byName.LEG_L, -1), legR = mkLeg(byName.LEG_R, 1);
+
+  // ---- Overlay-et e shprehjeve (në koordinata të kokës, para skalimit) ----
+  const H = (x, y, z) => new THREE.Vector3(x, y - 0.35, z - 0.1); // koordinata modeli → hapësira e headG
+  const mkEye = (sx, white, pupil) => {
+    // Qendra e vërtetë e syrit nga gjeometria; gjeometria zhvendoset në origjinën e vet,
+    // që skalimi (pupila, ngushtim) të ndodhë rreth qendrës së syrit, jo rreth origjinës së modelit.
+    white.geometry.computeBoundingBox(); const cw = white.geometry.boundingBox.getCenter(new THREE.Vector3());
+    pupil.geometry.computeBoundingBox(); const cp = pupil.geometry.boundingBox.getCenter(new THREE.Vector3());
+    white.geometry.translate(-cw.x, -cw.y, -cw.z); pupil.geometry.translate(-cp.x, -cp.y, -cp.z);
+    const e = new THREE.Group(); const c = H(cw.x, cw.y, cw.z); e.position.copy(c); headG.add(e);
+    [white, pupil].forEach(m => { headG.remove(m); e.add(m); });
+    white.position.set(0, 0, 0); pupil.position.set(cp.x - cw.x, cp.y - cw.y, cp.z - cw.z + 0.01);
+    const lid = new THREE.Mesh(new THREE.SphereGeometry(0.40, 24, 18, 0, Math.PI * 2, 0, Math.PI / 2), objMaterialFor("PANDA_BLACK_"));
+    lid.scale.set(1.05, 1, 0.5); lid.position.z = 0.02; lid.visible = false; e.add(lid);
+    e.userData = { w: white, ir: pupil, pu: pupil, lid, lidContinuous: true, flat: true };
+    return e;
+  };
+  const eyeL = mkEye(-1, byName.EYE_WHITE_L, byName.PUPIL_L), eyeR = mkEye(1, byName.EYE_WHITE_R, byName.PUPIL_R);
+  const dummy = () => { const o = new THREE.Object3D(); headG.add(o); return o; };
+  const browL = dummy(), browR = dummy(); browL.visible = browR.visible = false;   // vetullat mbi njolla të zeza s'duken → i fshehim
+  const cheekMat = new THREE.MeshStandardMaterial({ color: 0xf9a8c9, transparent: true, opacity: 0.5, roughness: 1 });
+  const cheekL = new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 10), cheekMat); cheekL.position.copy(H(-0.86, 0.5, 0.62)); cheekL.scale.set(1.1, 0.75, 0.4); headG.add(cheekL);
+  const cheekR = cheekL.clone(); cheekR.position.copy(H(0.86, 0.5, 0.62)); headG.add(cheekR);
+  const tearL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), new THREE.MeshPhysicalMaterial({ color: 0x8fd3ff, transparent: true, opacity: 0.85, clearcoat: 1 })); tearL.position.copy(H(-0.62, 0.55, 0.85)); tearL.scale.set(0.8, 1.3, 0.6); tearL.visible = false; headG.add(tearL);
+  const tearR = tearL.clone(); tearR.position.copy(H(0.62, 0.55, 0.85)); headG.add(tearR);
+  const zzz = new THREE.Group(); zzz.position.copy(H(1.1, 1.6, 0)); zzz.visible = false; headG.add(zzz);
+  [0, 0.28, 0.56].forEach((y, i) => { const z = new THREE.Mesh(new THREE.TorusGeometry(0.06 + i * 0.025, 0.02, 6, 10), pbrMat(0x9fb3ff)); z.position.set(i * 0.12, y, 0); zzz.add(z); });
+  const smileL = dummy(); smileL.visible = false;
+
+  g.userData.parts = { bodyG, body: byName.BODY, belly: new THREE.Object3D(), armL, armR, legL, legR, footL: new THREE.Object3D(), footR: new THREE.Object3D(),
+    headG, head: byName.HEAD, earL: new THREE.Object3D(), earR: new THREE.Object3D(), eyeL, eyeR, browL, browR, mouthG: jawG, mouth: byName.JAW, tongue: byName.TONGUE, smileL, cheekL, cheekR, tearL, tearR, zzz,
+    jawMode: true,
+    rest: { headY: headG.position.y, armLx: armL.position.x, armRx: armR.position.x, legLx: legL.position.x, legRx: legR.position.x, footLx: 0, footRx: 0, armL: [-0.15, 0, 0.15], armR: [-0.15, 0, -0.15], bodyScale: [1, 1, 1] } };
+  g.userData.expr = { eyeOpen: 1, pupil: 1, brow: 0, mouthOpen: 0.3, smile: 0.5, cheeks: 0.55, tears: 0, target: {} };
+  return g;
 }
 
 /* ---------- FURNITURE (PLACEHOLDER procedural) ---------- */
@@ -9951,6 +10052,12 @@ function buildPlaceholderFurniture(id) {
 
 function loadAsset(id) {
   const a = ASSETS[id];
+  if (id === "panda" && a && !a.glb && a.obj) {
+    return new Promise((res) => new OBJLoader().load(a.obj, (root) => {
+      const built = buildPandaFromParts(root);
+      res({ obj: built || buildPlaceholderPanda(), anims: [] });
+    }, undefined, (err) => { console.warn("Panda OBJ nuk u ngarkua → placeholder:", err); res({ obj: buildPlaceholderPanda(), anims: [] }); }));
+  }
   if (a && a.glb) {
     return new Promise((res) => loader.load(a.glb, (g) => { g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); res({ obj: g.scene, anims: g.animations }); },
       undefined, () => res({ obj: id === "panda" ? buildPlaceholderPanda() : buildPlaceholderFurniture(id), anims: [] })));
@@ -10235,43 +10342,43 @@ function procAnim(dt) {
   const g = S.panda; const em = S.api.getEmotion();
   // ---- PESHA: forma e trupit ndryshon vazhdimisht (15..100) — trupi, barku, faqet, këmbët ----
   const w = (st.weight - 50) / 50;                       // -0.7 .. +1.0
-  P.body.scale.set(1 + w * 0.22, 1.0 - Math.max(0, w) * 0.05, 0.92 + w * 0.28);
+  const bs = P.rest.bodyScale; P.body.scale.set(bs[0] * (1 + w * 0.22), bs[1] * (1 - Math.max(0, w) * 0.05), bs[2] * (1 + w * 0.3));
   P.belly.scale.set(0.95 + w * 0.3, 0.95 + Math.max(0, w) * 0.08, 0.62 + w * 0.42);
-  P.legL.position.x = -0.21 - Math.max(0, w) * 0.05; P.legR.position.x = 0.21 + Math.max(0, w) * 0.05; P.footL.position.x = P.legL.position.x; P.footR.position.x = P.legR.position.x;
-  P.armL.position.x = -0.46 - Math.max(0, w) * 0.08; P.armR.position.x = 0.46 + Math.max(0, w) * 0.08;
+  P.legL.position.x = P.rest.legLx - Math.max(0, w) * 0.05; P.legR.position.x = P.rest.legRx + Math.max(0, w) * 0.05; P.footL.position.x = P.legL.position.x; P.footR.position.x = P.legR.position.x;
+  P.armL.position.x = P.rest.armLx - Math.max(0, w) * 0.08; P.armR.position.x = P.rest.armRx + Math.max(0, w) * 0.08;
   // ---- reset ----
-  P.armL.rotation.set(-0.6, 0, 0.9); P.armR.rotation.set(-0.6, 0, -0.9);
+  P.armL.rotation.set(...P.rest.armL); P.armR.rotation.set(...P.rest.armR);
   P.legL.rotation.set(0, 0, 0); P.legR.rotation.set(0, 0, 0); P.footL.rotation.set(0,0,0); P.footR.rotation.set(0,0,0);
-  P.headG.rotation.set(0, 0, 0); P.headG.position.y = 1.5; P.bodyG.rotation.set(0, 0, 0); P.earL.rotation.set(0,0,0); P.earR.rotation.set(0,0,0);
+  P.headG.rotation.set(0, 0, 0); P.headG.position.y = P.rest.headY; P.bodyG.rotation.set(0, 0, 0); P.earL.rotation.set(0,0,0); P.earR.rotation.set(0,0,0);
   g.rotation.x = 0; g.rotation.z = 0; g.position.y = 0;
   const breathe = Math.sin(t * 1.8) * 0.015;
   if (n === "walk") {
     const s = Math.sin(t * 9);
     P.legL.rotation.x = s * 0.7; P.legR.rotation.x = -s * 0.7; P.footL.rotation.x = s * 0.5; P.footR.rotation.x = -s * 0.5;
-    P.armL.rotation.x = -0.6 - s * 0.5; P.armR.rotation.x = -0.6 + s * 0.5;
+    P.armL.rotation.x = P.rest.armL[0] - s * 0.5; P.armR.rotation.x = P.rest.armR[0] + s * 0.5;
     g.position.y = Math.abs(s) * 0.035; P.headG.rotation.z = s * 0.06; P.bodyG.rotation.z = -s * 0.04;
   } else if (n === "sleep") {
     g.rotation.z = 1.25; g.position.y = -0.12 + Math.sin(t * 1.4) * 0.008; P.headG.rotation.z = 0.15;
   } else if (n === "eat" || n === "drink") {
-    P.headG.rotation.x = 0.3 + Math.sin(t * 9) * 0.12; P.armL.rotation.x = -1.4; P.armR.rotation.x = -1.4; P.armL.rotation.z = 0.3; P.armR.rotation.z = -0.3;
+    P.headG.rotation.x = 0.3 + Math.sin(t * 9) * 0.12; P.armL.rotation.set(P.rest.armL[0] - 0.9, 0, P.rest.armL[2] * 0.4); P.armR.rotation.set(P.rest.armR[0] - 0.9, 0, P.rest.armR[2] * 0.4);
   } else if (n === "happy" || n === "play") {
     g.position.y = Math.abs(Math.sin(t * 7)) * 0.2;
-    P.armL.rotation.set(-2.6, 0, 0.6 + Math.sin(t * 10) * 0.4); P.armR.rotation.set(-2.6, 0, -0.6 - Math.sin(t * 10) * 0.4);
+    P.armL.rotation.set(P.rest.armL[0] - 2.0, 0, P.rest.armL[2] + Math.sin(t * 10) * 0.4); P.armR.rotation.set(P.rest.armR[0] - 2.0, 0, P.rest.armR[2] - Math.sin(t * 10) * 0.4);
     P.headG.rotation.z = Math.sin(t * 6) * 0.15; P.bodyG.rotation.y = Math.sin(t * 3) * 0.2;
   } else if (n === "greeting") {
-    P.armR.rotation.set(-2.9, 0, -0.5 + Math.sin(t * 9) * 0.45); P.headG.rotation.z = -0.1; P.headG.rotation.y = 0.15; g.position.y = breathe;
+    P.armR.rotation.set(P.rest.armR[0] - 2.4, 0, P.rest.armR[2] + Math.sin(t * 9) * 0.45); P.headG.rotation.z = -0.1; P.headG.rotation.y = 0.15; g.position.y = breathe;
   } else if (n === "surprised") {
-    P.headG.rotation.x = -0.18; P.headG.position.y = 1.53; P.armL.rotation.set(-1.6, 0, 1.3); P.armR.rotation.set(-1.6, 0, -1.3); g.position.y = Math.max(0, 0.12 - t * 0.3);
+    P.headG.rotation.x = -0.18; P.headG.position.y = P.rest.headY + 0.03; P.armL.rotation.set(P.rest.armL[0] - 1.0, 0, P.rest.armL[2] + 0.6); P.armR.rotation.set(P.rest.armR[0] - 1.0, 0, P.rest.armR[2] - 0.6); g.position.y = Math.max(0, 0.12 - t * 0.3);
   } else if (n === "sit") {
     g.position.y = -0.14; P.legL.rotation.x = -1.4; P.legR.rotation.x = -1.4; P.footL.rotation.x = -1.2; P.footR.rotation.x = -1.2; P.headG.rotation.y = Math.sin(t * 0.8) * 0.2;
   } else if (n === "bath") {
-    g.position.y = -0.12; P.armL.rotation.x = -1 + Math.sin(t * 5) * 0.5; P.armR.rotation.x = -1 - Math.sin(t * 5) * 0.5; P.headG.rotation.z = Math.sin(t * 2) * 0.1;
+    g.position.y = -0.12; P.armL.rotation.x = P.rest.armL[0] - 0.5 + Math.sin(t * 5) * 0.5; P.armR.rotation.x = P.rest.armR[0] - 0.5 - Math.sin(t * 5) * 0.5; P.headG.rotation.z = Math.sin(t * 2) * 0.1;
   } else if (n === "tired") {
-    P.headG.rotation.x = 0.28; P.headG.position.y = 1.47 + breathe; g.position.y = breathe;
+    P.headG.rotation.x = 0.28; P.headG.position.y = P.rest.headY - 0.03 + breathe; g.position.y = breathe;
   } else { // idle
     g.position.y = breathe; P.headG.rotation.y = Math.sin(t * 0.7) * 0.28; P.headG.rotation.z = Math.sin(t * 0.45) * 0.06;
-    if (em === "sad" || em === "lonely" || em === "sick") { P.headG.rotation.x = 0.28; P.armL.rotation.set(0.2, 0, 0.4); P.armR.rotation.set(0.2, 0, -0.4); }
-    if (em === "hungry" || em === "thirsty") { P.headG.rotation.x = 0.1; P.armL.rotation.set(-0.9, 0, 0.5); P.armR.rotation.set(-0.9, 0, -0.5); }
+    if (em === "sad" || em === "lonely" || em === "sick") { P.headG.rotation.x = 0.28; P.armL.rotation.set(P.rest.armL[0] + 0.6, 0, P.rest.armL[2] * 0.5); P.armR.rotation.set(P.rest.armR[0] + 0.6, 0, P.rest.armR[2] * 0.5); }
+    if (em === "hungry" || em === "thirsty") { P.headG.rotation.x = 0.1; P.armL.rotation.set(P.rest.armL[0] - 0.4, 0, P.rest.armL[2] * 0.6); P.armR.rotation.set(P.rest.armR[0] - 0.4, 0, P.rest.armR[2] * 0.6); }
     if (em === "excited" || em === "happy") { g.position.y = Math.abs(Math.sin(t * 4)) * 0.06; P.headG.rotation.z = Math.sin(t * 4) * 0.1; }
     if (em === "urgent") { g.position.y = Math.abs(Math.sin(t * 12)) * 0.03; P.legL.rotation.x = Math.sin(t*12)*0.3; P.legR.rotation.x = -Math.sin(t*12)*0.3; }
   }
