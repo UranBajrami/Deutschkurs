@@ -8958,7 +8958,7 @@ function pandaAddXp(n) {
   if (leveled) {
     spawnConfetti(); playFanfare(); vibrate([40, 50, 40]);
     pandaSay(pt("lvl") + " " + p.level + "! ✨", 5000);
-    if (window.Panda3D) window.Panda3D.setGrowth(pandaGrowthStage());
+    if (window.Panda3D) { window.Panda3D.setGrowth(pandaGrowthStage()); window.Panda3D.doAction("cheer"); }
   }
   savePanda();
 }
@@ -9149,7 +9149,7 @@ function finishLearnSession() {
   p._excitedUntil = Date.now() + 8000;
   addPoints(learnMinutes);            // pikë në sistemin e përgjithshëm
   pandaAddXp(learnMinutes * 2); pandaTaskTick("learn", learnMinutes);
-  if (window.Panda3D) { window.Panda3D.doAction("happy"); window.Panda3D.hearts(); }
+  if (window.Panda3D) { window.Panda3D.doAction("cheer"); window.Panda3D.hearts(); }
   spawnConfetti(); playFanfare();
   pandaSay(pt("learndone").replace("{c}", coins + streakBonus), 6000);
   document.getElementById("pandaLearnRun").classList.add("hidden");
@@ -10032,7 +10032,11 @@ function buildPandaFromParts(objRoot) {
    SHPREHJET: pa morph targets → koka (rrotullim), faqet, lotët, Zzz të bashkëngjitura te Head-bone,
    dhe klipi "stomp" kur ka uri/është i zemëruar (kërkesë e lojës). */
 const RIG_TEX = { map: "models/panda/panda_basecolor.jpg", normalMap: "models/panda/panda_normal.jpg", roughnessMap: "models/panda/panda_roughness.jpg" };
-const RIG_STATE_CLIPS = { hungry: "stomp", angry: "stomp" };   // emocion → klip (nëse ekziston)
+const RIG_STATE_CLIPS = { hungry: "stomp", angry: "stomp", lonely: "help", sad: "help" };   // emocion → klip reagimi (herë pas here)
+// gjendje e lojës → emri i klipit (nëse gjendja s'ka klip me të njëjtin emër)
+const RIG_STATE_ALIAS = { play: "dance", rest: "sit", tired: "sit" };
+const RIG_ONCE = new Set(["greeting", "cheer", "sit", "stomp", "help", "surprised"]);   // luhen një herë; të tjerat në lak
+const RIG_SPEED = { walk: 0.85, run: 1.0 };
 const texLoader = new THREE.TextureLoader();
 
 function loadTex(url, srgb) {
@@ -10174,8 +10178,15 @@ function rigProc(dt, name, em) {
 function rigAnim(dt) {
   const rig = S.panda.userData.rig; const em = S.api.getEmotion(); const name = S.anim.name;
   // 1) Klip i vërtetë për gjendjen? (p.sh. "happy" nëse u ngarkua) ose klip emocioni (uria → stomp)
-  const wantClip = rig.clips[name] ? name : (name === "idle" && RIG_STATE_CLIPS[em] && rig.clips[RIG_STATE_CLIPS[em]] && rig.stompUntil > performance.now()) ? RIG_STATE_CLIPS[em] : null;
-  if (wantClip) { if (rigPlayClip(rig, wantClip, { once: wantClip === "stomp" })) { rig.mixer.update(dt); rigOverlays(dt, em, name); return; } }
+  const alias = rig.clips[name] ? name : (RIG_STATE_ALIAS[name] && rig.clips[RIG_STATE_ALIAS[name]] ? RIG_STATE_ALIAS[name] : null);
+  const react = (name === "idle" && RIG_STATE_CLIPS[em] && rig.clips[RIG_STATE_CLIPS[em]] && rig.stompUntil > performance.now()) ? RIG_STATE_CLIPS[em] : null;
+  const wantClip = alias || react;
+  if (wantClip) {
+    if (rigPlayClip(rig, wantClip, { once: RIG_ONCE.has(wantClip), speed: RIG_SPEED[wantClip] || 1 })) {
+      S.panda.rotation.x = 0; S.panda.rotation.z = 0; S.panda.position.y = 0;   // klipi vendos vetë pozën (p.sh. shtrirë)
+      rig.mixer.update(dt); rigOverlays(dt, em, name); return;
+    }
+  }
   if (rig.current) { rigStopClip(rig); rig.mixer.update(dt); rig.mixer.stopAllAction(); }
   rigProc(dt, name, em);
   rigOverlays(dt, em, name);
@@ -10194,9 +10205,11 @@ function rigOverlays(dt, em, name) {
 function rigMaybeStomp() {
   const rig = S.panda && S.panda.userData.rig; if (!rig || !rig.clips.stomp) return;
   const em = S.api.getEmotion();
-  if ((em === "hungry" || em === "angry") && S.ai.state === "idle" && performance.now() > (rig.nextStomp || 0)) {
-    rig.stompUntil = performance.now() + 1500; rig.nextStomp = performance.now() + 9000 + Math.random() * 6000;
-    if (S.api.say) S.api.say(em === "hungry" ? "hungry" : "angry");
+  const clipName = RIG_STATE_CLIPS[em];
+  if (clipName && rig.clips[clipName] && S.ai.state === "idle" && performance.now() > (rig.nextStomp || 0)) {
+    rig.stompUntil = performance.now() + Math.min(3500, rig.clips[clipName].duration * 1000 + 200);
+    rig.nextStomp = performance.now() + 9000 + Math.random() * 6000;
+    if (S.api.say) S.api.say(em);
   }
 }
 
@@ -10490,7 +10503,8 @@ function aiStep(dt) {
     S.panda.position.x = clamp(S.panda.position.x + nx * step, -HALF_W + 0.45, HALF_W - 0.45);
     S.panda.position.z = clamp(S.panda.position.z + nz * step, -HALF_D + 0.45, HALF_D - 0.45);
     S.panda.rotation.y = Math.atan2(nx, nz);
-    setAnim("walk");
+    setAnim(ai.state === "seek" && (ai.use === "toy" || ai.use === "rest") && S.panda.userData.rig && S.panda.userData.rig.clips.run ? "run" : "walk");
+    if (S.panda.userData.rig) ai.speed *= (S.anim.name === "run" ? 1.6 : 1);
     return;
   }
   if (ai.state === "busy") { ai.timer -= dt; if (ai.timer <= 0) { ai.state = "idle"; ai.timer = 1; st._sleeping = false; setAnim("idle"); } return; }
@@ -10508,7 +10522,7 @@ function arrive(use) {
   const ai = S.ai; ai.use = null;
   if (use === "sleep") { ai.state = "sleep"; setAnim("sleep"); return; }
   const anims = { toilet: "sit", food: "eat", water: "drink", bath: "bath", rest: "sit", desk: "sit", toy: "play" };
-  setAnim(anims[use] || "idle"); ai.state = "busy"; ai.timer = use === "rest" ? 6 : use === "desk" ? 8 : 3;
+  setAnim(anims[use] || "idle"); ai.state = "busy"; ai.timer = use === "rest" ? 8 : use === "desk" ? 8 : use === "toy" ? 6 : 3;
   if (["toilet", "food", "water", "bath"].includes(use)) S.api.onArrive(use);
 }
 function goUse(use) { const st = S.api.getState(); const t = targetFor(use, st); if (t) { S.ai.state = "seek"; S.ai.use = use; S.ai.target = t; } else doAction(use === "bath" ? "bath" : "sit"); }
@@ -10516,7 +10530,8 @@ function doAction(name) {
   const ai = S.ai;
   if (name === "sleep") { ai.state = "sleep"; setAnim("sleep"); return; }
   if (name === "wake") { const st = S.api.getState(); st._sleeping = false; ai.state = "idle"; ai.timer = 1; setAnim("idle"); return; }
-  ai.state = "busy"; ai.timer = name === "play" ? 4 : 2.5; ai.target = null; setAnim(name);
+  const dur = { play: 6, greeting: 4, cheer: 3.6, happy: 3, help: 3.3, surprised: 2, sit: 8 }[name] || 2.5;
+  ai.state = "busy"; ai.timer = dur; ai.target = null; setAnim(name);
 }
 
 /* ---------- ANIMATION (GLB nëse ka; përndryshe procedurale) ---------- */
