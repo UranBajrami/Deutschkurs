@@ -9855,24 +9855,9 @@ function normalizeFurnitureModel(root, id) {
   g.userData.topY = size.y * s; g.add(root); return g;
 }
 
-/* ---------- SHPREHJET: emocion → parametra, interpolim i butë ---------- */
-const EXPR_PRESETS = {
-  neutral:  { eyeOpen: 1,    pupil: 1,    brow: 0,    mouthOpen: 0.35, smile: 0.5,  cheeks: 0.5, tears: 0 },
-  happy:    { eyeOpen: 1,    pupil: 1.1,  brow: 0,    mouthOpen: 0.9,  smile: 1,    cheeks: 0.9, tears: 0 },
-  excited:  { eyeOpen: 1.1,  pupil: 1.25, brow: 0,    mouthOpen: 1,    smile: 1,    cheeks: 1,   tears: 0 },
-  sad:      { eyeOpen: 0.7,  pupil: 0.9,  brow: 0.7,  mouthOpen: 0.15, smile: 0,    cheeks: 0.3, tears: 0.6 },
-  lonely:   { eyeOpen: 0.8,  pupil: 1.05, brow: 0.6,  mouthOpen: 0.2,  smile: 0.1,  cheeks: 0.3, tears: 0.3 },
-  hungry:   { eyeOpen: 0.9,  pupil: 1.15, brow: 0.5,  mouthOpen: 0.6,  smile: 0.2,  cheeks: 0.4, tears: 0 },
-  thirsty:  { eyeOpen: 0.85, pupil: 1,    brow: 0.5,  mouthOpen: 0.5,  smile: 0.2,  cheeks: 0.4, tears: 0 },
-  tired:    { eyeOpen: 0.4,  pupil: 0.9,  brow: 0.2,  mouthOpen: 0.4,  smile: 0.3,  cheeks: 0.3, tears: 0 },
-  dirty:    { eyeOpen: 0.9,  pupil: 1,    brow: 0.4,  mouthOpen: 0.3,  smile: 0.2,  cheeks: 0.3, tears: 0 },
-  urgent:   { eyeOpen: 1.1,  pupil: 0.8,  brow: -0.5, mouthOpen: 0.5,  smile: 0,    cheeks: 0.6, tears: 0.2 },
-  sick:     { eyeOpen: 0.5,  pupil: 0.85, brow: 0.6,  mouthOpen: 0.2,  smile: 0,    cheeks: 0.1, tears: 0.2 },
-  sleep:    { eyeOpen: 0,    pupil: 1,    brow: 0,    mouthOpen: 0.2,  smile: 0.4,  cheeks: 0.4, tears: 0 },
-  sleepy:   { eyeOpen: 0.3,  pupil: 0.9,  brow: 0.1,  mouthOpen: 0.5,  smile: 0.2,  cheeks: 0.3, tears: 0 },
-  surprised:{ eyeOpen: 1.25, pupil: 0.7,  brow: -0.2, mouthOpen: 0.9,  smile: 0.3,  cheeks: 0.5, tears: 0 },
-  angry:    { eyeOpen: 0.75, pupil: 0.85, brow: -0.8, mouthOpen: 0.2,  smile: 0,    cheeks: 0.7, tears: 0 }
-};
+/* ---------- SHPREHJET (rig pa blendshapes): vetëm lotët dhe Zzz si overlay; pjesa tjetër vjen nga klipet/poza ---------- */
+const EXPR_PRESETS = { sad: { tears: 0.6 }, lonely: { tears: 0.3 }, sick: { tears: 0.2 }, urgent: { tears: 0.2 } };
+
 /* ---------- PANDA ME RIG (GLB me skelet + klipe) — PandaRigController ----------
    Modeli: models/panda/panda_rig.glb (24 bones, emra standardë Mixamo: Hips, Spine, Head, LeftArm...).
    KLIPET: çdo gjendje mund të ketë një klip të vërtetë (ASSETS.panda.clips[state] = "skedar.glb/.fbx").
@@ -9911,18 +9896,14 @@ async function buildPandaFromRig(gltf) {
   const worldToHead = (x, y, z) => { const p = new THREE.Vector3(x, y, z); head.worldToLocal(p); return p; };
   const cmScale = 1 / head.getWorldScale(new THREE.Vector3()).x;    // ~75.7: 1 njësi bote = 75.7 njësi kocke
   const mkOverlay = (mesh, wx, wy, wz) => { mesh.position.copy(worldToHead(wx, wy, wz)); mesh.scale.multiplyScalar(cmScale); head.add(mesh); return mesh; };
-  const cheekMat = new THREE.MeshStandardMaterial({ color: 0xf9a8c9, transparent: true, opacity: 0.5, roughness: 1, depthWrite: false });
-  const cheekL = mkOverlay(new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), cheekMat), -0.33, 1.60, 0.43); cheekL.scale.multiply(new THREE.Vector3(1.2, 0.8, 0.45));
-  const cheekR = mkOverlay(new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), cheekMat), 0.33, 1.60, 0.43); cheekR.scale.multiply(new THREE.Vector3(1.2, 0.8, 0.45));
   const tearMat = new THREE.MeshPhysicalMaterial({ color: 0x8fd3ff, transparent: true, opacity: 0.85, clearcoat: 1 });
   const tearL = mkOverlay(new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), tearMat), -0.24, 1.72, 0.52); tearL.scale.multiply(new THREE.Vector3(0.8, 1.3, 0.6)); tearL.visible = false;
   const tearR = mkOverlay(new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), tearMat), 0.24, 1.72, 0.52); tearR.scale.multiply(new THREE.Vector3(0.8, 1.3, 0.6)); tearR.visible = false;
   const zzz = new THREE.Group(); [0, 0.14, 0.28].forEach((y, i) => { const z = new THREE.Mesh(new THREE.TorusGeometry(0.03 + i * 0.012, 0.01, 6, 10), pbrMat(0x9fb3ff)); z.position.set(i * 0.06, y, 0); zzz.add(z); });
   mkOverlay(zzz, 0.5, 2.35, 0); zzz.visible = false;
-  const angryMark = mkOverlay(new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.012, 6, 12, Math.PI), pbrMat(0xff5c5c, { emissive: 0xff2d2d, emissiveIntensity: 0.6 })), 0.32, 2.12, 0.35); angryMark.rotation.z = Math.PI; angryMark.visible = false;
 
-  g.userData.rig = { root, skin, bones, rest, mixer, clips, current: null, currentName: null, overlays: { cheekL, cheekR, tearL, tearR, zzz, angryMark }, cheekMat, t: 0 };
-  g.userData.expr = { cheeks: 0.5, tears: 0, headX: 0, headY: 0, headZ: 0 };
+  g.userData.rig = { root, skin, bones, rest, mixer, clips, current: null, currentName: null, overlays: { tearL, tearR, zzz }, t: 0 };
+  g.userData.expr = { tears: 0 };
   return g;
 }
 
@@ -10041,13 +10022,11 @@ function rigAnim(dt) {
 }
 function rigOverlays(dt, em, name) {
   const rig = S.panda.userData.rig, O = rig.overlays, E = S.panda.userData.expr;
-  const preset = EXPR_PRESETS[name === "sleep" ? "sleep" : em] || EXPR_PRESETS.neutral;
-  const k = Math.min(1, dt * 5); E.cheeks += (preset.cheeks - E.cheeks) * k; E.tears += (preset.tears - E.tears) * k;
-  rig.cheekMat.opacity = 0.15 + E.cheeks * 0.5;
+  const preset = EXPR_PRESETS[em] || { tears: 0 };
+  const k = Math.min(1, dt * 5); E.tears += (preset.tears - E.tears) * k;
   O.tearL.visible = O.tearR.visible = E.tears > 0.3;
   if (O.tearL.visible) { const yy = -((rig.t * 0.6) % 0.25) * 60; O.tearL.position.y = O.tearL.userData.y0 !== undefined ? O.tearL.userData.y0 + yy : (O.tearL.userData.y0 = O.tearL.position.y); O.tearR.position.y = O.tearL.position.y; }
   O.zzz.visible = name === "sleep"; if (O.zzz.visible) O.zzz.rotation.z = Math.sin(rig.t) * 0.1;
-  O.angryMark.visible = (em === "angry" || (em === "hungry" && rig.currentName === "stomp"));
 }
 // Uria/zemërimi: nga koha në kohë përplas këmbën (klipi "stomp")
 function rigMaybeStomp() {
@@ -10152,11 +10131,11 @@ async function init(container, api) {
           anim: { name: "idle", t: 0 }, growth: 1, dragging: null, lastT: performance.now(), lastFlush: 0 };
 
     // KAMERA: OrbitControls (mouse + touch), me kufij që të mos dalë nga dhoma
-    camera.position.set(2.6, 3.0, 4.6);
+    camera.position.set(2.0, 2.2, 3.6);
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 1.0, 0);
     controls.enableDamping = true; controls.dampingFactor = 0.08;
-    controls.minDistance = 2.5; controls.maxDistance = 11;
+    controls.minDistance = 1.2; controls.maxDistance = 11;
     controls.minPolarAngle = 0.35; controls.maxPolarAngle = 1.35;   // as nga poshtë dyshemesë, as nga lart-plotësisht
     controls.screenSpacePanning = false; controls.panSpeed = 0.6; controls.rotateSpeed = 0.7;
     controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
@@ -10422,8 +10401,10 @@ function setAnim(name) {
   }
 }
 // 10 shkallë rritjeje (prestige 1..10): nga 0.5 (foshnjë) deri 1.15 (i rritur). Pesha është e ndarë (trupi vetëm).
-function setGrowth(stage) { if (!S) return; S.growth = stage; const s = 0.45 + (clamp(stage, 1, 10) - 1) * (0.40 / 9);   // 1.0 → 1.9 njësi lartësi (krevati 1.9 i gjatë)
-  if (S.controls) S.controls.target.set(0, 0.95 * s, 0); S.panda.scale.setScalar(s); S.panda.userData.baseScale = s; }
+// 10 madhësi, një për çdo prestige (1..10): lartësia 0.6 → 1.5 njësi (dhoma 8×7, krevati 1.6×1.9, tavani 3.2)
+const GROWTH_HEIGHTS = [0.60, 0.70, 0.80, 0.90, 1.00, 1.10, 1.20, 1.30, 1.40, 1.50];
+function setGrowth(stage) { if (!S) return; S.growth = stage; const s = GROWTH_HEIGHTS[clamp(stage, 1, 10) - 1] / 2.2;
+  if (S.controls) { S.controls.target.set(0, 0.95 * s, 0); S.controls.minDistance = 1.2; } S.panda.scale.setScalar(s); S.panda.userData.baseScale = s; }
 
 /* ---------- FX: zemra ---------- */
 function hearts() {
