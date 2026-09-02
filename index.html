@@ -554,6 +554,9 @@
   .sync-note { font-size: .76rem; color: var(--muted); text-align: center; margin-top: 14px; line-height: 1.5; font-weight: 600; }
 
   /* ---- badges / achievements ---- */
+  .save-indicator { position: absolute; top: 8px; right: 12px; font-size: .68rem; font-weight: 800; color: var(--green); opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .save-indicator.show { opacity: 1; } .save-indicator.err { color: var(--red); }
+  .hud { position: relative; }
   .hud-prestige-row {
     display: flex; align-items: center; justify-content: center; gap: 8px;
     margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);
@@ -1032,7 +1035,10 @@
     pointer-events: none; white-space: normal; line-height: 1.3;
   }
   .panda-bubble::after { content: ""; position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #fff; border-bottom: 0; }
-  .panda-rotate { position: absolute; right: 10px; bottom: 10px; padding: 8px 12px; font-size: 1rem; }
+  .panda-editbar { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; gap: 6px; }
+  .panda-editbar .btn { padding: 8px 12px; font-size: .78rem; }
+  .pinv-act { font-size: .62rem; font-weight: 800; color: var(--blue); }
+  .fsi-inroom { font-size: .68rem; color: var(--green); font-weight: 800; }
   .panda-hint { text-align: center; font-size: .68rem; color: var(--muted); font-weight: 600; margin: 8px 0 10px; }
   .panda-actions { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 12px; }
   .panda-act {
@@ -1507,6 +1513,7 @@
     </div>
   </div>
 
+  <span class="save-indicator" id="saveIndicator"></span>
   <div class="hud-prestige-row" id="hudPrestigeRow">
     <img src="prestige/badge1-64.png" alt="" class="hud-prestige-img" id="hudPrestigeImg" onerror="this.style.display='none';">
     <span class="hud-prestige-text" id="hudPrestigeText">Niveli 1</span>
@@ -1878,9 +1885,13 @@
     <div class="panda-scene-wrap">
       <div class="panda-scene" id="pandaScene"></div>
       <div class="panda-bubble hidden" id="pandaBubble"></div>
-      <button class="btn btn-secondary hidden panda-rotate" id="btnPandaRotate">⟳</button>
+      <div class="panda-editbar hidden" id="pandaEditBar">
+        <button class="btn btn-secondary" id="btnPandaRotate">⟳ <span data-i18n="panda.rotate">Rrotullo</span></button>
+        <button class="btn btn-secondary" id="btnPandaDelete">🗑 <span data-i18n="panda.remove">Hiq</span></button>
+        <button class="btn btn-primary" id="btnPandaDone">✓</button>
+      </div>
     </div>
-    <div class="panda-hint" data-i18n="panda.hint">Trokit pandën për ta përkëdhelur · Tërhiq mobiliet për t'i zhvendosur</div>
+    <div class="panda-hint" data-i18n="panda.hint">Trokit pandën për ta përkëdhelur · Trokit mobilien për ta zgjedhur e zhvendosur · Tërhiq/pinch për kamerën</div>
 
     <div class="panda-actions">
       <button class="panda-act" id="btnPandaPet"><span>❤️</span><em data-i18n="panda.act.pet">Përkëdhel</em></button>
@@ -1943,8 +1954,16 @@
       <button class="btn btn-secondary" data-dbg="fat">Gewicht 90</button>
       <button class="btn btn-secondary" data-dbg="thin">Gewicht 20</button>
       <button class="btn btn-secondary" data-dbg="skip8h">+8h</button>
-      <button class="btn btn-secondary" data-dbg="reset">Reset</button>
+      <button class="btn btn-secondary" data-dbg="reset">Reset Panda</button>
       <button class="btn btn-secondary" id="btnPandaRename">✏️ Name</button>
+    </div>
+    <div class="proto-status" id="pandaDebugInfo" style="margin:10px 0;"></div>
+    <div class="proto-btns">
+      <button class="btn btn-primary" data-dbg="savenow">💾 Save Now</button>
+      <button class="btn btn-secondary" data-dbg="load">Load Save</button>
+      <button class="btn btn-secondary" data-dbg="clear">Reset Save</button>
+      <button class="btn btn-secondary" data-dbg="export">Export</button>
+      <button class="btn btn-secondary" data-dbg="import">Import</button>
     </div>
   </div>
 </div>
@@ -4259,7 +4278,7 @@ const UI_STRINGS = {
                          de: "Wähle deine Sprache. Du kannst sie jederzeit später ändern.",
                          en: "Choose your language. You can change it anytime later." },
 
-  "panda.hint": { sq: "Trokit pandën për ta përkëdhelur · Tërhiq mobiliet për t'i zhvendosur", de: "Panda antippen zum Streicheln · Möbel ziehen zum Verschieben", en: "Tap the panda to pet · Drag furniture to move" },
+  "panda.hint": { sq: "Trokit pandën për ta përkëdhelur · Trokit mobilien për ta zgjedhur e zhvendosur · Tërhiq/pinch për kamerën", de: "Panda antippen = Streicheln · Möbel antippen = auswählen & verschieben · Ziehen/Pinch = Kamera", en: "Tap panda = pet · Tap furniture = select & move · Drag/pinch = camera" },
   "panda.act.pet":   { sq: "Përkëdhel", de: "Streicheln", en: "Pet" },
   "panda.act.feed":  { sq: "Ushqe", de: "Füttern", en: "Feed" },
   "panda.act.drink": { sq: "Pije", de: "Trinken", en: "Drink" },
@@ -4295,6 +4314,10 @@ const UI_STRINGS = {
   "panda.next_island": { sq: "Kalo në ishullin", de: "Weiter zur Insel", en: "Go to island" },
   "panda.next_island_hint": { sq: "Mobilo dhomën plotësisht për ishullin tjetër.", de: "Richte das Zimmer komplett ein für die nächste Insel.", en: "Fully furnish the room for the next island." },
   "panda.rename_prompt": { sq: "Emri i ri i pandës:", de: "Neuer Name für den Panda:", en: "New name for your panda:" },
+  "panda.rotate": { sq: "Rrotullo", de: "Drehen", en: "Rotate" },
+  "panda.remove": { sq: "Hiq", de: "Entfernen", en: "Remove" },
+  "panda.place":  { sq: "Vendos", de: "Aufstellen", en: "Place" },
+  "panda.use":    { sq: "Përdor", de: "Benutzen", en: "Use" },
   "exam.choose_level": { sq: "Zgjidh nivelin e provimit", de: "Wähle das Prüfungsniveau", en: "Choose the exam level" },
   "exam.or_single":    { sq: "Ose ushtro një modul B1 veç e veç", de: "Oder übe ein einzelnes B1-Modul", en: "Or practice a single B1 module" },
   "exam.modules_meta": { sq: "module", de: "Module", en: "modules" },
@@ -7543,6 +7566,15 @@ async function loadProgress() {
   try {
     const { data, error } = await sb.from("progress").select("*").eq("user_id", currentUser.id).maybeSingle();
     if (error) throw error;
+    // Nëse gjendja lokale është MË E RE se serveri (p.sh. luajte offline), mbaje lokalen dhe dërgoje lart
+    const serverTs = data && data.updated_at ? new Date(data.updated_at).getTime() : 0;
+    const localTs = (stats && stats.panda && stats.panda.lastUpdated) || saveMeta.lastSaved || 0;
+    if (data && localTs > serverTs + 5000 && saveMeta.lastLoaded) {
+      document.getElementById("syncMsg").textContent = "Gjendja lokale është më e re — po sinkronizohet lart.";
+      saveProgress();
+      renderPoints(); fillCatSelects(); initCardOrder(); renderCard(); renderList(); renderLevelCard();
+      return;
+    }
     if (data) {
       totalPoints = data.points || 0;
       streakDays = data.streak_days || 0;
@@ -7567,6 +7599,7 @@ async function loadProgress() {
       fillCatSelects(); initCardOrder(); renderCard(); renderList();
       touchStreak();
       renderLevelCard();
+      saveGame(); // pasqyro gjendjen e serverit edhe lokalisht
       if (typeof renderPrestigeBadge === "function") renderPrestigeBadge();
       document.getElementById("syncMsg").textContent = "Përparimi u ngarkua: " + totalPoints + " pikë, " + custom.length + " fjalë të shtuara vetë.";
     } else {
@@ -7616,17 +7649,128 @@ async function saveProgress() {
   }
 }
 
+/* ================================================================
+   SAVE SYSTEM — burimi i vetëm i së vërtetës për ruajtjen lokale.
+   Logjika e lojës NUK prek localStorage drejtpërdrejt; përdor vetëm:
+     saveGame() / loadGame() / clearSave() / exportSave() / importSave()
+   Supabase mbetet si sinkronizim shtesë kur je i identifikuar.
+   ================================================================ */
+const SAVE_KEY = "shkolla_save";
+const SAVE_VERSION = 2;
+let saveMeta = { lastSaved: 0, lastLoaded: 0, storageOk: true, lastError: null };
+
+function storageAvailable() {
+  try { const k = "__t"; localStorage.setItem(k, "1"); localStorage.removeItem(k); return true; } catch (e) { return false; }
+}
+
+function buildSaveEnvelope() {
+  return {
+    saveVersion: SAVE_VERSION,
+    lastUpdated: Date.now(),
+    points: totalPoints, streakDays, lastActiveDate, cefrLevel, placementTaken, selectedLevel, examRunCount,
+    stats: stats,
+    customVocab: vocab.filter(w => !defaultVocabSet.has(w.al + "|" + w.de))
+  };
+}
+
+// Validim + migrim: asnjë fushë e munguar nuk rrëzon aplikacionin
+function migrateSave(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const v = Number(raw.saveVersion) || 1;
+  const s = raw.stats && typeof raw.stats === "object" ? raw.stats : {};
+  if (v < 2) {
+    // v1: mobiliet si {tip:{x,z,rot}} → v2: listë instancash me transform të plotë
+    if (s.panda && s.panda.furniture && !Array.isArray(s.panda.placed)) {
+      s.panda.placed = Object.keys(s.panda.furniture).map((type) => {
+        const f = s.panda.furniture[type] || {};
+        return { id: type + "_001", type,
+                 position: { x: +f.x || 0, y: 0, z: +f.z || 0 }, rotation: { x: 0, y: +f.rot || 0, z: 0 }, scale: { x: 1, y: 1, z: 1 } };
+      });
+      delete s.panda.furniture;
+    }
+  }
+  raw.stats = s; raw.saveVersion = SAVE_VERSION;
+  return raw;
+}
+
+function applySave(env) {
+  if (typeof env.points === "number") totalPoints = env.points;
+  if (typeof env.streakDays === "number") streakDays = env.streakDays;
+  if (env.lastActiveDate !== undefined) lastActiveDate = env.lastActiveDate;
+  if (env.cefrLevel !== undefined) cefrLevel = env.cefrLevel;
+  if (env.placementTaken !== undefined) placementTaken = env.placementTaken;
+  if (env.selectedLevel !== undefined) selectedLevel = env.selectedLevel;
+  if (typeof env.examRunCount === "number") examRunCount = env.examRunCount;
+  if (env.stats && typeof env.stats === "object") stats = env.stats;
+  if (Array.isArray(env.customVocab)) env.customVocab.forEach(w => {
+    if (w && w.al && w.de && !vocab.some(x => x.al === w.al && x.de === w.de)) vocab.push({ al: w.al, de: w.de, en: w.en || null, cat: w.cat || "Fjalë të shtuara vetë" });
+  });
+  ensureStats();
+}
+
+function saveGame() {
+  if (!storageAvailable()) { saveMeta.storageOk = false; return false; }
+  try {
+    const env = buildSaveEnvelope();
+    localStorage.setItem(SAVE_KEY, JSON.stringify(env));
+    saveMeta.lastSaved = env.lastUpdated; saveMeta.storageOk = true; saveMeta.lastError = null;
+    showSaveIndicator(true);
+    return true;
+  } catch (e) {
+    saveMeta.lastError = e.message; showSaveIndicator(false);
+    setTimeout(() => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(buildSaveEnvelope())); showSaveIndicator(true); } catch (_) {} }, 1500); // retry
+    return false;
+  }
+}
+
+function loadGame() {
+  if (!storageAvailable()) { saveMeta.storageOk = false; return false; }
+  try {
+    const txt = localStorage.getItem(SAVE_KEY);
+    if (!txt) return false;
+    const env = migrateSave(JSON.parse(txt));
+    if (!env) return false;
+    applySave(env);
+    saveMeta.lastLoaded = Date.now();
+    return true;
+  } catch (e) { console.warn("Save i dëmtuar, përdoren vlerat parazgjedhëse:", e); saveMeta.lastError = e.message; return false; }
+}
+
+function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (_) {} }
+function exportSave() { return JSON.stringify(buildSaveEnvelope(), null, 2); }
+function importSave(text) {
+  const env = migrateSave(JSON.parse(text));
+  if (!env || !env.stats) throw new Error("Format i pavlefshëm");
+  applySave(env); saveGame(); return true;
+}
+
+// Tregues i vogël "💾" — shfaqet vetëm shkurt
+let saveIndTimer = null;
+function showSaveIndicator(ok) {
+  const el = document.getElementById("saveIndicator"); if (!el) return;
+  el.textContent = ok ? "💾 ✓" : "⚠ !"; el.classList.add("show"); el.classList.toggle("err", !ok);
+  clearTimeout(saveIndTimer); saveIndTimer = setTimeout(() => el.classList.remove("show"), 1200);
+}
+
+
+let localSaveTimer = null;
 function queueSave() {
+  // 1) Lokalisht GJITHMONË (edhe pa identifikim), me debounce që të mos shkruhet çdo frame
+  clearTimeout(localSaveTimer);
+  localSaveTimer = setTimeout(saveGame, 400);
+  // 2) Supabase vetëm nëse je i identifikuar
   if (!currentUser) return;
   clearTimeout(syncTimer);
   syncTimer = setTimeout(saveProgress, 1500);
 }
+function saveNow() { clearTimeout(localSaveTimer); saveGame(); if (currentUser) saveProgress(); }
 
 // Beim Verlassen/Wechseln der Seite sofort speichern, nicht erst nach der Wartezeit
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden" && currentUser) saveProgress();
+  if (document.visibilityState === "hidden") { if (typeof pandaFlushRuntime === "function") pandaFlushRuntime(); saveNow(); }
 });
-window.addEventListener("pagehide", () => { if (currentUser) saveProgress(); });
+window.addEventListener("pagehide", () => { if (typeof pandaFlushRuntime === "function") pandaFlushRuntime(); saveNow(); });
+window.addEventListener("beforeunload", () => { if (typeof pandaFlushRuntime === "function") pandaFlushRuntime(); saveGame(); });
 
 // Neue eigene Wörter automatisch synchronisieren (Punkte lösen queueSave bereits selbst aus)
 const _origBtnAddWord = document.getElementById("btnAddWord");
@@ -8664,8 +8808,9 @@ function itemCost(item) { return item.cost; }
 const PANDA_DEFAULT = () => ({
   name: "Panda", level: 1, xp: 0,
   hunger: 80, thirst: 80, energy: 85, mood: 75, hygiene: 85, toilet: 20, affection: 60, health: 90, weight: 50,
-  inventory: {},            // { itemId: count }
-  furniture: {},            // { itemId: {x, z, rot} }  (të vendosura në dhomë)
+  inventory: {},            // { itemId: count } — edhe mobiliet e blera, derisa të vendosen
+  placed: [],               // [{ id:"sofa_001", type:"sofa", position:{x,y,z}, rotation:{x,y,z}, scale:{x,y,z} }]
+  pos: { x: 0, y: 0, z: 0.5 }, rotY: 0, anim: "idle", emotion: "neutral",   // transform-i i pandës
   learnMinutesTotal: 0, learnStreak: 0, lastLearnDay: null, lastUpdated: Date.now(),
   daily: { day: null, tasks: {} },
   petCooldownUntil: 0
@@ -8676,12 +8821,41 @@ function ensurePanda() {
   if (!stats.panda) stats.panda = PANDA_DEFAULT();
   const d = PANDA_DEFAULT();
   for (const k in d) if (stats.panda[k] === undefined) stats.panda[k] = d[k];
-  if (typeof stats.farmCoins !== "number") stats.farmCoins = 0;
-  if (!stats.farmBuilt) stats.farmBuilt = {};
-  // Sinkronizo: stats.farmBuilt = mobiliet që zotërohen (për prestige/HUD)
-  for (const id in stats.panda.furniture) stats.farmBuilt[id] = stats.farmBuilt[id] || new Date().toISOString();
-  return stats.panda;
+  const p = stats.panda;
+  // Migrim nga formati i vjetër {tip:{x,z,rot}} → listë instancash me transform të plotë
+  if (p.furniture && typeof p.furniture === "object") {
+    Object.keys(p.furniture).forEach(type => {
+      if (!p.placed.some(f => f.type === type)) {
+        const f = p.furniture[type] || {};
+        p.placed.push({ id: nextFurnitureId(type), type, position: { x: +f.x || 0, y: 0, z: +f.z || 0 }, rotation: { x: 0, y: +f.rot || 0, z: 0 }, scale: { x: 1, y: 1, z: 1 } });
+      }
+    });
+    delete p.furniture;
+  }
+  // Validim: çdo instancë ka numra të vlefshëm
+  p.placed = p.placed.filter(f => f && f.type && PANDA_ITEMS.some(i => i.id === f.type)).map(f => ({
+    id: f.id || nextFurnitureId(f.type), type: f.type,
+    position: { x: +((f.position||{}).x) || 0, y: 0, z: +((f.position||{}).z) || 0 },
+    rotation: { x: 0, y: +((f.rotation||{}).y) || 0, z: 0 },
+    scale: { x: +((f.scale||{}).x) || 1, y: +((f.scale||{}).y) || 1, z: +((f.scale||{}).z) || 1 }
+  }));
+  ["hunger","thirst","energy","mood","hygiene","toilet","affection","health"].forEach(k => { p[k] = clamp(+p[k] || 0, 0, 100); });
+  p.weight = clamp(+p.weight || 50, 15, 100);
+  if (typeof stats.farmCoins !== "number" || isNaN(stats.farmCoins)) stats.farmCoins = 0;
+  if (stats.farmCoins < 0) stats.farmCoins = 0;
+  // stats.farmBuilt = tipet që janë vendosur (për prestige/HUD, përputhshmëri)
+  stats.farmBuilt = {};
+  p.placed.forEach(f => { stats.farmBuilt[f.type] = stats.farmBuilt[f.type] || new Date().toISOString(); });
+  return p;
 }
+function nextFurnitureId(type) {
+  const p = stats.panda; let n = 1;
+  while (p.placed && p.placed.some(f => f.id === type + "_" + String(n).padStart(3, "0"))) n++;
+  return type + "_" + String(n).padStart(3, "0");
+}
+function hasPlaced(type) { return ensurePanda().placed.some(f => f.type === type); }
+function placedOf(type) { return ensurePanda().placed.find(f => f.type === type) || null; }
+
 function ensureFarmCoins() {
   ensurePanda();
   if (!stats.farmMigrated) {
@@ -8751,11 +8925,7 @@ function pandaTick(dtSec) {
 function roomScore() {
   const p = ensurePanda();
   let s = 0;
-  for (const id in p.furniture) {
-    const it = PANDA_ITEMS.find(i => i.id === id);
-    if (!it) continue;
-    s += 1 + (it.comfort || 0) * 0.5 + (it.use ? 1 : 0);
-  }
+  p.placed.forEach(f => { const it = PANDA_ITEMS.find(i => i.id === f.type); if (it) s += 1 + (it.comfort || 0) * 0.5 + (it.use ? 1 : 0); });
   return clamp(s, 0, 10);
 }
 
@@ -8799,24 +8969,61 @@ function pandaBuy(id) {
   const it = PANDA_ITEMS.find(i => i.id === id);
   const p = ensurePanda();
   if (!it) return;
-  if (it.placed && p.furniture[id]) return;              // mobilie tashmë e vendosur
   if (stats.farmCoins < it.cost) { pandaSay(pt("nomoney"), 3000); return; }
   stats.farmCoins -= it.cost;
-  if (it.placed) {
-    // Mobiliet vendosen direkt në dhomë, në një vend të lirë; pastaj mund të zhvendosen
-    const spot = window.Panda3D ? window.Panda3D.findFreeSpot(it) : { x: 0, z: 0 };
-    p.furniture[id] = { x: spot.x, z: spot.z, rot: 0 };
-    stats.farmBuilt[id] = new Date().toISOString();
-    if (window.Panda3D) window.Panda3D.syncFurniture();
-    pandaSay(pt("newitem").replace("{item}", it.emoji + " " + pandaItemName(it)), 5000);
-    p._excitedUntil = Date.now() + 6000;
-    pandaAddXp(15);
-  } else {
-    p.inventory[id] = (p.inventory[id] || 0) + 1;
-  }
+  p.inventory[id] = (p.inventory[id] || 0) + 1;
+  if (it.placed) pandaSay(pt("bought_furn"), 3500); 
   playMilestoneFanfare(); spawnConfetti();
   savePanda(); renderPandaView(); renderHudFarmRow();
 }
+
+// Vendos një mobilie nga inventari në dhomë (inventar −1, placed +1)
+function pandaPlace(type) {
+  const it = PANDA_ITEMS.find(i => i.id === type);
+  const p = ensurePanda();
+  if (!it || !it.placed || !p.inventory[type]) return;
+  p.inventory[type]--; if (p.inventory[type] <= 0) delete p.inventory[type];
+  const spot = window.Panda3D ? window.Panda3D.findFreeSpot(it) : { x: 0, z: 0 };
+  const inst = { id: nextFurnitureId(type), type, position: { x: spot.x, y: 0, z: spot.z }, rotation: { x: 0, y: 0, z: 0 }, scale: { x: 1, y: 1, z: 1 } };
+  p.placed.push(inst);
+  stats.farmBuilt[type] = new Date().toISOString();
+  if (window.Panda3D) { window.Panda3D.syncFurniture(); window.Panda3D.selectInstance(inst.id); }
+  pandaSay(pt("newitem").replace("{item}", it.emoji + " " + pandaItemName(it)), 5000);
+  p._excitedUntil = Date.now() + 6000;
+  pandaAddXp(15);
+  savePanda(); renderPandaView(); renderHudFarmRow();
+}
+
+// Hiq një instancë nga dhoma → kthehet në inventar
+function pandaRemove(instId) {
+  const p = ensurePanda();
+  const idx = p.placed.findIndex(f => f.id === instId); if (idx < 0) return;
+  const type = p.placed[idx].type;
+  p.placed.splice(idx, 1);
+  p.inventory[type] = (p.inventory[type] || 0) + 1;
+  if (!p.placed.some(f => f.type === type)) delete stats.farmBuilt[type];
+  if (window.Panda3D) window.Panda3D.syncFurniture();
+  savePanda(); renderPandaView(); renderHudFarmRow();
+}
+
+// Ruaj transform-in e një instance (thirret nga skena pas drag/rrotullim)
+function updateFurnitureTransform(instId, t) {
+  const p = ensurePanda();
+  const f = p.placed.find(x => x.id === instId); if (!f) return;
+  if (t.position) f.position = { x: +t.position.x || 0, y: 0, z: +t.position.z || 0 };
+  if (t.rotation) f.rotation = { x: 0, y: +t.rotation.y || 0, z: 0 };
+  savePanda();
+}
+
+// Transform-i i pandës nga runtime (i throttluar nga skena; jo 60×/s)
+function updatePandaTransform(t) {
+  const p = ensurePanda();
+  if (t.position) p.pos = { x: +t.position.x || 0, y: 0, z: +t.position.z || 0 };
+  if (typeof t.rotY === "number") p.rotY = t.rotY;
+  if (t.anim) p.anim = t.anim;
+  p.emotion = getPetEmotion();
+}
+function pandaFlushRuntime() { if (window.Panda3D && window.Panda3D.flush) window.Panda3D.flush(); }
 
 function pandaUse(id) {
   const it = PANDA_ITEMS.find(i => i.id === id);
@@ -8881,7 +9088,7 @@ function pandaDrinkQuick() {
 }
 function pandaWashQuick() {
   const p = ensurePanda();
-  if (p.furniture.bathtub) {
+  if (hasPlaced("bathtub")) {
     p.hygiene = clamp(p.hygiene + 45, 0, 100); p.mood = clamp(p.mood + 5, 0, 100);
     if (window.Panda3D) window.Panda3D.goUse("bath");
     pandaSay(pt("clean"), 3000); pandaAddXp(3); savePanda(); renderPandaView();
@@ -8918,7 +9125,7 @@ function finishLearnSession() {
   clearInterval(learnTimer); learnTimer = null;
   const p = ensurePanda();
   let coins = LEARN_REWARDS[learnMinutes] || 5;
-  const hasDesk = !!p.furniture.desk, hasShelf = !!p.furniture.shelf;
+  const hasDesk = hasPlaced("desk"), hasShelf = hasPlaced("shelf");
   if (hasDesk) coins = Math.round(coins * 1.15);
   if (hasShelf) coins = Math.round(coins * 1.10);
   // Seria e mësimit (ditë radhazi)
@@ -8990,7 +9197,7 @@ function pandaShowAwayReport(hours, before, after) {
 
 /* ---------- TEXTS (sq / de / en) ---------- */
 const PANDA_TEXT = {
-  sq: { lvl:"Niveli", nomoney:"S'kam mjaft monedha… mëso pak! 📚", newitem:"Uau! {item}! 😍", ate:"Mmm, faleminderit! 🍽️", drank:"Freskuese! 💧",
+  sq: { bought_furn:"U ble! Gjeje te 🎒 Çanta dhe vendose. 🛋️", lvl:"Niveli", nomoney:"S'kam mjaft monedha… mëso pak! 📚", newitem:"Uau! {item}! 😍", ate:"Mmm, faleminderit! 🍽️", drank:"Freskuese! 💧",
         clean:"Tani jam i pastër! ✨", again:"Prit pak… hehe 😊", petted:"Kjo më pëlqen! ❤️", tootired:"Jam shumë i lodhur… 😴", fun:"Sa argëtuese! 🎾",
         sleepy:"Natën e mirë… 💤", awake:"U zgjova! ☀️", nofood:"S'kemi ushqim. Blej diçka? 🍎", nodrink:"S'kemi pije. 🥤", nosoap:"S'kemi sapun. 🧼",
         learnstart:"Le të mësojmë bashkë! 💪", learndone:"Bravo! +{c} monedha 🪙", learncancel:"Herën tjetër, mirë? 🙂", taskdone:"Detyra u krye! ⭐",
@@ -8998,7 +9205,7 @@ const PANDA_TEXT = {
         cheer:["Ti e bën! 💪","Jam krenar për ty!","Edhe pak!","E bëjmë bashkë!"],
         hungry:"Kam uri… 🥺", thirsty:"Do doja diçka për të pirë.", tired:"Jam i lodhur… 😴", urgent:"Duhet të shkoj! 🚽", dirty:"Kam nevojë për një banjë.",
         lonely:"Më mungon…", sad:"Jam pak i trishtuar…", happy:"Sa mirë që je këtu! ❤️", sick:"Nuk ndihem mirë… 🤒", excited:"Yeee! 🎉", neutral:"Hmm, ç'të bëjmë?" },
-  de: { lvl:"Level", nomoney:"Nicht genug Münzen… lern ein bisschen! 📚", newitem:"Wow! {item}! 😍", ate:"Mmm, danke! 🍽️", drank:"Erfrischend! 💧",
+  de: { bought_furn:"Gekauft! Im 🎒 Inventar aufstellen. 🛋️", lvl:"Level", nomoney:"Nicht genug Münzen… lern ein bisschen! 📚", newitem:"Wow! {item}! 😍", ate:"Mmm, danke! 🍽️", drank:"Erfrischend! 💧",
         clean:"Jetzt bin ich sauber! ✨", again:"Warte kurz… hehe 😊", petted:"Das gefällt mir! ❤️", tootired:"Ich bin zu müde… 😴", fun:"Das macht Spaß! 🎾",
         sleepy:"Gute Nacht… 💤", awake:"Ich bin wach! ☀️", nofood:"Wir haben kein Essen. Kaufen? 🍎", nodrink:"Wir haben nichts zu trinken. 🥤", nosoap:"Keine Seife da. 🧼",
         learnstart:"Lass uns zusammen lernen! 💪", learndone:"Super! +{c} Münzen 🪙", learncancel:"Nächstes Mal, ok? 🙂", taskdone:"Tagesziel geschafft! ⭐",
@@ -9006,7 +9213,7 @@ const PANDA_TEXT = {
         cheer:["Du schaffst das! 💪","Ich bin stolz auf dich!","Noch ein bisschen!","Wir schaffen das zusammen!"],
         hungry:"Ich habe Hunger… 🥺", thirsty:"Ich hätte gern etwas zu trinken.", tired:"Ich bin müde… 😴", urgent:"Ich muss mal! 🚽", dirty:"Ich brauche ein Bad.",
         lonely:"Ich vermisse dich…", sad:"Ich bin etwas traurig…", happy:"Schön, dass du da bist! ❤️", sick:"Mir geht's nicht gut… 🤒", excited:"Juhu! 🎉", neutral:"Hmm, was machen wir?" },
-  en: { lvl:"Level", nomoney:"Not enough coins… study a bit! 📚", newitem:"Wow! {item}! 😍", ate:"Mmm, thanks! 🍽️", drank:"Refreshing! 💧",
+  en: { bought_furn:"Bought! Place it from the 🎒 inventory. 🛋️", lvl:"Level", nomoney:"Not enough coins… study a bit! 📚", newitem:"Wow! {item}! 😍", ate:"Mmm, thanks! 🍽️", drank:"Refreshing! 💧",
         clean:"I'm clean now! ✨", again:"Wait a sec… hehe 😊", petted:"I like that! ❤️", tootired:"I'm too tired… 😴", fun:"That's fun! 🎾",
         sleepy:"Good night… 💤", awake:"I'm awake! ☀️", nofood:"We have no food. Buy some? 🍎", nodrink:"Nothing to drink. 🥤", nosoap:"No soap here. 🧼",
         learnstart:"Let's study together! 💪", learndone:"Great! +{c} coins 🪙", learncancel:"Next time, ok? 🙂", taskdone:"Daily goal done! ⭐",
@@ -9059,7 +9266,9 @@ function renderPandaView() {
   if (holder && !panda3DStarted && window.Panda3D) {
     panda3DStarted = window.Panda3D.init(holder, {
       items: PANDA_ITEMS, getState: () => ensurePanda(), getEmotion: getPetEmotion,
-      onMove: (id, pos) => { p.furniture[id] = pos; savePanda(); },
+      onTransform: (instId, t) => updateFurnitureTransform(instId, t),
+      onPandaTransform: (t) => updatePandaTransform(t),
+      onSelect: (instId) => { const b = document.getElementById("pandaEditBar"); if (b) b.classList.toggle("hidden", !instId); },
       onArrive: (use) => pandaOnArrive(use),
       onPet: () => pandaPet(),
       say: (k) => pandaSay(pt(k), 3500)
@@ -9069,7 +9278,8 @@ function renderPandaView() {
   if (!pandaTickTimer) {
     pandaTickTimer = setInterval(() => {
       pandaTick(10);
-      if (window.Panda3D) window.Panda3D.syncState();
+      if (window.Panda3D) window.Panda3D.flush();
+      queueSave();
       if (!document.getElementById("view-stats").classList.contains("hidden")) renderPandaStatus();
       pandaAutoTalk();
     }, 10000);
@@ -9127,9 +9337,12 @@ function renderPandaInventory() {
   if (!ids.length) { el.innerHTML = `<div class="pn-empty">${uiText("panda.inv_empty")}</div>`; return; }
   el.innerHTML = ids.map(id => {
     const it = PANDA_ITEMS.find(i => i.id === id); if (!it) return "";
-    return `<button class="pinv-item" data-use="${id}"><span class="pinv-emoji">${it.emoji}</span><span class="pinv-name">${esc(pandaItemName(it))}</span><span class="pinv-count">×${p.inventory[id]}</span></button>`;
+    const act = it.placed ? `data-place="${id}"` : `data-use="${id}"`;
+    const lbl = it.placed ? uiText("panda.place") : uiText("panda.use");
+    return `<button class="pinv-item" ${act}><span class="pinv-emoji">${it.emoji}</span><span class="pinv-name">${esc(pandaItemName(it))}</span><span class="pinv-count">×${p.inventory[id]}</span><span class="pinv-act">${lbl}</span></button>`;
   }).join("");
   el.querySelectorAll("[data-use]").forEach(b => b.addEventListener("click", () => pandaUse(b.dataset.use)));
+  el.querySelectorAll("[data-place]").forEach(b => b.addEventListener("click", () => pandaPlace(b.dataset.place)));
 }
 
 function openPandaShop(cat) { pandaShopCat = cat; renderPandaShop(); document.getElementById("pandaShop").scrollIntoView({ behavior: "smooth", block: "start" }); }
@@ -9142,13 +9355,13 @@ function renderPandaShop() {
   tabs.querySelectorAll("[data-cat]").forEach(b => b.addEventListener("click", () => { pandaShopCat = b.dataset.cat; renderPandaShop(); }));
   const list = document.getElementById("pandaShopList");
   list.innerHTML = PANDA_ITEMS.filter(i => i.cat === pandaShopCat).map(it => {
-    const owned = it.placed && p.furniture[it.id];
+    const inRoom = it.placed ? p.placed.filter(f => f.type === it.id).length : 0;
     const can = stats.farmCoins >= it.cost;
-    return `<div class="farm-shop-item ${owned ? "built" : ""}">
+    return `<div class="farm-shop-item ${inRoom ? "built" : ""}">
       <div class="fsi-emoji">${it.emoji}</div>
-      <div class="fsi-body"><div class="fsi-name">${esc(pandaItemName(it))}</div>
-      <div class="fsi-cost">${owned ? "✓ " + uiText("panda.owned") : it.cost + " 🪙"}</div></div>
-      <button class="fsi-btn" data-buy="${it.id}" ${owned || !can ? "disabled" : ""}>${owned ? "✓" : uiText("panda.buy")}</button></div>`;
+      <div class="fsi-body"><div class="fsi-name">${esc(pandaItemName(it))}${inRoom ? ' <span class="fsi-inroom">✓ ' + inRoom + '</span>' : ''}</div>
+      <div class="fsi-cost">${it.cost} 🪙</div></div>
+      <button class="fsi-btn" data-buy="${it.id}" ${!can ? "disabled" : ""}>${uiText("panda.buy")}</button></div>`;
   }).join("");
   list.querySelectorAll("[data-buy]:not([disabled])").forEach(b => b.addEventListener("click", () => pandaBuy(b.dataset.buy)));
 }
@@ -9197,8 +9410,20 @@ function pandaDebug(action) {
   if (action === "thin") p.weight = 20;
   if (action === "skip8h") { p.lastUpdated -= 8 * 3600000; updateOfflineTime(); }
   if (action === "reset") { stats.panda = null; stats.farmBuilt = {}; ensurePanda(); if (window.Panda3D) window.Panda3D.syncFurniture(); }
+  if (action === "savenow") saveNow();
+  if (action === "load") { loadGame(); ensurePanda(); if (window.Panda3D) { window.Panda3D.syncFurniture(); window.Panda3D.restorePanda(); } }
+  if (action === "clear") { clearSave(); stats.panda = null; ensurePanda(); if (window.Panda3D) window.Panda3D.syncFurniture(); }
+  if (action === "export") { const t = exportSave(); const blob = new Blob([t], {type:"application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "shkolla-save.json"; a.click(); }
+  if (action === "import") { const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".json"; inp.onchange = () => { const f = inp.files[0]; if (!f) return; f.text().then(txt => { try { importSave(txt); ensurePanda(); if (window.Panda3D) { window.Panda3D.syncFurniture(); window.Panda3D.restorePanda(); } renderPandaView(); alert("Import OK"); } catch (e) { alert("Import dështoi: " + e.message); } }); }; inp.click(); }
+  renderPandaDebugInfo();
   savePanda(); renderPandaView(); renderHudFarmRow();
   if (window.Panda3D) { window.Panda3D.syncState(); window.Panda3D.setGrowth(pandaGrowthStage()); }
+}
+
+function renderPandaDebugInfo() {
+  const el = document.getElementById("pandaDebugInfo"); if (!el) return;
+  const f = (t) => t ? new Date(t).toLocaleTimeString() : "—";
+  el.textContent = `Save v${SAVE_VERSION} · storage: ${storageAvailable() ? "OK" : "N/A"} · saved: ${f(saveMeta.lastSaved)} · loaded: ${f(saveMeta.lastLoaded)} · placed: ${ensurePanda().placed.length}` + (saveMeta.lastError ? " · ERR " + saveMeta.lastError : "");
 }
 
 /* ---------- WIRING ---------- */
@@ -9213,9 +9438,11 @@ function pandaDebug(action) {
   document.querySelectorAll("[data-learn]").forEach(b => b.addEventListener("click", () => startLearnSession(parseInt(b.dataset.learn))));
   on("btnPandaLearnCancel", cancelLearnSession);
   on("btnPandaRotate", () => { if (window.Panda3D) window.Panda3D.rotateSelected(); });
+  on("btnPandaDelete", () => { if (window.Panda3D) { const id = window.Panda3D.getSelected(); if (id) { window.Panda3D.selectInstance(null); pandaRemove(id); } } });
+  on("btnPandaDone", () => { if (window.Panda3D) window.Panda3D.selectInstance(null); });
   on("pandaName", () => {
     pandaNameTaps++;
-    if (pandaNameTaps >= 5) { pandaNameTaps = 0; document.getElementById("pandaDebug").classList.toggle("hidden"); }
+    if (pandaNameTaps >= 5) { pandaNameTaps = 0; document.getElementById("pandaDebug").classList.toggle("hidden"); renderPandaDebugInfo(); }
     setTimeout(() => { pandaNameTaps = 0; }, 3000);
   });
   document.querySelectorAll("[data-dbg]").forEach(b => b.addEventListener("click", () => pandaDebug(b.dataset.dbg)));
@@ -9434,6 +9661,8 @@ document.getElementById("btnSaveUsername").addEventListener("click", async () =>
 
 /* ============ START ============ */
 const defaultVocabSet = new Set(vocab.map(w => w.al + "|" + w.de));
+// LOAD ORDER: Load Save → Validate/Migrate → State → (më poshtë) Room/Panda/Furniture → AI
+loadGame();
 fillCatSelects();
 initCardOrder();
 renderPoints();
@@ -9465,6 +9694,7 @@ if ("serviceWorker" in navigator) {
 <script type="module">
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 /* ================================================================
    PANDA 3D — skena, dhoma, pandaja, AI, mobiliet, drag&drop
@@ -9530,31 +9760,150 @@ function buildRoom(scene) {
   win.position.z += 0.05;
 }
 
-/* ---------- PANDA (PLACEHOLDER procedural, i animueshëm) ---------- */
+/* ---------- PANDA: chibi/kawaii, procedural PLACEHOLDER me sistem shprehjesh ----------
+   Referenca: kokë e madhe e rrumbullakët (≈ trupi), sy të mëdhenj me shkëlqim, gojë e vogël,
+   bark kremi, krahë/këmbë të shkurtër. Të gjitha format janë të buta (sfera/kapsula).
+   EXPRESSIONS: kontrollohen me parametra (eyeOpen, pupil, brow, mouthOpen, smile, cheeks, tears)
+   dhe interpolohen butësisht. Kur zëvendësohet me GLB, të njëjtat parametra
+   hartohen te morph targets sipas MORPH_MAP (shih applyMorphs). */
+
+const MORPH_MAP = { // emrat tipikë të blendshape-ve në GLB → parametri ynë
+  eyeOpen:   ["eyesClosed", "blink", "EyeClose", "eye_close"],     // (i përmbysur)
+  mouthOpen: ["mouthOpen", "jawOpen", "MouthOpen", "mouth_open"],
+  smile:     ["mouthSmile", "smile", "Smile", "mouth_smile"],
+  sad:       ["mouthFrown", "sad", "Sad", "mouth_frown"],
+  browAngry: ["browDown", "angry", "browAngry"],
+  browSad:   ["browUp", "browInnerUp", "browSad"]
+};
+
+function pbrMat(c, o = {}) {
+  return new THREE.MeshPhysicalMaterial(Object.assign({ color: c, roughness: 0.55, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.35 }, o));
+}
+
 function buildPlaceholderPanda() {
   const g = new THREE.Group(); g.name = ASSETS.panda.placeholder;
-  const white = mat(0xffffff, { roughness: 0.95 }), black = mat(0x1e1e22, { roughness: 0.95 });
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 18), white); body.scale.set(1, 1.05, 0.9); body.position.y = 0.55; body.castShadow = true;
-  const belly = new THREE.Mesh(new THREE.SphereGeometry(0.30, 20, 16), mat(0xfff5f7)); belly.scale.set(1, 0.9, 0.6); belly.position.set(0, 0.5, 0.25);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 24, 18), white); head.position.y = 1.18; head.castShadow = true;
-  const earL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 14, 10), black); earL.position.set(-0.26, 1.46, 0);
-  const earR = earL.clone(); earR.position.x = 0.26;
-  const patchL = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 10), black); patchL.scale.set(1, 1.3, 0.5); patchL.position.set(-0.13, 1.2, 0.29);
-  const patchR = patchL.clone(); patchR.position.x = 0.13;
-  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), white); eyeL.position.set(-0.13, 1.21, 0.36);
-  const eyeR = eyeL.clone(); eyeR.position.x = 0.13;
-  const pupilL = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 6), black); pupilL.position.set(-0.13, 1.21, 0.4);
-  const pupilR = pupilL.clone(); pupilR.position.x = 0.13;
-  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), black); nose.scale.set(1.3, 0.8, 0.8); nose.position.set(0, 1.09, 0.34);
-  const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.012, 6, 12, Math.PI), black); mouth.rotation.x = Math.PI; mouth.rotation.z = Math.PI; mouth.position.set(0, 1.03, 0.33);
-  const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.3, 6, 10), black); armL.position.set(-0.42, 0.62, 0.05); armL.rotation.z = 0.5; armL.castShadow = true;
-  const armR = armL.clone(); armR.position.x = 0.42; armR.rotation.z = -0.5;
-  const legL = new THREE.Mesh(new THREE.CapsuleGeometry(0.13, 0.18, 6, 10), black); legL.position.set(-0.2, 0.17, 0.05); legL.castShadow = true;
-  const legR = legL.clone(); legR.position.x = 0.2;
-  const tail = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), black); tail.position.set(0, 0.45, -0.4);
-  [body, belly, head, earL, earR, patchL, patchR, eyeL, eyeR, pupilL, pupilR, nose, mouth, armL, armR, legL, legR, tail].forEach(m => g.add(m));
-  g.userData.parts = { body, belly, head, armL, armR, legL, legR, eyeL, eyeR, mouth };
+  const cream = pbrMat(0xf7f2ea), black = pbrMat(0x1a1a1f, { roughness: 0.5 }), pink = pbrMat(0xf4a7b9, { roughness: 0.7 });
+  const eyeWhite = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.15, clearcoat: 1, clearcoatRoughness: 0.05 });
+  const iris = new THREE.MeshPhysicalMaterial({ color: 0x3a2418, roughness: 0.2, clearcoat: 1 });
+  const pupilM = new THREE.MeshPhysicalMaterial({ color: 0x050505, roughness: 0.1, clearcoat: 1 });
+  const glint = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const tongueM = pbrMat(0xe0607a, { roughness: 0.6 }); const mouthDark = new THREE.MeshStandardMaterial({ color: 0x5a1f2a, roughness: 0.9 });
+  const add = (m, p) => { m.castShadow = true; if (p) p.add(m); else g.add(m); return m; };
+
+  // ---- TRUPI (i vogël, i rrumbullakët) ----
+  const bodyG = new THREE.Group(); bodyG.position.y = 0.52; g.add(bodyG);
+  const body = add(new THREE.Mesh(new THREE.SphereGeometry(0.40, 32, 24), black), bodyG); body.scale.set(1, 0.95, 0.92);
+  const belly = add(new THREE.Mesh(new THREE.SphereGeometry(0.34, 32, 24), cream), bodyG); belly.position.set(0, -0.02, 0.16); belly.scale.set(0.95, 0.9, 0.6);
+  // Krahët (të shkurtër, të ngritur pak si në referencë)
+  const armL = add(new THREE.Mesh(new THREE.CapsuleGeometry(0.10, 0.22, 8, 14), black), bodyG); armL.position.set(-0.36, 0.02, 0.10); armL.rotation.set(-0.6, 0, 0.9);
+  const armR = armL.clone(); armR.position.x = 0.36; armR.rotation.set(-0.6, 0, -0.9); bodyG.add(armR);
+  const pawL = add(new THREE.Mesh(new THREE.SphereGeometry(0.09, 14, 10), black), armL); pawL.position.y = -0.2;
+  const pawR = pawL.clone(); armR.add(pawR);
+  [pawL, pawR].forEach(p => { for (let i = 0; i < 3; i++) { const pad = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 6), pink); pad.position.set(-0.03 + i * 0.03, -0.05, 0.07); p.add(pad); } });
+  // Këmbët
+  const legL = add(new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 0.10, 8, 14), black)); legL.position.set(-0.17, 0.16, 0.03);
+  const legR = legL.clone(); legR.position.x = 0.17; g.add(legR);
+  const footL = add(new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 10), black)); footL.position.set(-0.17, 0.08, 0.10); footL.scale.set(1, 0.6, 1.25);
+  const footR = footL.clone(); footR.position.x = 0.17; g.add(footR);
+  const tail = add(new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), black), bodyG); tail.position.set(0, -0.12, -0.38);
+
+  // ---- KOKA (e madhe!) ----
+  const headG = new THREE.Group(); headG.position.y = 1.26; g.add(headG);
+  const head = add(new THREE.Mesh(new THREE.SphereGeometry(0.60, 40, 30), cream), headG); head.scale.set(1.06, 0.95, 0.98);
+  const earL = add(new THREE.Mesh(new THREE.SphereGeometry(0.16, 18, 14), black), headG); earL.position.set(-0.46, 0.42, -0.05); earL.scale.set(1.1, 1.1, 0.75);
+  const earR = earL.clone(); earR.position.x = 0.46; headG.add(earR);
+  // Njollat e zeza të syve (të pjerrëta, si në referencë)
+  const patchL = add(new THREE.Mesh(new THREE.SphereGeometry(0.19, 24, 18), black), headG); patchL.position.set(-0.23, 0.04, 0.47); patchL.scale.set(1.15, 1.4, 0.45); patchL.rotation.z = -0.35;
+  const patchR = patchL.clone(); patchR.position.x = 0.23; patchR.rotation.z = 0.35; headG.add(patchR);
+  // Sytë: e bardha, irisi, bebja, dy shkëlqime (look "glossy")
+  const mkEye = (x) => {
+    const e = new THREE.Group(); e.position.set(x, 0.05, 0.575); headG.add(e);
+    const w = add(new THREE.Mesh(new THREE.SphereGeometry(0.135, 24, 18), eyeWhite), e); w.scale.set(1, 1.15, 0.6);
+    const ir = add(new THREE.Mesh(new THREE.SphereGeometry(0.10, 24, 18), iris), e); ir.position.z = 0.05; ir.scale.set(1, 1.1, 0.5);
+    const pu = add(new THREE.Mesh(new THREE.SphereGeometry(0.06, 20, 14), pupilM), e); pu.position.z = 0.085; pu.scale.set(1, 1.1, 0.5);
+    const g1 = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), glint); g1.position.set(-0.035, 0.045, 0.115); e.add(g1);
+    const g2 = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 6), glint); g2.position.set(0.04, -0.025, 0.115); e.add(g2);
+    const lid = add(new THREE.Mesh(new THREE.SphereGeometry(0.145, 24, 18, 0, Math.PI * 2, 0, Math.PI / 2), black), e); lid.scale.set(1.02, 1.2, 0.62); lid.position.y = 0.0; lid.visible = false; // qepalla për mbyllje
+    e.userData = { w, ir, pu, lid };
+    return e;
+  };
+  const eyeL = mkEye(-0.24), eyeR = mkEye(0.24);
+  // Vetullat (të holla, për shprehje)
+  const browL = add(new THREE.Mesh(new THREE.CapsuleGeometry(0.014, 0.1, 6, 8), black), headG); browL.position.set(-0.24, 0.29, 0.54); browL.rotation.z = Math.PI / 2; browL.visible = false;
+  const browR = browL.clone(); browR.position.x = 0.24; headG.add(browR);
+  // Hunda dhe goja e vogël
+  const nose = add(new THREE.Mesh(new THREE.SphereGeometry(0.055, 14, 10), pbrMat(0x111111)), headG); nose.position.set(0, -0.14, 0.60); nose.scale.set(1.3, 0.8, 0.7);
+  const mouthG = new THREE.Group(); mouthG.position.set(0, -0.26, 0.565); headG.add(mouthG);
+  const mouth = add(new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 12), mouthDark), mouthG); mouth.scale.set(1.1, 0.75, 0.5);
+  const tongue = add(new THREE.Mesh(new THREE.SphereGeometry(0.035, 12, 10), tongueM), mouthG); tongue.position.set(0, -0.025, 0.02); tongue.scale.set(1, 0.6, 0.8);
+  const smileL = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.01, 6, 12, Math.PI), pbrMat(0x111111)); smileL.rotation.x = Math.PI; smileL.position.set(0, -0.23, 0.575); smileL.visible = false; headG.add(smileL);
+  // Faqet rozë
+  const cheekL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 10), new THREE.MeshStandardMaterial({ color: 0xf9a8c9, transparent: true, opacity: 0.55, roughness: 1 })); cheekL.position.set(-0.42, -0.14, 0.41); cheekL.scale.set(1.1, 0.75, 0.4); headG.add(cheekL);
+  const cheekR = cheekL.clone(); cheekR.position.x = 0.42; headG.add(cheekR);
+  // Lotët (të fshehur)
+  const tearL = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), new THREE.MeshPhysicalMaterial({ color: 0x8fd3ff, transparent: true, opacity: 0.85, clearcoat: 1 })); tearL.position.set(-0.32, -0.12, 0.54); tearL.scale.set(0.8, 1.3, 0.6); tearL.visible = false; headG.add(tearL);
+  const tearR = tearL.clone(); tearR.position.x = 0.32; headG.add(tearR);
+  // Zzz për gjumë
+  const zzz = new THREE.Group(); zzz.position.set(0.5, 0.5, 0); zzz.visible = false; headG.add(zzz);
+  [0, 0.14, 0.28].forEach((y, i) => { const z = new THREE.Mesh(new THREE.TorusGeometry(0.03 + i * 0.012, 0.01, 6, 10), pbrMat(0x9fb3ff)); z.position.set(i * 0.06, y, 0); zzz.add(z); });
+
+  g.userData.parts = { bodyG, body, belly, armL, armR, legL, legR, footL, footR, headG, head, earL, earR, eyeL, eyeR, browL, browR, mouthG, mouth, tongue, smileL, cheekL, cheekR, tearL, tearR, zzz };
+  g.userData.expr = { eyeOpen: 1, pupil: 1, brow: 0, mouthOpen: 0.5, smile: 0.5, cheeks: 0.55, tears: 0, target: {} };
   return g;
+}
+
+/* ---------- SHPREHJET: emocion → parametra, interpolim i butë ---------- */
+const EXPR_PRESETS = {
+  neutral:  { eyeOpen: 1,    pupil: 1,    brow: 0,    mouthOpen: 0.35, smile: 0.5,  cheeks: 0.5, tears: 0 },
+  happy:    { eyeOpen: 1,    pupil: 1.1,  brow: 0,    mouthOpen: 0.9,  smile: 1,    cheeks: 0.9, tears: 0 },
+  excited:  { eyeOpen: 1.1,  pupil: 1.25, brow: 0,    mouthOpen: 1,    smile: 1,    cheeks: 1,   tears: 0 },
+  sad:      { eyeOpen: 0.7,  pupil: 0.9,  brow: 0.7,  mouthOpen: 0.15, smile: 0,    cheeks: 0.3, tears: 0.6 },
+  lonely:   { eyeOpen: 0.8,  pupil: 1.05, brow: 0.6,  mouthOpen: 0.2,  smile: 0.1,  cheeks: 0.3, tears: 0.3 },
+  hungry:   { eyeOpen: 0.9,  pupil: 1.15, brow: 0.5,  mouthOpen: 0.6,  smile: 0.2,  cheeks: 0.4, tears: 0 },
+  thirsty:  { eyeOpen: 0.85, pupil: 1,    brow: 0.5,  mouthOpen: 0.5,  smile: 0.2,  cheeks: 0.4, tears: 0 },
+  tired:    { eyeOpen: 0.4,  pupil: 0.9,  brow: 0.2,  mouthOpen: 0.4,  smile: 0.3,  cheeks: 0.3, tears: 0 },
+  dirty:    { eyeOpen: 0.9,  pupil: 1,    brow: 0.4,  mouthOpen: 0.3,  smile: 0.2,  cheeks: 0.3, tears: 0 },
+  urgent:   { eyeOpen: 1.1,  pupil: 0.8,  brow: -0.5, mouthOpen: 0.5,  smile: 0,    cheeks: 0.6, tears: 0.2 },
+  sick:     { eyeOpen: 0.5,  pupil: 0.85, brow: 0.6,  mouthOpen: 0.2,  smile: 0,    cheeks: 0.1, tears: 0.2 },
+  sleep:    { eyeOpen: 0,    pupil: 1,    brow: 0,    mouthOpen: 0.2,  smile: 0.4,  cheeks: 0.4, tears: 0 }
+};
+const lerp = (a, b, t) => a + (b - a) * t;
+let blinkT = 0, blinkPhase = 0;
+
+function applyExpression(dt, emotion, animName) {
+  const P = S.panda.userData.parts; const E = S.panda.userData.expr; if (!P || !E) return;
+  const preset = EXPR_PRESETS[animName === "sleep" ? "sleep" : emotion] || EXPR_PRESETS.neutral;
+  const k = Math.min(1, dt * 5);
+  for (const key in preset) E[key] = lerp(E[key], preset[key], k);
+  // Pulitje periodike
+  blinkT += dt; let eyeOpen = E.eyeOpen;
+  if (blinkT > 3.2 + Math.random() * 0.02) { blinkPhase += dt * 12; if (blinkPhase >= Math.PI) { blinkPhase = 0; blinkT = 0; } eyeOpen *= 1 - Math.sin(blinkPhase); }
+  [P.eyeL, P.eyeR].forEach(e => {
+    const u = e.userData;
+    u.w.scale.y = 1.15 * Math.max(0.08, eyeOpen); u.ir.scale.set(E.pupil, 1.1 * E.pupil, 0.5); u.pu.scale.set(E.pupil, 1.1 * E.pupil, 0.5);
+    u.ir.scale.y *= Math.max(0.08, eyeOpen); u.pu.scale.y *= Math.max(0.08, eyeOpen);
+    u.lid.visible = eyeOpen < 0.35; u.lid.rotation.x = -Math.PI / 2 * (1 - eyeOpen);
+  });
+  // Vetullat: brow>0 = të trishtuara (të ngritura brenda), brow<0 = të zemëruara/urgjencë
+  const bv = Math.abs(E.brow) > 0.15; P.browL.visible = P.browR.visible = bv;
+  P.browL.rotation.z = Math.PI / 2 + E.brow * 0.5; P.browR.rotation.z = Math.PI / 2 - E.brow * 0.5;
+  P.browL.position.y = P.browR.position.y = 0.27 + Math.max(0, E.brow) * 0.06;
+  // Goja: e hapur (sferë) vs buzëqeshje (hark)
+  P.mouthG.visible = E.mouthOpen > 0.25; P.mouthG.scale.set(0.6 + E.mouthOpen * 0.7, 0.4 + E.mouthOpen * 0.9, 1);
+  P.tongue.visible = E.mouthOpen > 0.5; P.smileL.visible = !P.mouthG.visible;
+  P.smileL.rotation.x = E.smile > 0.4 ? Math.PI : 0; P.smileL.position.y = E.smile > 0.4 ? -0.23 : -0.27;
+  P.cheekL.material.opacity = P.cheekR.material.opacity = 0.2 + E.cheeks * 0.5;
+  P.tearL.visible = P.tearR.visible = E.tears > 0.3;
+  if (P.tearL.visible) { const yy = -0.12 - ((S.anim.t * 0.6) % 0.25); P.tearL.position.y = P.tearR.position.y = yy; }
+  P.zzz.visible = animName === "sleep"; if (P.zzz.visible) { P.zzz.position.y = 0.5 + Math.sin(S.anim.t * 2) * 0.05; P.zzz.rotation.z = Math.sin(S.anim.t) * 0.1; }
+  // Për GLB me morph targets
+  applyMorphs(E, eyeOpen);
+}
+function applyMorphs(E, eyeOpen) {
+  if (!S.morphMeshes || !S.morphMeshes.length) return;
+  const set = (names, v) => S.morphMeshes.forEach(m => names.forEach(n => { const i = m.morphTargetDictionary[n]; if (i !== undefined) m.morphTargetInfluences[i] = v; }));
+  set(MORPH_MAP.eyeOpen, 1 - eyeOpen); set(MORPH_MAP.mouthOpen, E.mouthOpen); set(MORPH_MAP.smile, E.smile);
+  set(MORPH_MAP.sad, Math.max(0, E.brow)); set(MORPH_MAP.browSad, Math.max(0, E.brow)); set(MORPH_MAP.browAngry, Math.max(0, -E.brow));
 }
 
 /* ---------- FURNITURE (PLACEHOLDER procedural) ---------- */
@@ -9618,58 +9967,89 @@ async function init(container, api) {
     panda.position.set(0, 0, 0.5); scene.add(panda);
     const mixer = anims.length ? new THREE.AnimationMixer(panda) : null;
     const clips = {}; anims.forEach(c => { clips[c.name.toLowerCase()] = c; });
+    // Morph targets (blendshapes) nëse modeli GLB i ka — për shprehjet
+    const morphMeshes = []; panda.traverse(o => { if (o.isMesh && o.morphTargetDictionary) morphMeshes.push(o); });
 
-    S = { scene, camera, renderer, container, api, panda, mixer, clips, furnGroup, fx, furn: {}, sel: null,
+    S = { scene, camera, renderer, container, api, panda, mixer, clips, morphMeshes, furnGroup, fx, furn: {}, sel: null,
           ai: { state: "idle", target: null, timer: 1.5, use: null, speed: 0.55 },
-          anim: { name: "idle", t: 0 }, growth: 1, zoom: 1, dragging: null, lastT: performance.now() };
+          anim: { name: "idle", t: 0 }, growth: 1, dragging: null, lastT: performance.now(), lastFlush: 0 };
 
-    setupCamera(); resize(); window.addEventListener("resize", resize);
+    // KAMERA: OrbitControls (mouse + touch), me kufij që të mos dalë nga dhoma
+    camera.position.set(4.2, 4.6, 6.2);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 0.8, 0);
+    controls.enableDamping = true; controls.dampingFactor = 0.08;
+    controls.minDistance = 4; controls.maxDistance = 11;
+    controls.minPolarAngle = 0.35; controls.maxPolarAngle = 1.35;   // as nga poshtë dyshemesë, as nga lart-plotësisht
+    controls.screenSpacePanning = false; controls.panSpeed = 0.6; controls.rotateSpeed = 0.7;
+    controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+    controls.addEventListener("change", () => { S._camDirty = true; });
+    S.controls = controls;
+    resize(); window.addEventListener("resize", resize);
     setupPointer();
-    syncFurniture();
+    restorePanda();
+    await syncFurniture();
     requestAnimationFrame(loop);
     return true;
   } catch (e) { console.warn("Panda3D nuk u nis:", e); return false; }
 }
 
-function setupCamera() { S.camera.position.set(4.2 * S.zoom, 4.6 * S.zoom, 6.2 * S.zoom); S.camera.lookAt(0, 0.8, 0); }
 function resize() {
   if (!S) return;
   const w = S.container.clientWidth || 320, h = Math.round(Math.max(220, Math.min(w * 0.72, 460)));
   S.container.style.height = h + "px"; S.renderer.setSize(w, h, false); S.camera.aspect = w / h; S.camera.updateProjectionMatrix();
 }
 
+/* ---------- PANDA TRANSFORM: rikthim + flush në gjendje ---------- */
+function restorePanda() {
+  if (!S) return;
+  const st = S.api.getState();
+  const px = clamp(+((st.pos||{}).x) || 0, -HALF_W + 0.5, HALF_W - 0.5), pz = clamp(+((st.pos||{}).z) || 0.5, -HALF_D + 0.5, HALF_D - 0.5);
+  S.panda.position.set(px, 0, pz); S.panda.rotation.y = +st.rotY || 0;
+  if (st.anim === "sleep" || st._forceSleep) { S.ai.state = "sleep"; setAnim("sleep"); } else { S.ai.state = "idle"; S.ai.timer = 1; setAnim("idle"); }
+}
+function flush() {
+  if (!S) return;
+  S.api.onPandaTransform({ position: { x: S.panda.position.x, z: S.panda.position.z }, rotY: S.panda.rotation.y, anim: S.anim.name });
+  S.lastFlush = performance.now();
+}
+
 /* ---------- FURNITURE SYNC (nga gjendja e lojës) ---------- */
 async function syncFurniture() {
   if (!S) return;
   const st = S.api.getState();
-  const wanted = st.furniture || {};
-  for (const id in S.furn) if (!wanted[id]) { S.furnGroup.remove(S.furn[id]); delete S.furn[id]; }
-  for (const id in wanted) {
-    if (!S.furn[id]) {
-      const { obj } = await loadAsset(id);
-      obj.userData.itemId = id; obj.traverse(o => { o.userData.itemId = id; });
-      S.furnGroup.add(obj); S.furn[id] = obj;
+  const placed = st.placed || [];
+  const want = new Set(placed.map(f => f.id));
+  for (const id in S.furn) if (!want.has(id)) { S.furnGroup.remove(S.furn[id]); disposeObj(S.furn[id]); delete S.furn[id]; }
+  for (const f of placed) {
+    if (!S.furn[f.id]) {
+      const { obj } = await loadAsset(f.type);
+      obj.userData.instId = f.id; obj.userData.type = f.type; obj.traverse(o => { o.userData.instId = f.id; });
+      S.furnGroup.add(obj); S.furn[f.id] = obj;
     }
-    const p = wanted[id]; const item = S.api.items.find(i => i.id === id);
-    if (item && item.wall) { S.furn[id].position.set(clamp(p.x, -HALF_W + 0.5, HALF_W - 0.5), 0, -HALF_D + 0.05); S.furn[id].rotation.y = 0; }
-    else { S.furn[id].position.set(p.x, 0, p.z); S.furn[id].rotation.y = p.rot || 0; }
+    const o = S.furn[f.id]; const item = S.api.items.find(i => i.id === f.type);
+    if (item && item.wall) { o.position.set(clamp(f.position.x, -HALF_W + 0.5, HALF_W - 0.5), 0, -HALF_D + 0.05); o.rotation.set(0, 0, 0); }
+    else { o.position.set(f.position.x, 0, f.position.z); o.rotation.set(0, f.rotation.y, 0); }
+    o.scale.set(f.scale.x || 1, f.scale.y || 1, f.scale.z || 1);
   }
+  if (S.sel && !S.furn[S.sel]) select(null);
 }
+function disposeObj(o) { o.traverse(c => { if (c.geometry) c.geometry.dispose(); if (c.material) (Array.isArray(c.material) ? c.material : [c.material]).forEach(m => m.dispose()); }); }
 function findFreeSpot(item) {
-  const st = S ? S.api.getState() : { furniture: {} };
+  const placed = S ? (S.api.getState().placed || []) : [];
   if (item.wall) return { x: -1.5 + Math.random() * 3, z: -HALF_D };
   for (let t = 0; t < 40; t++) {
     const x = -HALF_W + 0.9 + Math.random() * (ROOM.w - 1.8), z = -HALF_D + 0.9 + Math.random() * (ROOM.d - 1.8);
-    if (!collides(x, z, (item.size || 0.8) / 2 + 0.3, st.furniture, null)) return { x, z };
+    if (!collides(x, z, (item.size || 0.8) / 2 + 0.3, placed, null)) return { x, z };
   }
   return { x: 0, z: 0 };
 }
-function collides(x, z, r, furniture, ignoreId) {
-  for (const id in furniture) {
-    if (id === ignoreId) continue;
-    const it = S.api.items.find(i => i.id === id); if (!it || it.flat || it.wall) continue;
-    const p = furniture[id]; const rr = (it.size || 0.8) / 2 + r;
-    if (Math.hypot(p.x - x, p.z - z) < rr) return true;
+function collides(x, z, r, placed, ignoreId) {
+  for (const f of placed) {
+    if (f.id === ignoreId) continue;
+    const it = S.api.items.find(i => i.id === f.type); if (!it || it.flat || it.wall) continue;
+    const rr = (it.size || 0.8) / 2 + r;
+    if (Math.hypot(f.position.x - x, f.position.z - z) < rr) return true;
   }
   return false;
 }
@@ -9680,75 +10060,94 @@ function setupPointer() {
   const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hit = new THREE.Vector3();
   const el = S.renderer.domElement;
   const toPtr = (e) => { const r = el.getBoundingClientRect(); ptr.x = ((e.clientX - r.left) / r.width) * 2 - 1; ptr.y = -((e.clientY - r.top) / r.height) * 2 + 1; };
+  let downAt = null, moved = false;
   el.addEventListener("pointerdown", (e) => {
-    toPtr(e); ray.setFromCamera(ptr, S.camera);
+    if (e.button !== undefined && e.button !== 0) return;
+    toPtr(e); ray.setFromCamera(ptr, S.camera); downAt = { x: e.clientX, y: e.clientY }; moved = false;
     const hitP = ray.intersectObject(S.panda, true);
     if (hitP.length) { if (S.api.onPet) S.api.onPet(); else { doAction("happy"); hearts(); } return; }
     const hits = ray.intersectObjects(S.furnGroup.children, true);
     if (hits.length) {
-      const id = hits[0].object.userData.itemId;
-      const item = S.api.items.find(i => i.id === id);
-      if (item && !item.wall) { S.dragging = id; select(id); el.setPointerCapture(e.pointerId); }
-    } else select(null);
+      const id = hits[0].object.userData.instId; const o = S.furn[id];
+      const item = S.api.items.find(i => i.id === o.userData.type);
+      if (item && !item.wall) {
+        // EDIT MODE: mobilja merr input-in, kamera fiket (jo të dyja njëkohësisht)
+        S.dragging = id; select(id); S.controls.enabled = false; el.setPointerCapture(e.pointerId);
+      }
+    }
   });
   el.addEventListener("pointermove", (e) => {
     if (!S.dragging) return;
+    if (downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 4) moved = true;
     toPtr(e); ray.setFromCamera(ptr, S.camera);
     if (ray.ray.intersectPlane(plane, hit)) {
-      const item = S.api.items.find(i => i.id === S.dragging); const half = (item.size || 0.8) / 2;
-      const x = clamp(hit.x, -HALF_W + half, HALF_W - half), z = clamp(hit.z, -HALF_D + half, HALF_D - half);
-      S.furn[S.dragging].position.set(x, 0, z);
+      const o = S.furn[S.dragging]; const item = S.api.items.find(i => i.id === o.userData.type); const half = (item.size || 0.8) / 2;
+      o.position.set(clamp(hit.x, -HALF_W + half, HALF_W - half), 0, clamp(hit.z, -HALF_D + half, HALF_D - half));
     }
   });
   const end = () => {
-    if (!S.dragging) return;
-    const id = S.dragging; const o = S.furn[id]; S.dragging = null;
-    const st = S.api.getState();
-    if (collides(o.position.x, o.position.z, ((S.api.items.find(i => i.id === id).size || 0.8) / 2), st.furniture, id)) {
-      const p = st.furniture[id]; o.position.set(p.x, 0, p.z); // kthehu, ishte mbi diçka tjetër
-    } else S.api.onMove(id, { x: o.position.x, z: o.position.z, rot: o.rotation.y });
+    if (!S.dragging) { return; }
+    const id = S.dragging; const o = S.furn[id]; S.dragging = null; S.controls.enabled = true;
+    const placed = S.api.getState().placed || [];
+    const f = placed.find(x => x.id === id);
+    if (moved && f) {
+      if (collides(o.position.x, o.position.z, ((S.api.items.find(i => i.id === o.userData.type).size || 0.8) / 2), placed, id)) {
+        o.position.set(f.position.x, 0, f.position.z);  // ishte mbi diçka tjetër → kthehu
+      } else S.api.onTransform(id, { position: { x: o.position.x, z: o.position.z }, rotation: { y: o.rotation.y } });
+    }
   };
   el.addEventListener("pointerup", end); el.addEventListener("pointercancel", end);
-  // zoom me rrotë / pinch të thjeshtë
-  el.addEventListener("wheel", (e) => { e.preventDefault(); S.zoom = clamp(S.zoom + (e.deltaY > 0 ? 0.06 : -0.06), 0.7, 1.4); setupCamera(); }, { passive: false });
+  // Klik në vend bosh → hiq përzgjedhjen (vetëm nëse s'ka lëvizur — që orbit-i të mos e prishë)
+  el.addEventListener("pointerup", (e) => {
+    if (S.dragging) return;
+    if (downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 4) {
+      toPtr(e); ray.setFromCamera(ptr, S.camera);
+      if (!ray.intersectObjects(S.furnGroup.children, true).length && !ray.intersectObject(S.panda, true).length) select(null);
+    }
+  });
 }
 let selRing = null;
 function select(id) {
   S.sel = id;
-  if (!selRing) { selRing = new THREE.Mesh(new THREE.RingGeometry(0.45, 0.55, 32), mat(0xfbbf24, { emissive: 0xfbbf24, emissiveIntensity: 0.5, side: THREE.DoubleSide })); selRing.rotation.x = -Math.PI / 2; selRing.position.y = 0.015; S.scene.add(selRing); }
+  if (!selRing) { selRing = new THREE.Mesh(new THREE.RingGeometry(0.45, 0.55, 32), mat(0xfbbf24, { emissive: 0xfbbf24, emissiveIntensity: 0.6, side: THREE.DoubleSide, transparent: true, opacity: 0.9 })); selRing.rotation.x = -Math.PI / 2; selRing.position.y = 0.015; S.scene.add(selRing); }
   selRing.visible = !!id;
-  if (id) { const it = S.api.items.find(i => i.id === id); const s = (it.size || 0.8) / 2 + 0.15; selRing.scale.set(s / 0.5, s / 0.5, 1); selRing.position.x = S.furn[id].position.x; selRing.position.z = S.furn[id].position.z; }
-  const btn = document.getElementById("btnPandaRotate"); if (btn) btn.classList.toggle("hidden", !id);
+  if (id && S.furn[id]) { const it = S.api.items.find(i => i.id === S.furn[id].userData.type); const s = (it.size || 0.8) / 2 + 0.15; selRing.scale.set(s / 0.5, s / 0.5, 1); }
+  if (S.api.onSelect) S.api.onSelect(id);
 }
 function rotateSelected() {
-  if (!S || !S.sel) return;
-  const o = S.furn[S.sel]; o.rotation.y += Math.PI / 2;
-  S.api.onMove(S.sel, { x: o.position.x, z: o.position.z, rot: o.rotation.y });
+  if (!S || !S.sel || !S.furn[S.sel]) return;
+  const o = S.furn[S.sel]; o.rotation.y = (o.rotation.y + Math.PI / 2) % (Math.PI * 2);   // vetëm rreth Y — s'bie kurrë anash
+  S.api.onTransform(S.sel, { position: { x: o.position.x, z: o.position.z }, rotation: { y: o.rotation.y } });
 }
+function selectInstance(id) { if (S) select(id && S.furn[id] ? id : null); }
+function getSelected() { return S ? S.sel : null; }
 
 /* ---------- PANDA AI (state machine) ---------- */
 function decide(st, em) {
-  const f = st.furniture || {};
-  if (st._forceSleep) return f.bed ? { state: "seek", use: "sleep" } : { state: "sleep" };
-  if (st.toilet > 80 && f.toilet)  return { state: "seek", use: "toilet" };
-  if (st.energy < 18)              return f.bed ? { state: "seek", use: "sleep" } : { state: "sleep" };
-  if (st.hunger < 22 && f.bowl && (st.inventory.bamboo || st.inventory.apple)) return { state: "seek", use: "food" };
-  if (st.thirst < 22 && f.wbowl && st.inventory.water) return { state: "seek", use: "water" };
-  if (st.hygiene < 18 && f.bathtub) return { state: "seek", use: "bath" };
-  if (st.energy > 55 && Math.random() < 0.15 && (f.ball || f.teddy)) return { state: "seek", use: "toy" };
-  if (st.energy > 40 && Math.random() < 0.2 && f.sofa) return { state: "seek", use: "rest" };
+  const has = (t) => (st.placed || []).some(f => f.type === t);
+  if (st._forceSleep) return has("bed") ? { state: "seek", use: "sleep" } : { state: "sleep" };
+  if (st.toilet > 80 && has("toilet"))  return { state: "seek", use: "toilet" };
+  if (st.energy < 18)                   return has("bed") ? { state: "seek", use: "sleep" } : { state: "sleep" };
+  if (st.hunger < 22 && has("bowl") && (st.inventory.bamboo || st.inventory.apple)) return { state: "seek", use: "food" };
+  if (st.thirst < 22 && has("wbowl") && st.inventory.water) return { state: "seek", use: "water" };
+  if (st.hygiene < 18 && has("bathtub")) return { state: "seek", use: "bath" };
+  if (st.mood < 30 && (has("ball") || has("teddy"))) return { state: "seek", use: "toy" };
+  if (st.energy > 55 && Math.random() < 0.15 && (has("ball") || has("teddy"))) return { state: "seek", use: "toy" };
+  if (st.energy > 40 && Math.random() < 0.2 && has("sofa")) return { state: "seek", use: "rest" };
   return Math.random() < 0.55 ? { state: "wander" } : { state: "idle" };
 }
 function targetFor(use, st) {
-  const map = { sleep: "bed", toilet: "toilet", food: "bowl", water: "wbowl", bath: "bathtub", rest: "sofa", desk: "desk", toy: st.furniture.ball ? "ball" : "teddy" };
-  const id = map[use]; const p = st.furniture[id]; if (!p) return null;
-  const it = S.api.items.find(i => i.id === id); const off = (it.size || 0.8) / 2 + 0.35;
-  return { x: clamp(p.x, -HALF_W + 0.5, HALF_W - 0.5), z: clamp(p.z + off, -HALF_D + 0.5, HALF_D - 0.5), id };
+  const placed = st.placed || [];
+  const has = (t) => placed.some(f => f.type === t);
+  const map = { sleep: "bed", toilet: "toilet", food: "bowl", water: "wbowl", bath: "bathtub", rest: "sofa", desk: "desk", toy: has("ball") ? "ball" : "teddy" };
+  const f = placed.find(x => x.type === map[use]); if (!f) return null;
+  const it = S.api.items.find(i => i.id === f.type); const off = (it.size || 0.8) / 2 + 0.35;
+  return { x: clamp(f.position.x, -HALF_W + 0.5, HALF_W - 0.5), z: clamp(f.position.z + off, -HALF_D + 0.5, HALF_D - 0.5), id: f.id };
 }
 function randomSpot(st) {
   for (let t = 0; t < 25; t++) {
     const x = -HALF_W + 0.7 + Math.random() * (ROOM.w - 1.4), z = -HALF_D + 0.9 + Math.random() * (ROOM.d - 1.6);
-    if (!collides(x, z, 0.45, st.furniture, null)) return { x, z };
+    if (!collides(x, z, 0.45, st.placed || [], null)) return { x, z };
   }
   return { x: 0, z: 0 };
 }
@@ -9760,10 +10159,23 @@ function aiStep(dt) {
     const dx = ai.target.x - S.panda.position.x, dz = ai.target.z - S.panda.position.z, d = Math.hypot(dx, dz);
     if (d < 0.12) {
       if (ai.state === "seek" && ai.use) { arrive(ai.use); } else { ai.state = "idle"; ai.timer = 1.5 + Math.random() * 3; setAnim("idle"); }
-      ai.target = null; return;
+      ai.target = null; flush(); return;
     }
-    S.panda.position.x += (dx / d) * ai.speed * dt; S.panda.position.z += (dz / d) * ai.speed * dt;
-    S.panda.rotation.y = Math.atan2(dx, dz);
+    // Shmangie e thjeshtë: nëse hapi tjetër bie mbi një mobilie, devijo anash (majtas/djathtas)
+    let nx = dx / d, nz = dz / d;
+    const step = ai.speed * dt;
+    const placed = st.placed || [];
+    const targetId = ai.target.id || null;
+    const blocked = (x, z) => collides(x, z, 0.35, placed, targetId);
+    if (blocked(S.panda.position.x + nx * step * 4, S.panda.position.z + nz * step * 4)) {
+      const cands = [[nz, -nx], [-nz, nx]];  // pingul majtas/djathtas
+      const ok = cands.find(([cx, cz]) => !blocked(S.panda.position.x + cx * step * 6, S.panda.position.z + cz * step * 6));
+      if (ok) { nx = (nx + ok[0] * 1.5); nz = (nz + ok[1] * 1.5); const l = Math.hypot(nx, nz); nx /= l; nz /= l; }
+      else { ai.state = "idle"; ai.timer = 1; ai.target = null; setAnim("idle"); return; }
+    }
+    S.panda.position.x = clamp(S.panda.position.x + nx * step, -HALF_W + 0.45, HALF_W - 0.45);
+    S.panda.position.z = clamp(S.panda.position.z + nz * step, -HALF_D + 0.45, HALF_D - 0.45);
+    S.panda.rotation.y = Math.atan2(nx, nz);
     setAnim("walk");
     return;
   }
@@ -9805,29 +10217,46 @@ function setAnim(name) {
 function procAnim(dt) {
   const P = S.panda.userData.parts; if (!P) return;
   S.anim.t += dt; const t = S.anim.t, n = S.anim.name, st = S.api.getState();
-  const g = S.panda; const base = g.userData.baseScale || 1;
-  // Pesha: barku dhe trupi rrumbullakohen vazhdimisht sipas peshës (15..100)
-  const w = (st.weight - 50) / 50; // -0.7 .. 1.0
-  P.body.scale.set(1 + w * 0.18, 1.05 - Math.max(0, w) * 0.05, 0.9 + w * 0.22);
-  P.belly.scale.set(1 + w * 0.3, 0.9, 0.6 + w * 0.35);
-  // reset pozicionesh bazë
-  P.armL.rotation.set(0, 0, 0.5); P.armR.rotation.set(0, 0, -0.5); P.legL.rotation.set(0, 0, 0); P.legR.rotation.set(0, 0, 0);
-  P.head.position.y = 1.18; P.head.rotation.set(0, 0, 0); g.rotation.x = 0; g.rotation.z = 0; g.position.y = 0;
-  P.eyeL.scale.y = P.eyeR.scale.y = 1; P.mouth.rotation.z = Math.PI;
-  const em = S.api.getEmotion();
-  if (n === "walk") { const s = Math.sin(t * 8); P.legL.rotation.x = s * 0.6; P.legR.rotation.x = -s * 0.6; P.armL.rotation.x = -s * 0.5; P.armR.rotation.x = s * 0.5; g.position.y = Math.abs(Math.sin(t * 8)) * 0.03; }
-  else if (n === "sleep") { g.rotation.z = 1.2; g.position.y = -0.15; P.eyeL.scale.y = P.eyeR.scale.y = 0.15; g.position.y += Math.sin(t * 1.5) * 0.01; }
-  else if (n === "eat" || n === "drink") { P.head.rotation.x = 0.35 + Math.sin(t * 9) * 0.12; P.armL.rotation.x = -0.9; P.armR.rotation.x = -0.9; }
-  else if (n === "happy" || n === "play") { g.position.y = Math.abs(Math.sin(t * 7)) * 0.18; P.armL.rotation.z = 0.5 + Math.sin(t * 10) * 0.9 + 1.2; P.armR.rotation.z = -0.5 - Math.sin(t * 10) * 0.9 - 1.2; P.head.rotation.z = Math.sin(t * 6) * 0.15; }
-  else if (n === "sit") { g.position.y = -0.12; P.legL.rotation.x = -1.3; P.legR.rotation.x = -1.3; }
-  else if (n === "bath") { g.position.y = -0.1; P.armL.rotation.x = Math.sin(t * 5) * 0.5; P.armR.rotation.x = -Math.sin(t * 5) * 0.5; }
-  else if (n === "tired") { P.head.rotation.x = 0.25; P.eyeL.scale.y = P.eyeR.scale.y = 0.45; g.position.y = Math.sin(t * 1.2) * 0.01; }
-  else { // idle: frymëmarrje + shikim përreth
-    g.position.y = Math.sin(t * 1.8) * 0.02; P.head.rotation.y = Math.sin(t * 0.7) * 0.25;
-    if (em === "sad" || em === "lonely") { P.head.rotation.x = 0.3; P.mouth.rotation.z = 0; }
-    if (em === "hungry") { P.head.rotation.x = 0.15; P.head.rotation.y = 0.5; }
-    if (em === "excited" || em === "happy") { g.position.y = Math.abs(Math.sin(t * 4)) * 0.05; }
+  const g = S.panda; const em = S.api.getEmotion();
+  // ---- PESHA: forma e trupit ndryshon vazhdimisht (15..100) — trupi, barku, faqet, këmbët ----
+  const w = (st.weight - 50) / 50;                       // -0.7 .. +1.0
+  P.body.scale.set(1 + w * 0.22, 0.95 - Math.max(0, w) * 0.06, 0.92 + w * 0.26);
+  P.belly.scale.set(0.95 + w * 0.3, 0.9 + Math.max(0, w) * 0.1, 0.6 + w * 0.4);
+  P.head.scale.set(1.04 + Math.max(0, w) * 0.05, 0.96, 0.98 + Math.max(0, w) * 0.04);
+  P.armL.position.x = -0.36 - Math.max(0, w) * 0.08; P.armR.position.x = 0.36 + Math.max(0, w) * 0.08;
+  // ---- reset ----
+  P.armL.rotation.set(-0.6, 0, 0.9); P.armR.rotation.set(-0.6, 0, -0.9);
+  P.legL.rotation.set(0, 0, 0); P.legR.rotation.set(0, 0, 0); P.footL.rotation.set(0,0,0); P.footR.rotation.set(0,0,0);
+  P.headG.rotation.set(0, 0, 0); P.headG.position.y = 1.26; P.bodyG.rotation.set(0, 0, 0);
+  g.rotation.x = 0; g.rotation.z = 0; g.position.y = 0;
+  const breathe = Math.sin(t * 1.8) * 0.015;
+  if (n === "walk") {
+    const s = Math.sin(t * 9);
+    P.legL.rotation.x = s * 0.7; P.legR.rotation.x = -s * 0.7; P.footL.rotation.x = s * 0.5; P.footR.rotation.x = -s * 0.5;
+    P.armL.rotation.x = -0.6 - s * 0.5; P.armR.rotation.x = -0.6 + s * 0.5;
+    g.position.y = Math.abs(s) * 0.035; P.headG.rotation.z = s * 0.06; P.bodyG.rotation.z = -s * 0.04;
+  } else if (n === "sleep") {
+    g.rotation.z = 1.25; g.position.y = -0.12 + Math.sin(t * 1.4) * 0.008; P.headG.rotation.z = 0.15;
+  } else if (n === "eat" || n === "drink") {
+    P.headG.rotation.x = 0.3 + Math.sin(t * 9) * 0.12; P.armL.rotation.x = -1.4; P.armR.rotation.x = -1.4; P.armL.rotation.z = 0.3; P.armR.rotation.z = -0.3;
+  } else if (n === "happy" || n === "play") {
+    g.position.y = Math.abs(Math.sin(t * 7)) * 0.2;
+    P.armL.rotation.set(-2.6, 0, 0.6 + Math.sin(t * 10) * 0.4); P.armR.rotation.set(-2.6, 0, -0.6 - Math.sin(t * 10) * 0.4);
+    P.headG.rotation.z = Math.sin(t * 6) * 0.15; P.bodyG.rotation.y = Math.sin(t * 3) * 0.2;
+  } else if (n === "sit") {
+    g.position.y = -0.14; P.legL.rotation.x = -1.4; P.legR.rotation.x = -1.4; P.footL.rotation.x = -1.2; P.footR.rotation.x = -1.2; P.headG.rotation.y = Math.sin(t * 0.8) * 0.2;
+  } else if (n === "bath") {
+    g.position.y = -0.12; P.armL.rotation.x = -1 + Math.sin(t * 5) * 0.5; P.armR.rotation.x = -1 - Math.sin(t * 5) * 0.5; P.headG.rotation.z = Math.sin(t * 2) * 0.1;
+  } else if (n === "tired") {
+    P.headG.rotation.x = 0.28; P.headG.position.y = 1.23 + breathe; g.position.y = breathe;
+  } else { // idle
+    g.position.y = breathe; P.headG.rotation.y = Math.sin(t * 0.7) * 0.28; P.headG.rotation.z = Math.sin(t * 0.45) * 0.06;
+    if (em === "sad" || em === "lonely" || em === "sick") { P.headG.rotation.x = 0.28; P.armL.rotation.set(0.2, 0, 0.4); P.armR.rotation.set(0.2, 0, -0.4); }
+    if (em === "hungry" || em === "thirsty") { P.headG.rotation.x = 0.1; P.armL.rotation.set(-0.9, 0, 0.5); P.armR.rotation.set(-0.9, 0, -0.5); }
+    if (em === "excited" || em === "happy") { g.position.y = Math.abs(Math.sin(t * 4)) * 0.06; P.headG.rotation.z = Math.sin(t * 4) * 0.1; }
+    if (em === "urgent") { g.position.y = Math.abs(Math.sin(t * 12)) * 0.03; P.legL.rotation.x = Math.sin(t*12)*0.3; P.legR.rotation.x = -Math.sin(t*12)*0.3; }
   }
+  applyExpression(dt, em, n);
 }
 function setGrowth(stage) { if (!S) return; S.growth = stage; const s = [0, 0.7, 0.82, 0.95, 1.08, 1.2][stage] || 1; S.panda.scale.setScalar(s); S.panda.userData.baseScale = s; }
 
@@ -9851,21 +10280,23 @@ function loop() {
   if (!S) return;
   const now = performance.now(); const dt = Math.min(0.1, (now - S.lastT) / 1000); S.lastT = now;
   aiStep(dt);
-  if (S.mixer) S.mixer.update(dt); else procAnim(dt);
+  if (S.mixer) { S.mixer.update(dt); S.anim.t += dt; applyExpression(dt, S.api.getEmotion(), S.anim.name); } else procAnim(dt);
   fxStep(dt);
+  if (S.controls) S.controls.update();
   if (selRing && S.sel && S.furn[S.sel]) { selRing.position.x = S.furn[S.sel].position.x; selRing.position.z = S.furn[S.sel].position.z; }
+  if (now - S.lastFlush > 10000) flush();   // pozicioni i pandës në gjendje çdo 10 s, jo 60×/s
   // flluska e të folurit ndjek pandën
   const b = document.getElementById("pandaBubble");
   if (b && !b.classList.contains("hidden")) {
-    const v = S.panda.position.clone(); v.y += 1.75 * (S.panda.userData.baseScale || 1); v.project(S.camera);
+    const v = S.panda.position.clone(); v.y += 1.95 * (S.panda.userData.baseScale || 1); v.project(S.camera);
     const r = S.renderer.domElement.getBoundingClientRect();
     b.style.left = ((v.x + 1) / 2 * r.width) + "px"; b.style.top = ((1 - v.y) / 2 * r.height) + "px";
   }
   S.renderer.render(S.scene, S.camera);
 }
-function syncState() { /* gjendja lexohet live nga api.getState(); asgjë për të kopjuar */ }
+function syncState() { flush(); }
 
-window.Panda3D = { init, syncFurniture, findFreeSpot, doAction, goUse, hearts, setGrowth, rotateSelected, syncState };
+window.Panda3D = { init, syncFurniture, findFreeSpot, doAction, goUse, hearts, setGrowth, rotateSelected, syncState, flush, restorePanda, selectInstance, getSelected };
 </script>
 
 </body>
