@@ -9711,7 +9711,9 @@ import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
    thjesht vendos rrugën e skedarit .glb — logjika e lojës nuk ndryshon.
    ================================================================ */
 const ASSETS = {
-  panda:    { glb: null, obj: "models/panda/panda_parts.obj", placeholder: "PLACEHOLDER_PANDA" },   // GLB ka përparësi nëse vendoset
+  // PRIORITETI: glb (rig me skelet + klipe) → obj (pjesë të prera) → placeholder procedural
+  // clips: klipe shtesë për gjendje, të njëjtin skelet (GLB ose FBX): p.sh. { happy: "models/panda/anim_happy.glb", dance: "..." }
+  panda:    { glb: "models/panda/panda_rig.glb", clips: {}, obj: "models/panda/panda_parts.obj", placeholder: "PLACEHOLDER_PANDA" },
   bed:      { glb: null, placeholder: "PLACEHOLDER_BED" },
   sofa:     { glb: null, placeholder: "PLACEHOLDER_SOFA" },
   toilet:   { glb: null, placeholder: "PLACEHOLDER_TOILET" },
@@ -10022,6 +10024,182 @@ function buildPandaFromParts(objRoot) {
   return g;
 }
 
+
+/* ---------- PANDA ME RIG (GLB me skelet + klipe) — PandaRigController ----------
+   Modeli: models/panda/panda_rig.glb (24 bones, emra standardë Mixamo: Hips, Spine, Head, LeftArm...).
+   KLIPET: çdo gjendje mund të ketë një klip të vërtetë (ASSETS.panda.clips[state] = "skedar.glb/.fbx").
+   Nëse mungon, përdoret animacion PROCEDURAL mbi kockat (rigProc) — pra pandaja lëviz gjithmonë.
+   SHPREHJET: pa morph targets → koka (rrotullim), faqet, lotët, Zzz të bashkëngjitura te Head-bone,
+   dhe klipi "stomp" kur ka uri/është i zemëruar (kërkesë e lojës). */
+const RIG_TEX = { map: "models/panda/panda_basecolor.jpg", normalMap: "models/panda/panda_normal.jpg", roughnessMap: "models/panda/panda_roughness.jpg" };
+const RIG_STATE_CLIPS = { hungry: "stomp", angry: "stomp" };   // emocion → klip (nëse ekziston)
+const texLoader = new THREE.TextureLoader();
+
+function loadTex(url, srgb) {
+  return new Promise((res) => texLoader.load(url, (t) => { if (!t) return res(null); t.flipY = true; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; res(t); }, undefined, () => res(null)));
+}
+
+async function buildPandaFromRig(gltf) {
+  const root = gltf.scene; let skin = null;
+  root.traverse(o => { if (o.isSkinnedMesh) skin = o; });
+  if (!skin) return null;
+  const [map, normalMap, roughnessMap] = await Promise.all([loadTex(RIG_TEX.map, true), loadTex(RIG_TEX.normalMap, false), loadTex(RIG_TEX.roughnessMap, false)]);
+  skin.material = new THREE.MeshStandardMaterial({ map, normalMap, roughnessMap, roughness: 1, metalness: 0, color: 0xffffff, normalScale: new THREE.Vector2(0.8, 0.8) });
+  skin.castShadow = true; skin.receiveShadow = true; skin.frustumCulled = false;
+
+  const g = new THREE.Group(); g.name = "PANDA_RIG"; g.add(root);
+  const bones = {}; skin.skeleton.bones.forEach(b => { bones[b.name] = b; });
+  const rest = {}; skin.skeleton.bones.forEach(b => { rest[b.name] = { q: b.quaternion.clone(), p: b.position.clone() }; });
+  const mixer = new THREE.AnimationMixer(root);
+  const clips = {}; gltf.animations.forEach(c => { clips[c.name.toLowerCase()] = c; });
+
+  // ---- Overlay-et e shprehjeve te Head-bone (koordinata në cm, sepse rrënja skalohet 0.0132) ----
+  root.updateMatrixWorld(true);
+  const head = bones.Head || bones.head;
+  const worldToHead = (x, y, z) => { const p = new THREE.Vector3(x, y, z); head.worldToLocal(p); return p; };
+  const cmScale = 1 / head.getWorldScale(new THREE.Vector3()).x;    // ~75.7: 1 njësi bote = 75.7 njësi kocke
+  const mkOverlay = (mesh, wx, wy, wz) => { mesh.position.copy(worldToHead(wx, wy, wz)); mesh.scale.multiplyScalar(cmScale); head.add(mesh); return mesh; };
+  const cheekMat = new THREE.MeshStandardMaterial({ color: 0xf9a8c9, transparent: true, opacity: 0.5, roughness: 1, depthWrite: false });
+  const cheekL = mkOverlay(new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), cheekMat), -0.33, 1.60, 0.43); cheekL.scale.multiply(new THREE.Vector3(1.2, 0.8, 0.45));
+  const cheekR = mkOverlay(new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), cheekMat), 0.33, 1.60, 0.43); cheekR.scale.multiply(new THREE.Vector3(1.2, 0.8, 0.45));
+  const tearMat = new THREE.MeshPhysicalMaterial({ color: 0x8fd3ff, transparent: true, opacity: 0.85, clearcoat: 1 });
+  const tearL = mkOverlay(new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), tearMat), -0.24, 1.72, 0.52); tearL.scale.multiply(new THREE.Vector3(0.8, 1.3, 0.6)); tearL.visible = false;
+  const tearR = mkOverlay(new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), tearMat), 0.24, 1.72, 0.52); tearR.scale.multiply(new THREE.Vector3(0.8, 1.3, 0.6)); tearR.visible = false;
+  const zzz = new THREE.Group(); [0, 0.14, 0.28].forEach((y, i) => { const z = new THREE.Mesh(new THREE.TorusGeometry(0.03 + i * 0.012, 0.01, 6, 10), pbrMat(0x9fb3ff)); z.position.set(i * 0.06, y, 0); zzz.add(z); });
+  mkOverlay(zzz, 0.5, 2.35, 0); zzz.visible = false;
+  const angryMark = mkOverlay(new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.012, 6, 12, Math.PI), pbrMat(0xff5c5c, { emissive: 0xff2d2d, emissiveIntensity: 0.6 })), 0.32, 2.12, 0.35); angryMark.rotation.z = Math.PI; angryMark.visible = false;
+
+  g.userData.rig = { root, skin, bones, rest, mixer, clips, current: null, currentName: null, overlays: { cheekL, cheekR, tearL, tearR, zzz, angryMark }, cheekMat, t: 0 };
+  g.userData.expr = { cheeks: 0.5, tears: 0, headX: 0, headY: 0, headZ: 0 };
+  return g;
+}
+
+// Ngarkon klipe shtesë (GLB ose FBX) me të njëjtin skelet dhe i regjistron sipas emrit të gjendjes
+async function loadExtraClips(rig) {
+  const extra = (ASSETS.panda && ASSETS.panda.clips) || {};
+  for (const state in extra) {
+    const url = extra[state];
+    try {
+      let anims = [];
+      if (/\.fbx$/i.test(url)) { const { FBXLoader } = await import("three/addons/loaders/FBXLoader.js"); const o = await new Promise((r, j) => new FBXLoader().load(url, r, undefined, j)); anims = o.animations; }
+      else { const gl = await new Promise((r, j) => loader.load(url, r, undefined, j)); anims = gl.animations; }
+      if (anims[0]) { const c = anims[0].clone(); c.name = state; rig.clips[state] = c; }
+    } catch (e) { console.warn("Klipi nuk u ngarkua:", state, url); }
+  }
+}
+
+/* ---- Animacioni i rig-ut: klip nëse ka, ndryshe procedural mbi kocka ---- */
+function rigPlayClip(rig, name, opts = {}) {
+  const clip = rig.clips[name]; if (!clip) return false;
+  if (rig.currentName === name && rig.current) return true;
+  const action = rig.mixer.clipAction(clip);
+  action.reset().setLoop(opts.once ? THREE.LoopOnce : THREE.LoopRepeat, Infinity).setEffectiveTimeScale(opts.speed || 1).fadeIn(0.2).play();
+  action.clampWhenFinished = !!opts.once;
+  if (rig.current) rig.current.fadeOut(0.2);
+  rig.current = action; rig.currentName = name;
+  return true;
+}
+function rigStopClip(rig) { if (rig.current) { rig.current.fadeOut(0.15); rig.current = null; rig.currentName = null; } }
+function rigResetPose(rig) { for (const n in rig.rest) { const b = rig.bones[n]; if (b) { b.quaternion.copy(rig.rest[n].q); b.position.copy(rig.rest[n].p); } } }
+
+const _e = new THREE.Euler(), _q = new THREE.Quaternion();
+function rotBone(rig, name, x, y, z) {   // rrotullim shtesë mbi pozën e pushimit (radianë)
+  const b = rig.bones[name]; if (!b) return;
+  _q.setFromEuler(_e.set(x, y, z)); b.quaternion.copy(rig.rest[name].q).multiply(_q);
+}
+
+// Drejton një kockë që "fëmija" i saj të tregojë drejt një drejtimi në hapësirën e botës —
+// pavarësisht nga boshtet lokale të rig-ut (Mixamo, Meshy etj.). Përdoret për krahët.
+const _pw = new THREE.Quaternion(), _tp = new THREE.Vector3(), _dl = new THREE.Vector3();
+function pointBone(rig, name, childName, tx, ty, tz) {
+  const b = rig.bones[name], c = rig.bones[childName]; if (!b || !c) return;
+  b.quaternion.copy(rig.rest[name].q); b.updateWorldMatrix(true, false);
+  b.parent.getWorldQuaternion(_pw);
+  _tp.set(tx, ty, tz).normalize().applyQuaternion(_pw.clone().invert());       // objektivi në hapësirën e prindit
+  _dl.copy(c.position).normalize();                                             // drejtimi i fëmijës në hapësirën e kockës
+  const q = new THREE.Quaternion().setFromUnitVectors(_dl.clone().applyQuaternion(b.quaternion), _tp);
+  b.quaternion.premultiply(q);
+}
+function rigProc(dt, name, em) {
+  const rig = S.panda.userData.rig; const g = S.panda; const st = S.api.getState();
+  rig.t += dt; const t = rig.t;
+  rigResetPose(rig);
+  g.rotation.x = 0; g.rotation.z = 0; g.position.y = 0;
+  const breathe = Math.sin(t * 1.8) * 0.02;
+  const w = (st.weight - 50) / 50;
+  // Pesha: vetëm trupi (Spine/Hips) trashet, jo koka
+  ["Hips","Spine","Spine01","Spine02"].forEach(n => { const b = rig.bones[n]; if (b) b.scale.set(1 + w * 0.12, 1, 1 + w * 0.16); });
+  if (rig.bones.Head) rig.bones.Head.scale.set(1 / (1 + w * 0.12), 1, 1 / (1 + w * 0.16)); // kompenso që koka të mos trashet
+  if (name === "walk") {
+    const s = Math.sin(t * 8);
+    rotBone(rig, "LeftUpLeg", s * 0.55, 0, 0); rotBone(rig, "RightUpLeg", -s * 0.55, 0, 0);
+    rotBone(rig, "LeftLeg", Math.max(0, -s) * 0.6, 0, 0); rotBone(rig, "RightLeg", Math.max(0, s) * 0.6, 0, 0);
+    rotBone(rig, "LeftArm", -s * 0.45, 0, 0); rotBone(rig, "RightArm", s * 0.45, 0, 0);
+    rotBone(rig, "Spine", 0.05, 0, -s * 0.05); rotBone(rig, "Head", 0.05, 0, s * 0.05);
+    g.position.y = Math.abs(s) * 0.03;
+  } else if (name === "sleep") {
+    g.rotation.z = 1.3; g.position.y = -0.15 + Math.sin(t * 1.4) * 0.008; rotBone(rig, "Head", 0.2, 0, 0.15);
+    rotBone(rig, "LeftUpLeg", -0.6, 0, 0); rotBone(rig, "RightUpLeg", -0.6, 0, 0); rotBone(rig, "LeftArm", 0.4, 0, 0.6); rotBone(rig, "RightArm", 0.4, 0, -0.6);
+  } else if (name === "eat" || name === "drink") {
+    rotBone(rig, "Head", 0.28 + Math.sin(t * 9) * 0.1, 0, 0);
+    pointBone(rig, "LeftArm", "LeftForeArm", 0.35, -0.3, 1); pointBone(rig, "RightArm", "RightForeArm", -0.35, -0.3, 1);
+    pointBone(rig, "LeftForeArm", "LeftHand", 0.15, 0.9, 0.5); pointBone(rig, "RightForeArm", "RightHand", -0.15, 0.9, 0.5);
+  } else if (name === "happy" || name === "play") {
+    g.position.y = Math.abs(Math.sin(t * 7)) * 0.18;
+    pointBone(rig, "LeftArm", "LeftForeArm", 0.6, 1, 0.2 + Math.sin(t * 10) * 0.3); pointBone(rig, "RightArm", "RightForeArm", -0.6, 1, 0.2 + Math.sin(t * 10) * 0.3);
+    pointBone(rig, "LeftForeArm", "LeftHand", 0.4, 1, 0); pointBone(rig, "RightForeArm", "RightHand", -0.4, 1, 0);
+    rotBone(rig, "Head", -0.1, 0, Math.sin(t * 6) * 0.15); rotBone(rig, "Spine", 0, Math.sin(t * 3) * 0.2, 0);
+  } else if (name === "greeting") {
+    pointBone(rig, "RightArm", "RightForeArm", -0.9, 0.9, 0.3); pointBone(rig, "RightForeArm", "RightHand", -0.3 - Math.sin(t * 9) * 0.5, 1, 0.2);
+    rotBone(rig, "Head", 0, 0.15, -0.1); g.position.y = breathe;
+  } else if (name === "surprised") {
+    rotBone(rig, "Head", -0.2, 0, 0); pointBone(rig, "LeftArm", "LeftForeArm", 1, 0.2, 0.6); pointBone(rig, "RightArm", "RightForeArm", -1, 0.2, 0.6); g.position.y = Math.max(0, 0.12 - t * 0.3);
+  } else if (name === "sit") {
+    g.position.y = -0.36; rotBone(rig, "LeftUpLeg", -1.4, 0, 0.15); rotBone(rig, "RightUpLeg", -1.4, 0, -0.15); rotBone(rig, "LeftLeg", 1.2, 0, 0); rotBone(rig, "RightLeg", 1.2, 0, 0); rotBone(rig, "Head", 0, Math.sin(t * 0.8) * 0.2, 0);
+  } else if (name === "bath") {
+    g.position.y = -0.2; pointBone(rig, "LeftArm", "LeftForeArm", 0.5, 0.2 + Math.sin(t * 5) * 0.4, 0.8); pointBone(rig, "RightArm", "RightForeArm", -0.5, 0.2 - Math.sin(t * 5) * 0.4, 0.8); rotBone(rig, "Head", 0, 0, Math.sin(t * 2) * 0.1);
+  } else if (name === "tired") {
+    rotBone(rig, "Spine", 0.18, 0, 0); rotBone(rig, "Head", 0.3, 0, 0); g.position.y = breathe;
+  } else { // idle
+    g.position.y = breathe; rotBone(rig, "Spine", Math.sin(t * 1.8) * 0.02, 0, 0);
+    rotBone(rig, "Head", 0, Math.sin(t * 0.7) * 0.3, Math.sin(t * 0.45) * 0.06);
+    rotBone(rig, "LeftArm", 0, 0, Math.sin(t * 1.2) * 0.04); rotBone(rig, "RightArm", 0, 0, -Math.sin(t * 1.2) * 0.04);
+    if (em === "sad" || em === "lonely" || em === "sick") { rotBone(rig, "Head", 0.3, 0, 0); rotBone(rig, "Spine", 0.12, 0, 0); }
+    if (em === "hungry" || em === "thirsty") { rotBone(rig, "Head", 0.12, 0.4, 0); pointBone(rig, "LeftArm", "LeftForeArm", 0.4, -0.3, 0.9); pointBone(rig, "RightArm", "RightForeArm", -0.4, -0.3, 0.9); }
+    if (em === "excited" || em === "happy") { g.position.y = Math.abs(Math.sin(t * 4)) * 0.05; rotBone(rig, "Head", 0, 0, Math.sin(t * 4) * 0.1); }
+    if (em === "urgent") { g.position.y = Math.abs(Math.sin(t * 12)) * 0.025; rotBone(rig, "LeftUpLeg", Math.sin(t * 12) * 0.25, 0, 0); rotBone(rig, "RightUpLeg", -Math.sin(t * 12) * 0.25, 0, 0); }
+  }
+}
+
+function rigAnim(dt) {
+  const rig = S.panda.userData.rig; const em = S.api.getEmotion(); const name = S.anim.name;
+  // 1) Klip i vërtetë për gjendjen? (p.sh. "happy" nëse u ngarkua) ose klip emocioni (uria → stomp)
+  const wantClip = rig.clips[name] ? name : (name === "idle" && RIG_STATE_CLIPS[em] && rig.clips[RIG_STATE_CLIPS[em]] && rig.stompUntil > performance.now()) ? RIG_STATE_CLIPS[em] : null;
+  if (wantClip) { if (rigPlayClip(rig, wantClip, { once: wantClip === "stomp" })) { rig.mixer.update(dt); rigOverlays(dt, em, name); return; } }
+  if (rig.current) { rigStopClip(rig); rig.mixer.update(dt); rig.mixer.stopAllAction(); }
+  rigProc(dt, name, em);
+  rigOverlays(dt, em, name);
+}
+function rigOverlays(dt, em, name) {
+  const rig = S.panda.userData.rig, O = rig.overlays, E = S.panda.userData.expr;
+  const preset = EXPR_PRESETS[name === "sleep" ? "sleep" : em] || EXPR_PRESETS.neutral;
+  const k = Math.min(1, dt * 5); E.cheeks += (preset.cheeks - E.cheeks) * k; E.tears += (preset.tears - E.tears) * k;
+  rig.cheekMat.opacity = 0.15 + E.cheeks * 0.5;
+  O.tearL.visible = O.tearR.visible = E.tears > 0.3;
+  if (O.tearL.visible) { const yy = -((rig.t * 0.6) % 0.25) * 60; O.tearL.position.y = O.tearL.userData.y0 !== undefined ? O.tearL.userData.y0 + yy : (O.tearL.userData.y0 = O.tearL.position.y); O.tearR.position.y = O.tearL.position.y; }
+  O.zzz.visible = name === "sleep"; if (O.zzz.visible) O.zzz.rotation.z = Math.sin(rig.t) * 0.1;
+  O.angryMark.visible = (em === "angry" || (em === "hungry" && rig.currentName === "stomp"));
+}
+// Uria/zemërimi: nga koha në kohë përplas këmbën (klipi "stomp")
+function rigMaybeStomp() {
+  const rig = S.panda && S.panda.userData.rig; if (!rig || !rig.clips.stomp) return;
+  const em = S.api.getEmotion();
+  if ((em === "hungry" || em === "angry") && S.ai.state === "idle" && performance.now() > (rig.nextStomp || 0)) {
+    rig.stompUntil = performance.now() + 1500; rig.nextStomp = performance.now() + 9000 + Math.random() * 6000;
+    if (S.api.say) S.api.say(em === "hungry" ? "hungry" : "angry");
+  }
+}
+
 /* ---------- FURNITURE (PLACEHOLDER procedural) ---------- */
 function buildPlaceholderFurniture(id) {
   const g = new THREE.Group(); g.name = (ASSETS[id] && ASSETS[id].placeholder) || ("PLACEHOLDER_" + id.toUpperCase());
@@ -10050,8 +10228,22 @@ function buildPlaceholderFurniture(id) {
   return g;
 }
 
+function loadPandaObj(a) {
+  return new Promise((res) => new OBJLoader().load(a.obj, (root) => { const built = buildPandaFromParts(root); res({ obj: built || buildPlaceholderPanda(), anims: [] }); },
+    undefined, (err) => { console.warn("Panda OBJ nuk u ngarkua → placeholder:", err); res({ obj: buildPlaceholderPanda(), anims: [] }); }));
+}
 function loadAsset(id) {
   const a = ASSETS[id];
+  if (id === "panda" && a && a.glb) {
+    return new Promise((res) => loader.load(a.glb, async (gltf) => {
+      try {
+        const built = await buildPandaFromRig(gltf);
+        if (!built) throw new Error("pa SkinnedMesh");
+        await loadExtraClips(built.userData.rig);
+        res({ obj: built, anims: [] });   // animacionet i menaxhon vetë rig-u (mixer i vet)
+      } catch (e) { console.warn("Panda GLB i papërdorshëm → OBJ:", e); res(a.obj ? await loadPandaObj(a) : { obj: buildPlaceholderPanda(), anims: [] }); }
+    }, undefined, async (err) => { console.warn("Panda GLB nuk u ngarkua → OBJ:", err); res(a.obj ? await loadPandaObj(a) : { obj: buildPlaceholderPanda(), anims: [] }); }));
+  }
   if (id === "panda" && a && !a.glb && a.obj) {
     return new Promise((res) => new OBJLoader().load(a.obj, (root) => {
       const built = buildPandaFromParts(root);
@@ -10406,7 +10598,8 @@ function loop() {
   if (!S) return;
   const now = performance.now(); const dt = Math.min(0.1, (now - S.lastT) / 1000); S.lastT = now;
   aiStep(dt);
-  if (S.mixer) { S.mixer.update(dt); S.anim.t += dt; applyExpression(dt, S.api.getEmotion(), S.anim.name); } else procAnim(dt);
+  if (S.panda.userData.rig) { rigMaybeStomp(); rigAnim(dt); S.anim.t += dt; }
+  else if (S.mixer) { S.mixer.update(dt); S.anim.t += dt; applyExpression(dt, S.api.getEmotion(), S.anim.name); } else procAnim(dt);
   fxStep(dt);
   if (S.controls) S.controls.update();
   if (selRing && S.sel && S.furn[S.sel]) { selRing.position.x = S.furn[S.sel].position.x; selRing.position.z = S.furn[S.sel].position.z; }
