@@ -8937,6 +8937,9 @@ function getPetEmotion() {
   if (p.hunger < 20) return "hungry";
   if (p.thirst < 20) return "thirsty";
   if (p.energy < 20) return "tired";
+  if (p._surprisedUntil && Date.now() < p._surprisedUntil) return "surprised";
+  if (p._angryUntil && Date.now() < p._angryUntil) return "angry";
+  if (p.energy < 32 && p.mood > 40) return "sleepy";
   if (p.hygiene < 20) return "dirty";
   if (p.affection < 20) return "lonely";
   if (p.mood < 25) return "sad";
@@ -9046,11 +9049,15 @@ function pandaUse(id) {
 function pandaPet() {
   const p = ensurePanda();
   const now = Date.now();
-  if (now < p.petCooldownUntil) { pandaSay(pt("again"), 2000); return; }
+  if (now < p.petCooldownUntil) { p._pokes = (p._pokes || 0) + 1; if (p._pokes >= 4) { p._angryUntil = Date.now() + 2500; p._pokes = 0; if (window.Panda3D) window.Panda3D.doAction("surprised"); } pandaSay(pt("again"), 2000); return; }
+  p._pokes = 0;
   p.petCooldownUntil = now + 20000;
   p.affection = clamp(p.affection + 12, 0, 100);
   p.mood = clamp(p.mood + 5, 0, 100);
-  if (window.Panda3D) { window.Panda3D.doAction("happy"); window.Panda3D.hearts(); }
+  p._petCount = (p._petCount || 0) + 1;
+  const react = ["happy", "greeting", "happy", "surprised"][p._petCount % 4];
+  if (react === "surprised") p._surprisedUntil = Date.now() + 2500;
+  if (window.Panda3D) { window.Panda3D.doAction(react); window.Panda3D.hearts(); }
   pandaSay(pt("petted"), 3000);
   pandaAddXp(3); pandaTaskTick("pet");
   savePanda(); renderPandaView();
@@ -9197,7 +9204,7 @@ function pandaShowAwayReport(hours, before, after) {
 
 /* ---------- TEXTS (sq / de / en) ---------- */
 const PANDA_TEXT = {
-  sq: { bought_furn:"U ble! Gjeje te 🎒 Çanta dhe vendose. 🛋️", lvl:"Niveli", nomoney:"S'kam mjaft monedha… mëso pak! 📚", newitem:"Uau! {item}! 😍", ate:"Mmm, faleminderit! 🍽️", drank:"Freskuese! 💧",
+  sq: { sleepy:"Më zuri gjumi… 🥱", surprised:"Oh! 😮", angry:"Hmpf! 😠", bought_furn:"U ble! Gjeje te 🎒 Çanta dhe vendose. 🛋️", lvl:"Niveli", nomoney:"S'kam mjaft monedha… mëso pak! 📚", newitem:"Uau! {item}! 😍", ate:"Mmm, faleminderit! 🍽️", drank:"Freskuese! 💧",
         clean:"Tani jam i pastër! ✨", again:"Prit pak… hehe 😊", petted:"Kjo më pëlqen! ❤️", tootired:"Jam shumë i lodhur… 😴", fun:"Sa argëtuese! 🎾",
         sleepy:"Natën e mirë… 💤", awake:"U zgjova! ☀️", nofood:"S'kemi ushqim. Blej diçka? 🍎", nodrink:"S'kemi pije. 🥤", nosoap:"S'kemi sapun. 🧼",
         learnstart:"Le të mësojmë bashkë! 💪", learndone:"Bravo! +{c} monedha 🪙", learncancel:"Herën tjetër, mirë? 🙂", taskdone:"Detyra u krye! ⭐",
@@ -9205,7 +9212,7 @@ const PANDA_TEXT = {
         cheer:["Ti e bën! 💪","Jam krenar për ty!","Edhe pak!","E bëjmë bashkë!"],
         hungry:"Kam uri… 🥺", thirsty:"Do doja diçka për të pirë.", tired:"Jam i lodhur… 😴", urgent:"Duhet të shkoj! 🚽", dirty:"Kam nevojë për një banjë.",
         lonely:"Më mungon…", sad:"Jam pak i trishtuar…", happy:"Sa mirë që je këtu! ❤️", sick:"Nuk ndihem mirë… 🤒", excited:"Yeee! 🎉", neutral:"Hmm, ç'të bëjmë?" },
-  de: { bought_furn:"Gekauft! Im 🎒 Inventar aufstellen. 🛋️", lvl:"Level", nomoney:"Nicht genug Münzen… lern ein bisschen! 📚", newitem:"Wow! {item}! 😍", ate:"Mmm, danke! 🍽️", drank:"Erfrischend! 💧",
+  de: { sleepy:"Ich werde müde… 🥱", surprised:"Oh! 😮", angry:"Hmpf! 😠", bought_furn:"Gekauft! Im 🎒 Inventar aufstellen. 🛋️", lvl:"Level", nomoney:"Nicht genug Münzen… lern ein bisschen! 📚", newitem:"Wow! {item}! 😍", ate:"Mmm, danke! 🍽️", drank:"Erfrischend! 💧",
         clean:"Jetzt bin ich sauber! ✨", again:"Warte kurz… hehe 😊", petted:"Das gefällt mir! ❤️", tootired:"Ich bin zu müde… 😴", fun:"Das macht Spaß! 🎾",
         sleepy:"Gute Nacht… 💤", awake:"Ich bin wach! ☀️", nofood:"Wir haben kein Essen. Kaufen? 🍎", nodrink:"Wir haben nichts zu trinken. 🥤", nosoap:"Keine Seife da. 🧼",
         learnstart:"Lass uns zusammen lernen! 💪", learndone:"Super! +{c} Münzen 🪙", learncancel:"Nächstes Mal, ok? 🙂", taskdone:"Tagesziel geschafft! ⭐",
@@ -9213,7 +9220,7 @@ const PANDA_TEXT = {
         cheer:["Du schaffst das! 💪","Ich bin stolz auf dich!","Noch ein bisschen!","Wir schaffen das zusammen!"],
         hungry:"Ich habe Hunger… 🥺", thirsty:"Ich hätte gern etwas zu trinken.", tired:"Ich bin müde… 😴", urgent:"Ich muss mal! 🚽", dirty:"Ich brauche ein Bad.",
         lonely:"Ich vermisse dich…", sad:"Ich bin etwas traurig…", happy:"Schön, dass du da bist! ❤️", sick:"Mir geht's nicht gut… 🤒", excited:"Juhu! 🎉", neutral:"Hmm, was machen wir?" },
-  en: { bought_furn:"Bought! Place it from the 🎒 inventory. 🛋️", lvl:"Level", nomoney:"Not enough coins… study a bit! 📚", newitem:"Wow! {item}! 😍", ate:"Mmm, thanks! 🍽️", drank:"Refreshing! 💧",
+  en: { sleepy:"Getting sleepy… 🥱", surprised:"Oh! 😮", angry:"Hmpf! 😠", bought_furn:"Bought! Place it from the 🎒 inventory. 🛋️", lvl:"Level", nomoney:"Not enough coins… study a bit! 📚", newitem:"Wow! {item}! 😍", ate:"Mmm, thanks! 🍽️", drank:"Refreshing! 💧",
         clean:"I'm clean now! ✨", again:"Wait a sec… hehe 😊", petted:"I like that! ❤️", tootired:"I'm too tired… 😴", fun:"That's fun! 🎾",
         sleepy:"Good night… 💤", awake:"I'm awake! ☀️", nofood:"We have no food. Buy some? 🍎", nodrink:"Nothing to drink. 🥤", nosoap:"No soap here. 🧼",
         learnstart:"Let's study together! 💪", learndone:"Great! +{c} coins 🪙", learncancel:"Next time, ok? 🙂", taskdone:"Daily goal done! ⭐",
@@ -9254,7 +9261,7 @@ let pandaShopCat = "food";
 let panda3DStarted = false, pandaTickTimer = null;
 
 function pandaEmotionIcon(e) {
-  return { happy:"😊", sad:"😢", hungry:"🍽️", thirsty:"💧", tired:"😴", excited:"🤩", lonely:"🥺", sick:"🤒", urgent:"🚽", dirty:"🧼", neutral:"🙂" }[e] || "🙂";
+  return { happy:"😊", sad:"😢", hungry:"🍽️", thirsty:"💧", tired:"😴", sleepy:"🥱", excited:"🤩", surprised:"😮", angry:"😠", lonely:"🥺", sick:"🤒", urgent:"🚽", dirty:"🧼", neutral:"🙂" }[e] || "🙂";
 }
 
 function renderPandaView() {
@@ -9782,7 +9789,7 @@ function pbrMat(c, o = {}) {
 
 function buildPlaceholderPanda() {
   const g = new THREE.Group(); g.name = ASSETS.panda.placeholder;
-  const cream = pbrMat(0xf7f2ea), black = pbrMat(0x1a1a1f, { roughness: 0.5 }), pink = pbrMat(0xf4a7b9, { roughness: 0.7 });
+  const cream = pbrMat(0xf6efe4, { roughness: 0.7, clearcoat: 0.3 }), black = pbrMat(0x24242a, { roughness: 0.75, clearcoat: 0.2 }), pink = pbrMat(0xf4a7b9, { roughness: 0.7 });
   const eyeWhite = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.15, clearcoat: 1, clearcoatRoughness: 0.05 });
   const iris = new THREE.MeshPhysicalMaterial({ color: 0x3a2418, roughness: 0.2, clearcoat: 1 });
   const pupilM = new THREE.MeshPhysicalMaterial({ color: 0x050505, roughness: 0.1, clearcoat: 1 });
@@ -9791,33 +9798,33 @@ function buildPlaceholderPanda() {
   const add = (m, p) => { m.castShadow = true; if (p) p.add(m); else g.add(m); return m; };
 
   // ---- TRUPI (i vogël, i rrumbullakët) ----
-  const bodyG = new THREE.Group(); bodyG.position.y = 0.52; g.add(bodyG);
-  const body = add(new THREE.Mesh(new THREE.SphereGeometry(0.40, 32, 24), black), bodyG); body.scale.set(1, 0.95, 0.92);
-  const belly = add(new THREE.Mesh(new THREE.SphereGeometry(0.34, 32, 24), cream), bodyG); belly.position.set(0, -0.02, 0.16); belly.scale.set(0.95, 0.9, 0.6);
+  const bodyG = new THREE.Group(); bodyG.position.y = 0.66; g.add(bodyG);
+  const body = add(new THREE.Mesh(new THREE.SphereGeometry(0.50, 32, 24), black), bodyG); body.scale.set(1, 1.0, 0.92);
+  const belly = add(new THREE.Mesh(new THREE.SphereGeometry(0.42, 32, 24), cream), bodyG); belly.position.set(0, -0.04, 0.2); belly.scale.set(0.95, 0.95, 0.62);
   // Krahët (të shkurtër, të ngritur pak si në referencë)
-  const armL = add(new THREE.Mesh(new THREE.CapsuleGeometry(0.10, 0.22, 8, 14), black), bodyG); armL.position.set(-0.36, 0.02, 0.10); armL.rotation.set(-0.6, 0, 0.9);
-  const armR = armL.clone(); armR.position.x = 0.36; armR.rotation.set(-0.6, 0, -0.9); bodyG.add(armR);
-  const pawL = add(new THREE.Mesh(new THREE.SphereGeometry(0.09, 14, 10), black), armL); pawL.position.y = -0.2;
+  const armL = add(new THREE.Mesh(new THREE.CapsuleGeometry(0.135, 0.22, 8, 14), black), bodyG); armL.position.set(-0.46, 0.06, 0.12); armL.rotation.set(-0.6, 0, 0.9);
+  const armR = armL.clone(); armR.position.x = 0.46; armR.rotation.set(-0.6, 0, -0.9); bodyG.add(armR);
+  const pawL = add(new THREE.Mesh(new THREE.SphereGeometry(0.12, 14, 10), black), armL); pawL.position.y = -0.22;
   const pawR = pawL.clone(); armR.add(pawR);
-  [pawL, pawR].forEach(p => { for (let i = 0; i < 3; i++) { const pad = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 6), pink); pad.position.set(-0.03 + i * 0.03, -0.05, 0.07); p.add(pad); } });
+  [pawL, pawR].forEach(p => { for (let i = 0; i < 3; i++) { const pad = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 6), pink); pad.position.set(-0.04 + i * 0.04, -0.06, 0.095); p.add(pad); } });
   // Këmbët
-  const legL = add(new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 0.10, 8, 14), black)); legL.position.set(-0.17, 0.16, 0.03);
-  const legR = legL.clone(); legR.position.x = 0.17; g.add(legR);
-  const footL = add(new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 10), black)); footL.position.set(-0.17, 0.08, 0.10); footL.scale.set(1, 0.6, 1.25);
-  const footR = footL.clone(); footR.position.x = 0.17; g.add(footR);
-  const tail = add(new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), black), bodyG); tail.position.set(0, -0.12, -0.38);
+  const legL = add(new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.12, 8, 14), black)); legL.position.set(-0.21, 0.2, 0.03);
+  const legR = legL.clone(); legR.position.x = 0.21; g.add(legR);
+  const footL = add(new THREE.Mesh(new THREE.SphereGeometry(0.17, 14, 10), black)); footL.position.set(-0.21, 0.1, 0.12); footL.scale.set(1, 0.6, 1.3);
+  const footR = footL.clone(); footR.position.x = 0.21; g.add(footR);
+  const tail = add(new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), black), bodyG); tail.position.set(0, -0.14, -0.47);
 
   // ---- KOKA (e madhe!) ----
-  const headG = new THREE.Group(); headG.position.y = 1.26; g.add(headG);
-  const head = add(new THREE.Mesh(new THREE.SphereGeometry(0.60, 40, 30), cream), headG); head.scale.set(1.06, 0.95, 0.98);
-  const earL = add(new THREE.Mesh(new THREE.SphereGeometry(0.16, 18, 14), black), headG); earL.position.set(-0.46, 0.42, -0.05); earL.scale.set(1.1, 1.1, 0.75);
-  const earR = earL.clone(); earR.position.x = 0.46; headG.add(earR);
+  const headG = new THREE.Group(); headG.position.y = 1.5; g.add(headG);
+  const head = add(new THREE.Mesh(new THREE.SphereGeometry(0.56, 40, 30), cream), headG); head.scale.set(1.08, 0.94, 0.98);
+  const earL = add(new THREE.Mesh(new THREE.SphereGeometry(0.16, 18, 14), black), headG); earL.position.set(-0.40, 0.42, -0.04); earL.scale.set(0.85, 0.85, 0.65);
+  const earR = earL.clone(); earR.position.x = 0.40; headG.add(earR);
   // Njollat e zeza të syve (të pjerrëta, si në referencë)
-  const patchL = add(new THREE.Mesh(new THREE.SphereGeometry(0.19, 24, 18), black), headG); patchL.position.set(-0.23, 0.04, 0.47); patchL.scale.set(1.15, 1.4, 0.45); patchL.rotation.z = -0.35;
-  const patchR = patchL.clone(); patchR.position.x = 0.23; patchR.rotation.z = 0.35; headG.add(patchR);
+  const patchL = add(new THREE.Mesh(new THREE.SphereGeometry(0.19, 24, 18), black), headG); patchL.position.set(-0.22, 0.03, 0.44); patchL.scale.set(1.1, 1.35, 0.42); patchL.rotation.z = -0.35;
+  const patchR = patchL.clone(); patchR.position.x = 0.22; patchR.rotation.z = 0.35; headG.add(patchR);
   // Sytë: e bardha, irisi, bebja, dy shkëlqime (look "glossy")
   const mkEye = (x) => {
-    const e = new THREE.Group(); e.position.set(x, 0.05, 0.575); headG.add(e);
+    const e = new THREE.Group(); e.position.set(x, 0.04, 0.535); headG.add(e);
     const w = add(new THREE.Mesh(new THREE.SphereGeometry(0.135, 24, 18), eyeWhite), e); w.scale.set(1, 1.15, 0.6);
     const ir = add(new THREE.Mesh(new THREE.SphereGeometry(0.10, 24, 18), iris), e); ir.position.z = 0.05; ir.scale.set(1, 1.1, 0.5);
     const pu = add(new THREE.Mesh(new THREE.SphereGeometry(0.06, 20, 14), pupilM), e); pu.position.z = 0.085; pu.scale.set(1, 1.1, 0.5);
@@ -9827,22 +9834,22 @@ function buildPlaceholderPanda() {
     e.userData = { w, ir, pu, lid };
     return e;
   };
-  const eyeL = mkEye(-0.24), eyeR = mkEye(0.24);
+  const eyeL = mkEye(-0.23), eyeR = mkEye(0.23);
   // Vetullat (të holla, për shprehje)
-  const browL = add(new THREE.Mesh(new THREE.CapsuleGeometry(0.014, 0.1, 6, 8), black), headG); browL.position.set(-0.24, 0.29, 0.54); browL.rotation.z = Math.PI / 2; browL.visible = false;
-  const browR = browL.clone(); browR.position.x = 0.24; headG.add(browR);
+  const browL = add(new THREE.Mesh(new THREE.CapsuleGeometry(0.014, 0.1, 6, 8), black), headG); browL.position.set(-0.23, 0.27, 0.5); browL.rotation.z = Math.PI / 2; browL.visible = false;
+  const browR = browL.clone(); browR.position.x = 0.23; headG.add(browR);
   // Hunda dhe goja e vogël
-  const nose = add(new THREE.Mesh(new THREE.SphereGeometry(0.055, 14, 10), pbrMat(0x111111)), headG); nose.position.set(0, -0.14, 0.60); nose.scale.set(1.3, 0.8, 0.7);
-  const mouthG = new THREE.Group(); mouthG.position.set(0, -0.26, 0.565); headG.add(mouthG);
+  const nose = add(new THREE.Mesh(new THREE.SphereGeometry(0.055, 14, 10), pbrMat(0x111111)), headG); nose.position.set(0, -0.13, 0.56); nose.scale.set(1.3, 0.8, 0.7);
+  const mouthG = new THREE.Group(); mouthG.position.set(0, -0.25, 0.53); headG.add(mouthG);
   const mouth = add(new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 12), mouthDark), mouthG); mouth.scale.set(1.1, 0.75, 0.5);
   const tongue = add(new THREE.Mesh(new THREE.SphereGeometry(0.035, 12, 10), tongueM), mouthG); tongue.position.set(0, -0.025, 0.02); tongue.scale.set(1, 0.6, 0.8);
-  const smileL = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.01, 6, 12, Math.PI), pbrMat(0x111111)); smileL.rotation.x = Math.PI; smileL.position.set(0, -0.23, 0.575); smileL.visible = false; headG.add(smileL);
+  const smileL = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.01, 6, 12, Math.PI), pbrMat(0x111111)); smileL.rotation.x = Math.PI; smileL.position.set(0, -0.22, 0.54); smileL.visible = false; headG.add(smileL);
   // Faqet rozë
-  const cheekL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 10), new THREE.MeshStandardMaterial({ color: 0xf9a8c9, transparent: true, opacity: 0.55, roughness: 1 })); cheekL.position.set(-0.42, -0.14, 0.41); cheekL.scale.set(1.1, 0.75, 0.4); headG.add(cheekL);
-  const cheekR = cheekL.clone(); cheekR.position.x = 0.42; headG.add(cheekR);
+  const cheekL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 10), new THREE.MeshStandardMaterial({ color: 0xf9a8c9, transparent: true, opacity: 0.55, roughness: 1 })); cheekL.position.set(-0.40, -0.13, 0.38); cheekL.scale.set(1.2, 0.8, 0.4); headG.add(cheekL);
+  const cheekR = cheekL.clone(); cheekR.position.x = 0.40; headG.add(cheekR);
   // Lotët (të fshehur)
-  const tearL = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), new THREE.MeshPhysicalMaterial({ color: 0x8fd3ff, transparent: true, opacity: 0.85, clearcoat: 1 })); tearL.position.set(-0.32, -0.12, 0.54); tearL.scale.set(0.8, 1.3, 0.6); tearL.visible = false; headG.add(tearL);
-  const tearR = tearL.clone(); tearR.position.x = 0.32; headG.add(tearR);
+  const tearL = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), new THREE.MeshPhysicalMaterial({ color: 0x8fd3ff, transparent: true, opacity: 0.85, clearcoat: 1 })); tearL.position.set(-0.31, -0.11, 0.5); tearL.scale.set(0.8, 1.3, 0.6); tearL.visible = false; headG.add(tearL);
+  const tearR = tearL.clone(); tearR.position.x = 0.31; headG.add(tearR);
   // Zzz për gjumë
   const zzz = new THREE.Group(); zzz.position.set(0.5, 0.5, 0); zzz.visible = false; headG.add(zzz);
   [0, 0.14, 0.28].forEach((y, i) => { const z = new THREE.Mesh(new THREE.TorusGeometry(0.03 + i * 0.012, 0.01, 6, 10), pbrMat(0x9fb3ff)); z.position.set(i * 0.06, y, 0); zzz.add(z); });
@@ -9865,10 +9872,13 @@ const EXPR_PRESETS = {
   dirty:    { eyeOpen: 0.9,  pupil: 1,    brow: 0.4,  mouthOpen: 0.3,  smile: 0.2,  cheeks: 0.3, tears: 0 },
   urgent:   { eyeOpen: 1.1,  pupil: 0.8,  brow: -0.5, mouthOpen: 0.5,  smile: 0,    cheeks: 0.6, tears: 0.2 },
   sick:     { eyeOpen: 0.5,  pupil: 0.85, brow: 0.6,  mouthOpen: 0.2,  smile: 0,    cheeks: 0.1, tears: 0.2 },
-  sleep:    { eyeOpen: 0,    pupil: 1,    brow: 0,    mouthOpen: 0.2,  smile: 0.4,  cheeks: 0.4, tears: 0 }
+  sleep:    { eyeOpen: 0,    pupil: 1,    brow: 0,    mouthOpen: 0.2,  smile: 0.4,  cheeks: 0.4, tears: 0 },
+  sleepy:   { eyeOpen: 0.3,  pupil: 0.9,  brow: 0.1,  mouthOpen: 0.5,  smile: 0.2,  cheeks: 0.3, tears: 0 },
+  surprised:{ eyeOpen: 1.25, pupil: 0.7,  brow: -0.2, mouthOpen: 0.9,  smile: 0.3,  cheeks: 0.5, tears: 0 },
+  angry:    { eyeOpen: 0.75, pupil: 0.85, brow: -0.8, mouthOpen: 0.2,  smile: 0,    cheeks: 0.7, tears: 0 }
 };
 const lerp = (a, b, t) => a + (b - a) * t;
-let blinkT = 0, blinkPhase = 0;
+let blinkT = 0, blinkPhase = 0, nextBlink = 3;
 
 function applyExpression(dt, emotion, animName) {
   const P = S.panda.userData.parts; const E = S.panda.userData.expr; if (!P || !E) return;
@@ -9877,7 +9887,12 @@ function applyExpression(dt, emotion, animName) {
   for (const key in preset) E[key] = lerp(E[key], preset[key], k);
   // Pulitje periodike
   blinkT += dt; let eyeOpen = E.eyeOpen;
-  if (blinkT > 3.2 + Math.random() * 0.02) { blinkPhase += dt * 12; if (blinkPhase >= Math.PI) { blinkPhase = 0; blinkT = 0; } eyeOpen *= 1 - Math.sin(blinkPhase); }
+  const blinkSpeed = emotion === "tired" || emotion === "sleepy" ? 6 : 13;
+  if (blinkT > nextBlink) { blinkPhase += dt * blinkSpeed; if (blinkPhase >= Math.PI) { blinkPhase = 0; blinkT = 0; nextBlink = (emotion === "surprised" ? 5 : 2) + Math.random() * 4; } eyeOpen *= 1 - Math.sin(blinkPhase); }
+  // Veshët: lëvizje e lehtë kur është i lumtur/i emocionuar, ulen kur është i trishtuar
+  const P2 = S.panda.userData.parts;
+  if (emotion === "happy" || emotion === "excited") { P2.earL.rotation.z = Math.sin(S.anim.t * 6) * 0.15; P2.earR.rotation.z = -Math.sin(S.anim.t * 6) * 0.15; }
+  else if (emotion === "sad" || emotion === "lonely" || emotion === "sick") { P2.earL.rotation.z = 0.25; P2.earR.rotation.z = -0.25; }
   [P.eyeL, P.eyeR].forEach(e => {
     const u = e.userData;
     u.w.scale.y = 1.15 * Math.max(0.08, eyeOpen); u.ir.scale.set(E.pupil, 1.1 * E.pupil, 0.5); u.pu.scale.set(E.pupil, 1.1 * E.pupil, 0.5);
@@ -9889,7 +9904,7 @@ function applyExpression(dt, emotion, animName) {
   P.browL.rotation.z = Math.PI / 2 + E.brow * 0.5; P.browR.rotation.z = Math.PI / 2 - E.brow * 0.5;
   P.browL.position.y = P.browR.position.y = 0.27 + Math.max(0, E.brow) * 0.06;
   // Goja: e hapur (sferë) vs buzëqeshje (hark)
-  P.mouthG.visible = E.mouthOpen > 0.25; P.mouthG.scale.set(0.6 + E.mouthOpen * 0.7, 0.4 + E.mouthOpen * 0.9, 1);
+  P.mouthG.visible = E.mouthOpen > 0.25; P.mouthG.scale.set(0.6 + E.mouthOpen * 0.7 + E.smile * 0.9, 0.4 + E.mouthOpen * 0.9, 1); P.mouthG.position.y = -0.25 + E.smile * 0.02;
   P.tongue.visible = E.mouthOpen > 0.5; P.smileL.visible = !P.mouthG.visible;
   P.smileL.rotation.x = E.smile > 0.4 ? Math.PI : 0; P.smileL.position.y = E.smile > 0.4 ? -0.23 : -0.27;
   P.cheekL.material.opacity = P.cheekR.material.opacity = 0.2 + E.cheeks * 0.5;
@@ -10220,14 +10235,14 @@ function procAnim(dt) {
   const g = S.panda; const em = S.api.getEmotion();
   // ---- PESHA: forma e trupit ndryshon vazhdimisht (15..100) — trupi, barku, faqet, këmbët ----
   const w = (st.weight - 50) / 50;                       // -0.7 .. +1.0
-  P.body.scale.set(1 + w * 0.22, 0.95 - Math.max(0, w) * 0.06, 0.92 + w * 0.26);
-  P.belly.scale.set(0.95 + w * 0.3, 0.9 + Math.max(0, w) * 0.1, 0.6 + w * 0.4);
-  P.head.scale.set(1.04 + Math.max(0, w) * 0.05, 0.96, 0.98 + Math.max(0, w) * 0.04);
-  P.armL.position.x = -0.36 - Math.max(0, w) * 0.08; P.armR.position.x = 0.36 + Math.max(0, w) * 0.08;
+  P.body.scale.set(1 + w * 0.22, 1.0 - Math.max(0, w) * 0.05, 0.92 + w * 0.28);
+  P.belly.scale.set(0.95 + w * 0.3, 0.95 + Math.max(0, w) * 0.08, 0.62 + w * 0.42);
+  P.legL.position.x = -0.21 - Math.max(0, w) * 0.05; P.legR.position.x = 0.21 + Math.max(0, w) * 0.05; P.footL.position.x = P.legL.position.x; P.footR.position.x = P.legR.position.x;
+  P.armL.position.x = -0.46 - Math.max(0, w) * 0.08; P.armR.position.x = 0.46 + Math.max(0, w) * 0.08;
   // ---- reset ----
   P.armL.rotation.set(-0.6, 0, 0.9); P.armR.rotation.set(-0.6, 0, -0.9);
   P.legL.rotation.set(0, 0, 0); P.legR.rotation.set(0, 0, 0); P.footL.rotation.set(0,0,0); P.footR.rotation.set(0,0,0);
-  P.headG.rotation.set(0, 0, 0); P.headG.position.y = 1.26; P.bodyG.rotation.set(0, 0, 0);
+  P.headG.rotation.set(0, 0, 0); P.headG.position.y = 1.5; P.bodyG.rotation.set(0, 0, 0); P.earL.rotation.set(0,0,0); P.earR.rotation.set(0,0,0);
   g.rotation.x = 0; g.rotation.z = 0; g.position.y = 0;
   const breathe = Math.sin(t * 1.8) * 0.015;
   if (n === "walk") {
@@ -10243,12 +10258,16 @@ function procAnim(dt) {
     g.position.y = Math.abs(Math.sin(t * 7)) * 0.2;
     P.armL.rotation.set(-2.6, 0, 0.6 + Math.sin(t * 10) * 0.4); P.armR.rotation.set(-2.6, 0, -0.6 - Math.sin(t * 10) * 0.4);
     P.headG.rotation.z = Math.sin(t * 6) * 0.15; P.bodyG.rotation.y = Math.sin(t * 3) * 0.2;
+  } else if (n === "greeting") {
+    P.armR.rotation.set(-2.9, 0, -0.5 + Math.sin(t * 9) * 0.45); P.headG.rotation.z = -0.1; P.headG.rotation.y = 0.15; g.position.y = breathe;
+  } else if (n === "surprised") {
+    P.headG.rotation.x = -0.18; P.headG.position.y = 1.53; P.armL.rotation.set(-1.6, 0, 1.3); P.armR.rotation.set(-1.6, 0, -1.3); g.position.y = Math.max(0, 0.12 - t * 0.3);
   } else if (n === "sit") {
     g.position.y = -0.14; P.legL.rotation.x = -1.4; P.legR.rotation.x = -1.4; P.footL.rotation.x = -1.2; P.footR.rotation.x = -1.2; P.headG.rotation.y = Math.sin(t * 0.8) * 0.2;
   } else if (n === "bath") {
     g.position.y = -0.12; P.armL.rotation.x = -1 + Math.sin(t * 5) * 0.5; P.armR.rotation.x = -1 - Math.sin(t * 5) * 0.5; P.headG.rotation.z = Math.sin(t * 2) * 0.1;
   } else if (n === "tired") {
-    P.headG.rotation.x = 0.28; P.headG.position.y = 1.23 + breathe; g.position.y = breathe;
+    P.headG.rotation.x = 0.28; P.headG.position.y = 1.47 + breathe; g.position.y = breathe;
   } else { // idle
     g.position.y = breathe; P.headG.rotation.y = Math.sin(t * 0.7) * 0.28; P.headG.rotation.z = Math.sin(t * 0.45) * 0.06;
     if (em === "sad" || em === "lonely" || em === "sick") { P.headG.rotation.x = 0.28; P.armL.rotation.set(0.2, 0, 0.4); P.armR.rotation.set(0.2, 0, -0.4); }
@@ -10288,7 +10307,7 @@ function loop() {
   // flluska e të folurit ndjek pandën
   const b = document.getElementById("pandaBubble");
   if (b && !b.classList.contains("hidden")) {
-    const v = S.panda.position.clone(); v.y += 1.95 * (S.panda.userData.baseScale || 1); v.project(S.camera);
+    const v = S.panda.position.clone(); v.y += 2.2 * (S.panda.userData.baseScale || 1); v.project(S.camera);
     const r = S.renderer.domElement.getBoundingClientRect();
     b.style.left = ((v.x + 1) / 2 * r.width) + "px"; b.style.top = ((1 - v.y) / 2 * r.height) + "px";
   }
