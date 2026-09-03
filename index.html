@@ -944,6 +944,15 @@
     box-shadow: 0 6px 20px rgba(0,0,0,.28); transition: transform .12s ease, border-color .2s ease;
   }
   .exam-level-card:active { transform: scale(.98); }
+  .match-ads { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .match-ad { font-size: .84rem; line-height: 1.5; padding: 8px 10px; background: rgba(255,255,255,.04); border-radius: 8px; }
+  .match-row { display: flex; align-items: center; gap: 10px; padding: 10px 4px; border-bottom: 1px solid var(--line); }
+  .match-person { flex: 1; font-size: .86rem; line-height: 1.4; }
+  .match-select { padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 800; }
+  .match-row.match-correct { background: rgba(53,220,156,.08); } .match-row.match-wrong { background: rgba(255,95,109,.08); }
+  .match-hint { font-size: .78rem; color: var(--green); font-weight: 800; }
+  .speak-recorder { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .rec-status { min-height: 20px; font-size: .82rem; color: var(--muted); margin: 8px 0; line-height: 1.4; }
   .write-part { margin-bottom: 14px; } .write-part-time { font-weight: 600; font-size: .74rem; color: var(--muted); margin-left: 8px; }
   .wf-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px; margin-top: 12px; }
   .wf-head { font-weight: 800; margin-bottom: 10px; } .wf-note { font-size: .72rem; color: var(--gold); margin-left: 8px; font-weight: 700; }
@@ -953,6 +962,26 @@
   .wf-errors { margin-top: 8px; } .wf-err { font-size: .82rem; padding: 7px 0; border-top: 1px solid var(--line); }
   .wf-tag { display: inline-block; font-size: .66rem; font-weight: 800; padding: 2px 8px; border-radius: var(--radius-pill); background: rgba(255,95,109,.15); color: var(--red); margin-right: 6px; }
   .wf-expl { font-size: .76rem; color: var(--muted); margin-top: 3px; } .wf-corr { margin-top: 10px; font-size: .84rem; line-height: 1.55; } .wf-corr summary { cursor: pointer; font-weight: 700; }
+  .srs-due-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 16px; margin-bottom: 10px;
+    background: linear-gradient(135deg, rgba(255,200,87,.16), rgba(255,200,87,.06)); border: 1px solid rgba(255,200,87,.35);
+    border-radius: var(--radius-md); color: var(--gold); font-family: var(--font); font-weight: 800; font-size: .86rem; cursor: pointer; }
+  .srs-due-btn:active { transform: scale(.98); }
+  .weak-row { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .weak-row:last-child { border-bottom: none; }
+  .weak-top { display: flex; justify-content: space-between; font-size: .84rem; margin-bottom: 6px; }
+  .weak-top span { color: var(--red); font-weight: 800; }
+  .weak-practice { margin-top: 8px; width: 100%; padding: 8px; font-size: .78rem; }
+  .lvlup-box { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 4px; }
+  .lvlup-level { display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill); background: rgba(255,200,87,.15); color: var(--gold); font-weight: 800; font-size: .78rem; margin-bottom: 8px; }
+  .lvlup-row { display: flex; align-items: center; gap: 10px; font-size: .8rem; margin: 6px 0; }
+  .lvlup-row span { width: 110px; color: var(--muted); font-weight: 700; flex-shrink: 0; }
+  .lvlup-verdict { margin-top: 10px; padding: 8px 12px; border-radius: 10px; font-size: .8rem; font-weight: 700; background: rgba(255,200,87,.1); color: var(--gold); text-align: center; }
+  .lvlup-verdict.ready { background: rgba(53,220,156,.12); color: var(--green); }
+  .provider-label { font-size: .78rem; font-weight: 800; color: var(--muted); margin: 18px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+  .provider-label.goethe { color: #7aa2ff; } .provider-label.telc { color: #ffb84d; }
+  .exam-tile.telc { border-color: rgba(255,184,77,.3); }
+  .provider-hint { font-size: .72rem; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+  .elc-noprep { grid-column: 1 / -1; font-size: .68rem; color: var(--gold); margin-top: 4px; line-height: 1.4; text-align: left; }
   .exam-level-card.locked { opacity: .5; cursor: not-allowed; filter: grayscale(.4); }
   .exam-level-card.recommended { border-color: rgba(255,200,87,.5); box-shadow: 0 6px 22px rgba(0,0,0,.3), 0 0 20px rgba(255,200,87,.14); }
   .elc-badge {
@@ -1550,6 +1579,7 @@
 
 <!-- KARTEN -->
 <div class="view" id="view-cards">
+  <button class="srs-due-btn hidden" id="btnSrsReview">🔁 <span id="srsDueLabel">0 fjalë për t'u përsëritur sot</span></button>
   <select class="filter-select" id="catFilter"></select>
   <div class="stats-bar">
     <span id="cardProgress">0 / 0</span>
@@ -1746,6 +1776,12 @@
       <h3 data-i18n="account.learn.title">📚 Si ke mësuar</h3>
       <div id="profileLearnList"></div>
     </div>
+
+    <div class="auth-card hidden" id="weaknessCard">
+      <h3 data-i18n="account.weak.title">🎯 Dobësitë e tua kryesore</h3>
+      <div class="sub" data-i18n="account.weak.sub">Bazuar te gabimet e fundit në Shkrim dhe Të folurit.</div>
+      <div id="weaknessList"></div>
+    </div>
   </div>
 
   <div class="stats-grid" id="statsGrid"></div>
@@ -1847,6 +1883,10 @@
       <div class="sub" style="margin-bottom:8px;">Zgjidh nivelin që dëshiron të ushtrosh:</div>
       <div class="level-picker" id="levelPicker"></div>
       <button class="btn btn-secondary" id="btnRetakePlacement" style="width:100%;margin-top:14px;font-size:.82rem;">↺ Përsërit testin e vlerësimit</button>
+      <div class="lvlup-box" id="lvlupBox">
+        <div class="sub" data-i18n="lvlup.title" style="margin:14px 0 8px;font-weight:700;">A je gati për nivelin tjetër?</div>
+        <div id="lvlupList"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -2561,14 +2601,22 @@ const RAW = {
 ["zbulim","die Entdeckung"],["shpikje","die Erfindung"],["analizë","die Analyse"],
 ["provë (shkencore)","der Beweis"],["studiues","der Forscher"],["robotikë","die Robotik"],
 ["inteligjencë artificiale","die künstliche Intelligenz"],["gjenetikë","die Genetik"],
-["mikroskop","das Mikroskop"],["satelit","der Satellit"]
+["mikroskop","das Mikroskop"],["satelit","der Satellit"],
+["studim (shkencor)","die Studie"],["metodë","die Methode"],
+["publikim","die Publikation"],["fushë specializimi","das Fachgebiet"],
+["kampion (statistikor)","die Stichprobe"],["vlerësim","die Auswertung"],
+["të hedhësh poshtë","widerlegen"],["të vërtetosh","belegen"],["të hulumtosh","untersuchen"]
 ],
 "Wirtschaft (Detail)": [
 ["treg pune","der Arbeitsmarkt"],["inflacion","die Inflation"],["eksport","der Export"],
 ["import","der Import"],["aksion (ekonomi)","die Aktie"],["bursë","die Börse"],
 ["kriza ekonomike","die Wirtschaftskrise"],["rritje ekonomike","das Wirtschaftswachstum"],
 ["pagë minimale","der Mindestlohn"],["sipërmarrje","das Unternehmen"],["sipërmarrës","der Unternehmer"],
-["ofertë dhe kërkesë","Angebot und Nachfrage"],["prodhim","die Produktion"],["konsum","der Konsum"]
+["ofertë dhe kërkesë","Angebot und Nachfrage"],["prodhim","die Produktion"],["konsum","der Konsum"],
+["kërkesë (ekonomike)","die Nachfrage"],["konkurrencë (treg)","der Wettbewerb"],["xhiro","der Umsatz"],
+["humbje (financiare)","der Verlust"],["të investosh","investieren"],
+["tregu i aksioneve","der Aktienmarkt"],["bashkim (kompanish)","die Fusion"],
+["falimentim","die Insolvenz"],["pjesë tregu","der Marktanteil"]
 ],
 "Geographie & Länder": [
 ["kontinent","der Kontinent"],["oqean","der Ozean"],["kufi shtetëror","die Staatsgrenze"],
@@ -2682,6 +2730,133 @@ const RAW = {
 ["i drejtpërdrejtë","direkt"],["indirekt","indirekt"],["i paqëndrueshëm","instabil"],
 ["efikas","effizient"],["joefikas","ineffizient"],["i dobishëm","nützlich"],
 ["i padobishëm","nutzlos"],["praktik","praktisch"],["teorik","theoretisch"]
+],
+"Shprehje me folje funksionale (B2)": [
+["të marrësh një vendim","eine Entscheidung treffen"],["të kesh konsideratë (për)","Rücksicht nehmen (auf)"],
+["të hyjë në fuqi","in Kraft treten"],["të jesh në dispozicion","zur Verfügung stehen"],
+["të marrësh përgjegjësi","Verantwortung übernehmen"],["të luash një rol","eine Rolle spielen"],
+["të ndikosh (në)","Einfluss nehmen (auf)"],["të marrësh qëndrim (për)","Stellung nehmen (zu)"],
+["të shprehësh","zum Ausdruck bringen"],["të përdorësh/shfrytëzosh","in Anspruch nehmen"],
+["të konsultohesh","Rücksprache halten"],["të kritikosh","Kritik üben (an)"],
+["të bësh përparim","Fortschritte machen"],["të ngresh një çështje","zur Sprache bringen"]
+],
+"Shprehje abstrakte & shoqëri (B2)": [
+["qëndrueshmëri","die Nachhaltigkeit"],["përgjegjësi","die Verantwortung"],["sfidë","die Herausforderung"],
+["barazi shansesh","die Chancengleichheit"],["tolerancë","die Toleranz"],
+["kohezion shoqëror","der Zusammenhalt"],["diskriminim","die Diskriminierung"],
+["solidaritet","die Solidarität"],["perspektivë","die Perspektive"],["ndryshim vlerash","der Wertewandel"],
+["globalizim","die Globalisierung"]
+],
+"Kolokacione (B2)": [
+["të ketë kuptim","Sinn machen"],["të bësh përshtypje (te)","Eindruck machen (auf)"],
+["të kesh sukses","Erfolg haben"],["të kesh ndikim (në)","Einfluss haben (auf)"],
+["të kesh të drejtë","Recht haben"],["të kesh frikë (nga)","Angst haben (vor)"],
+["të kesh dëshirë (për)","Lust haben (auf)"],["t'i japësh rëndësi (diçkaje)","Wert legen (auf)"],
+["të bësh përdorim (të)","Gebrauch machen (von)"],["të pretendosh (të drejtën për)","Anspruch erheben (auf)"],
+["t'i referohesh","Bezug nehmen (auf)"],["të distancohesh (nga)","Abstand nehmen (von)"],
+["të mbash hapin (me)","Schritt halten (mit)"]
+],
+"Emra abstrakte shtesë (B2)": [
+["iniciativë","die Initiative"],["prioritet","die Priorität"],
+["kompetencë","die Kompetenz"],["efikasitet","die Effizienz"],
+["produktivitet","die Produktivität"],["stabilitet","die Stabilität"],
+["transparencë","die Transparenz"],["inovacion","die Innovation"],["strategji","die Strategie"],
+["potencial","das Potenzial"],["burim (resurs)","die Ressource"],["infrastrukturë","die Infrastruktur"]
+],
+"Fjalor akademik & abstrakt (C1)": [
+["ambivalencë","die Ambivalenz"],["kontrovers (emër)","die Kontroverse"],["paradoks","das Paradoxon"],
+["nuancë","die Nuance"],["implikim","die Implikation"],["premisë","die Prämisse"],
+["dilemë","das Dilemma"],["pasojë","die Konsequenz"],["legjitimitet","die Legitimität"],
+["autenticitet","die Authentizität"],["kompleksitet","die Komplexität"],["rëndësi (relevancë)","die Relevanz"],
+["domethënie","die Signifikanz"],["koherencë","die Kohärenz"],["objektivitet","die Objektivität"]
+],
+"Folje akademike (C1)": [
+["të nënkuptosh","implizieren"],["të konstatosh","konstatieren"],["të postulosh","postulieren"],
+["të rezultosh (nga)","resultieren (aus)"],["të dallosh/diferencosh","differenzieren"],
+["të relativizosh","relativieren"],["të trajtosh (si temë)","thematisieren"],
+["të problematizosh","problematisieren"],["të ilustrosh","veranschaulichen"],
+["të qartësosh","verdeutlichen"],["të prekësh (një çështje)","tangieren"],["të korrelosh","korrelieren"]
+],
+"Shprehje idiomatike (C1)": [
+["ta qëllosh në shenjë","den Nagel auf den Kopf treffen"],["të ketë peshë/rëndësi","ins Gewicht fallen"],
+["të jetë e qartë","auf der Hand liegen"],["ta marrësh për zemër","sich etwas zu Herzen nehmen"],
+["të dalësh i humbur","den Kürzeren ziehen"],["të shkojnë krah për krah (me)","Hand in Hand gehen (mit)"],
+["të hedhësh bazat (për)","die Weichen stellen (für)"],["në fakt/në thelb","im Grunde genommen"],
+["nuk mund të mohohet","nicht von der Hand zu weisen"],["që në fillim/menjëherë","auf Anhieb"]
+],
+"Mbiemra të saktë (C1)": [
+["i besueshëm","plausibel"],["i dyshimtë","fragwürdig"],["i rëndë (serioz)","gravierend"],
+["marxhinal","marginal"],["i pasigurt (prekar)","prekär"],["i diskutueshëm","kontrovers"],
+["ambivalent","ambivalent"],["evident","evident"],["i zakonshëm/i përhapur","gängig"],
+["i vjetëruar","obsolet"],["konciz","prägnant"],["shumëdimensional","facettenreich"]
+],
+"Fjalor filozofik & shkencor (C1)": [
+["epistemologji","die Erkenntnistheorie"],["etikë","die Ethik"],["moral","die Moral"],
+["perceptim","die Wahrnehmung"],["racionalitet","die Rationalität"],
+["subjektivitet","die Subjektivität"],["faktor përcaktues","die Determinante"],
+["shkakësi","die Kausalität"],["postulat","das Postulat"],["dialektikë","die Dialektik"],
+["emancipim","die Emanzipation"],["autonomi","die Autonomie"],["sovranitet","die Souveränität"],
+["legjitimim","die Legitimation"]
+],
+"Shprehje idiomatike shtesë (C1)": [
+["ta shtysh diçka pa afat","etwas auf die lange Bank schieben"],
+["të rrezikosh duke thënë diçka","sich aus dem Fenster lehnen"],
+["t'i thuash dikujt të vërtetën e hidhur","jemandem reinen Wein einschenken"],
+["të blesh mace në thes","die Katze im Sack kaufen"],
+["të lexosh mes rreshtave","zwischen den Zeilen lesen"],
+["të jetë e brishtë (pa themel)","auf Sand gebaut sein"],
+["të vësh gurin në lëvizje","den Stein ins Rollen bringen"],
+["të zhduket në ajër","sich in Luft auflösen"],
+["të qëndrosh mbi baza të brishta","auf tönernen Füßen stehen"],
+["të gjykosh me dy standarde","mit zweierlei Maß messen"]
+],
+"Folje të sakta (C1)": [
+["të pranosh (në debat)","konzedieren"],["të parashikosh","antizipieren"],
+["të mohosh zyrtarisht","dementieren"],["të sugjerosh (nënkuptimisht)","suggerieren"],
+["të fshehësh/maskosh","kaschieren"],["të shembullëzosh","exemplifizieren"],
+["të konkretizosh","konkretisieren"],["të modifikosh","modifizieren"],
+["të optimizosh","optimieren"],["të përfshish (nën një kategori)","subsumieren"]
+]
+,
+"Mjedisi & Klima (B2)": [
+["emetim (CO2)","der Ausstoß"],
+["gjurmë karboni","der CO2-Fußabdruck"],
+["energji e rinovueshme","erneuerbare Energie"],
+["ngrohje globale","die Erderwärmung"],
+["shkrirje e akullnajave","das Gletscherschmelzen"],
+["qëndrueshmëri mjedisore","die Umweltverträglichkeit"],
+["burime fosile","fossile Brennstoffe"],
+["biodiversitet","die Artenvielfalt"],
+["shpyllëzim","die Abholzung"],
+["ndotje ajri","die Luftverschmutzung"],
+["politikë klimatike","die Klimapolitik"],
+["gjurmë ekologjike","der ökologische Fußabdruck"]
+],
+"Shëndetësi & Mjekësi (B2)": [
+["trajtim (mjekësor)","die Behandlung"],
+["dozë","die Dosis"],
+["kronik (sëmundje)","chronisch"],
+["akut","akut"],
+["imunitet","die Immunität"],
+["epidemi","die Epidemie"],
+["kirurgji","die Chirurgie"],
+["rehabilitim","die Rehabilitation"],
+["kujdes paliativ","die Palliativpflege"],
+["sistem shëndetësor","das Gesundheitssystem"]
+],
+"Lidhëza & shprehje diskursi (C1)": [
+["në thelb","im Wesentlichen"],
+["në mënyrë të veçantë","insbesondere"],
+["pa marrë parasysh","unabhängig davon"],
+["me fjalë të tjera","mit anderen Worten"],
+["në këtë kontekst","in diesem Zusammenhang"],
+["si rrjedhojë","folglich"],
+["në parim","grundsätzlich"],
+["deri diku","bis zu einem gewissen Grad"],
+["për sa i përket","was … betrifft"],
+["në thelb të çështjes","im Kern der Sache"],
+["për më tepër","darüber hinaus"],
+["në terma të përgjithshëm","im Großen und Ganzen"]
 ]
 };
 
@@ -2857,9 +3032,13 @@ const RAW_EN_5 = {
 "philosophy","computer science","physical education","art","foreign language","oral exam","written exam",
 "grade average","tutoring","curriculum"],
 "Wissenschaft & Forschung": ["science","research","experiment","theory","hypothesis","laboratory","discovery",
-"invention","analysis","proof","researcher","robotics","artificial intelligence","genetics","microscope","satellite"],
+"invention","analysis","proof","researcher","robotics","artificial intelligence","genetics","microscope","satellite",
+"study","method","publication","field of expertise","sample (statistical)","evaluation/analysis",
+"to refute","to substantiate/prove","to investigate"],
 "Wirtschaft (Detail)": ["job market","inflation","export","import","stock/share","stock exchange",
-"economic crisis","economic growth","minimum wage","enterprise/business","entrepreneur","supply and demand","production","consumption"],
+"economic crisis","economic growth","minimum wage","enterprise/business","entrepreneur","supply and demand","production","consumption",
+"demand (economic)","competition (market)","turnover/revenue","loss (financial)","to invest",
+"stock market","merger (companies)","insolvency/bankruptcy","market share"],
 "Geographie & Länder": ["continent","ocean","national border","capital city","peninsula","valley","desert",
 "glacier","volcano","hemisphere","equator","nation","nationality","homeland","emigration"],
 "Ernährung": ["diet","calorie","vitamin","protein","carbohydrates","fat","fiber","intolerance","organic food",
@@ -2903,13 +3082,62 @@ const RAW_EN_6 = {
 "emotional","direct","indirect","unstable","efficient","inefficient","useful","useless","practical","theoretical"]
 };
 
+const RAW_EN_7 = {
+"Shprehje me folje funksionale (B2)": ["to make a decision","to show consideration (for)","to come into effect","to be available",
+"to take responsibility","to play a role","to exert influence (on)","to take a stance (on)","to express",
+"to make use of","to consult/confer","to criticize","to make progress","to bring up (a topic)"],
+"Shprehje abstrakte & shoqëri (B2)": ["sustainability","responsibility","challenge","equal opportunity","tolerance",
+"cohesion/solidarity","discrimination","solidarity","perspective","shift in values","globalization"]
+};
+const RAW_EN_8 = {
+"Fjalor akademik & abstrakt (C1)": ["ambivalence","controversy (noun)","paradox","nuance","implication","premise",
+"dilemma","consequence","legitimacy","authenticity","complexity","relevance","significance","coherence","objectivity"],
+"Folje akademike (C1)": ["to imply","to state/note","to postulate","to result (from)","to differentiate",
+"to relativize/put into perspective","to address/thematize","to problematize","to illustrate","to clarify",
+"to affect/touch upon","to correlate"],
+"Shprehje idiomatike (C1)": ["to hit the nail on the head","to carry weight/matter","to be obvious",
+"to take something to heart","to come off worse","to go hand in hand (with)","to set the course (for)",
+"basically/fundamentally","cannot be dismissed","right away/at first attempt"],
+"Mbiemra të saktë (C1)": ["plausible","questionable","serious/grave","marginal","precarious","controversial",
+"ambivalent","evident","common/prevalent","obsolete","concise/pithy","multifaceted"]
+};
+const RAW_EN_9 = {
+"Kolokacione (B2)": ["to make sense","to make an impression (on)","to be successful","to have influence (on)",
+"to be right","to be afraid (of)","to feel like","to attach importance (to)","to make use (of)",
+"to lay claim (to)","to refer (to)","to distance oneself (from)","to keep pace (with)"],
+"Emra abstrakte shtesë (B2)": ["initiative","priority","competence","efficiency",
+"productivity","stability","transparency","innovation","strategy","potential","resource","infrastructure"],
+"Fjalor filozofik & shkencor (C1)": ["epistemology","ethics","morality","perception","rationality",
+"subjectivity","determinant/determining factor","causality","postulate","dialectic","emancipation","autonomy",
+"sovereignty","legitimation"],
+"Shprehje idiomatike shtesë (C1)": ["to put something off indefinitely","to stick one's neck out",
+"to give someone the unvarnished truth","to buy a pig in a poke","to read between the lines",
+"to be built on sand (unstable)","to set the ball rolling","to vanish into thin air",
+"to stand on shaky ground","to apply double standards"],
+"Folje të sakta (C1)": ["to concede","to anticipate","to officially deny","to suggest/imply","to mask/conceal",
+"to exemplify","to make concrete","to modify","to optimize","to subsume"]
+};
+
+const RAW_EN_10 = {
+"Mjedisi & Klima (B2)": ["emission","carbon footprint","renewable energy","global warming","glacier melting","environmental sustainability","fossil fuels","biodiversity","deforestation","air pollution","climate policy","ecological footprint"],
+"Shëndetësi & Mjekësi (B2)": ["treatment","dose","chronic","acute","immunity","epidemic","surgery","rehabilitation","palliative care","healthcare system"],
+"Lidhëza & shprehje diskursi (C1)": ["essentially","in particular","regardless of that","in other words","in this context","consequently","in principle","to a certain extent","as far as … is concerned","at the heart of the matter","furthermore","broadly speaking"]
+};
+
 const vocab = [];
 for (const cat in RAW) {
   RAW[cat].forEach(([al, de], i) => {
-    const en = (RAW_EN[cat] && RAW_EN[cat][i]) || (RAW_EN_2[cat] && RAW_EN_2[cat][i]) || (RAW_EN_3[cat] && RAW_EN_3[cat][i]) || (RAW_EN_4[cat] && RAW_EN_4[cat][i]) || (RAW_EN_5[cat] && RAW_EN_5[cat][i]) || (RAW_EN_6[cat] && RAW_EN_6[cat][i]) || null;
+    const en = (RAW_EN[cat] && RAW_EN[cat][i]) || (RAW_EN_2[cat] && RAW_EN_2[cat][i]) || (RAW_EN_3[cat] && RAW_EN_3[cat][i]) || (RAW_EN_4[cat] && RAW_EN_4[cat][i]) || (RAW_EN_5[cat] && RAW_EN_5[cat][i]) || (RAW_EN_6[cat] && RAW_EN_6[cat][i]) || (RAW_EN_7[cat] && RAW_EN_7[cat][i]) || (RAW_EN_8[cat] && RAW_EN_8[cat][i]) || (RAW_EN_9[cat] && RAW_EN_9[cat][i]) || (RAW_EN_10[cat] && RAW_EN_10[cat][i]) || null;
     vocab.push({ al, de, en, cat });
   });
 }
+
+// NIVELET CEFR PËR FJALORIN (vlerësim didaktik i brendshëm, JO i verifikuar live kundrejt
+// listave zyrtare Goethe/telc/ÖSD — shih raportin e auditit). Bazuar te kategoria tematike.
+const CAT_LEVEL = {"Begrüßung & Höflichkeit": "A1", "Person & Familie": "A1", "Zahlen": "A1", "Farben & Formen": "A1", "Zeit & Kalender": "A1", "Kleidung": "A1", "Essen & Trinken": "A1", "Wohnen": "A1", "Körper & Gesundheit": "A1", "Wetter & Natur": "A1", "Einkaufen & Geld": "A2", "Arbeit & Beruf": "A2", "Reisen & Verkehr": "A2", "Stadt & Ämter": "A2", "Freizeit & Medien": "A2", "Gefühle & Charakter": "A2", "Alltag & Haushalt": "A2", "Sport & Bewegung": "A2", "Kochen & Küche": "A2", "Reisen (erweitert)": "A2", "Tiere (erweitert)": "A2", "Pflanzen & Garten": "A2", "Möbel & Einrichtung (erweitert)": "A2", "Small Talk & Höflichkeitsfloskeln": "A2", "Mengen & Maße": "A2", "Feiertage & Bräuche": "A2", "Charakter & Verhalten (erweitert)": "A2", "Berufe (Übersicht)": "A2", "Kleidung & Accessoires (erweitert)": "A2", "Haushaltsgeräte (erweitert)": "A2", "Ausdrücke im Alltag (erweitert)": "A2", "Körper & Krankheiten (erweitert)": "A2", "Verkehr & Mobilität (erweitert)": "A2", "Zeitausdrücke (erweitert)": "A2", "Bildung": "A2", "Schulfächer & Lernen": "A2", "Präpositionen & Richtungswörter": "A2", "Geographie & Länder": "A2", "Verben": "A2", "Adjektive": "A2", "Konnektoren & B1-Redemittel": "B1", "Redewendungen B1": "B1", "Meinung äußern": "B1", "Notfälle & Sicherheit": "B1", "Kunst, Musik & Literatur": "B1", "Bank & Versicherung": "B1", "Politik & Verwaltung": "B1", "Ernährung": "B1", "Gefühle & Psychologie (erweitert)": "B1", "Digitalisierung & Internet (erweitert)": "B1", "Reisedokumente & Formalitäten (erweitert)": "B1", "Medien & Presse (erweitert)": "B1", "Naturphänomene (erweitert)": "B1", "Bildung & Beruf (erweitert)": "B1", "Technik & Kommunikation": "B1", "Umwelt & Gesellschaft": "B1", "Beziehungen & Charakter": "B1", "Verben (erweitert, reflexiv & trennbar)": "B1", "Adjektive (erweitert 2)": "B1", "Wissenschaft & Forschung": "B2", "Wirtschaft (Detail)": "B2", "Shprehje me folje funksionale (B2)": "B2", "Shprehje abstrakte & shoqëri (B2)": "B2", "Kolokacione (B2)": "B2", "Emra abstrakte shtesë (B2)": "B2", "Fjalor akademik & abstrakt (C1)": "C1", "Folje akademike (C1)": "C1", "Shprehje idiomatike (C1)": "C1", "Mbiemra të saktë (C1)": "C1", "Fjalor filozofik & shkencor (C1)": "C1", "Shprehje idiomatike shtesë (C1)": "C1", "Folje të sakta (C1)": "C1", "Mjedisi & Klima (B2)": "B2", "Shëndetësi & Mjekësi (B2)": "B2", "Lidhëza & shprehje diskursi (C1)": "C1"};
+vocab.forEach(w => { w.lvl = CAT_LEVEL[w.cat] || "B1"; });
+
+
 
 /* ============ PRÜFUNGSMATERIAL (Zertifikat B1) ============ */
 
@@ -3849,6 +4077,47 @@ function renderLevelCard() {
   }
   renderLevelPicker();
   renderCefrPill();
+  renderLvlUpBox();
+}
+
+/* ============ LEVEL-UP KRITERET ============
+   Përpara se një nivel të konsiderohet "i arritur", kontrollohen 3 gjëra për atë nivel:
+   fjalori (sa % janë përgjigjur saktë të paktën një herë), gramatika (sa % e ushtrimeve
+   të atij niveli janë kaluar mesatarisht mirë), dhe nëse ka provim të kaluar për atë nivel.
+   KY ËSHTË TREGUES/INFORMUES — nuk bllokon lundrimin, por tregon ndershmërisht gatishmërinë,
+   në vend që aplikacioni të pretendojë "je gati" bazuar vetëm në testin fillestar 4-pyetjesh. */
+const LVLUP_THRESHOLD = 0.7; // 70% konsiderohet "gati"
+function levelReadiness(level) {
+  ensureStats();
+  const lvlVocab = vocab.filter(w => w.lvl === level);
+  const vocabKnown = lvlVocab.filter(w => { const r = stats.words[w.al + "|" + w.de]; return r && r.c > 0; }).length;
+  const vocabPct = lvlVocab.length ? vocabKnown / lvlVocab.length : 0;
+
+  const lvlGrammar = GRAMMAR_EXERCISES.map((g, i) => ({ g, i })).filter(x => x.g.lvl === level);
+  const grammarOk = lvlGrammar.filter(x => { const r = stats.grammarItems && stats.grammarItems[x.i]; return r && r.c > r.w; }).length;
+  const grammarPct = lvlGrammar.length ? grammarOk / lvlGrammar.length : 0;
+
+  const examPassed = !!(stats.exams && stats.exams.bestModules && stats.exams.bestModules[level]);
+  const ready = vocabPct >= LVLUP_THRESHOLD && grammarPct >= LVLUP_THRESHOLD && (!["B1","B2","C1"].includes(level) || examPassed);
+  return { vocabPct, grammarPct, examPassed, ready, vocabTotal: lvlVocab.length, grammarTotal: lvlGrammar.length };
+}
+function renderLvlUpBox() {
+  const box = document.getElementById("lvlupBox"); if (!box) return;
+  const order = ["A1","A2","B1","B2","C1"];
+  const cur = cefrLevel || selectedLevel || "A1";
+  const idx = Math.max(0, order.indexOf(cur));
+  const level = order[idx];
+  if (!level) { box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+  const r = levelReadiness(level);
+  const pct = (p) => Math.round(p * 100);
+  const row = (label, p, extra) => `<div class="lvlup-row"><span>${label}</span><div class="acc-bar"><div class="acc-fill" style="width:${pct(p)}%;background:${p>=LVLUP_THRESHOLD?"var(--green)":"var(--gold)"}"></div></div><strong>${pct(p)}%</strong></div>${extra||""}`;
+  document.getElementById("lvlupList").innerHTML =
+    `<div class="lvlup-level">${level}</div>` +
+    row(uiText("lvlup.vocab"), r.vocabPct) +
+    row(uiText("lvlup.grammar"), r.grammarPct) +
+    (["B1","B2","C1"].includes(level) ? `<div class="lvlup-row"><span>${uiText("lvlup.exam")}</span><strong>${r.examPassed ? "✓" : "—"}</strong></div>` : "") +
+    `<div class="lvlup-verdict ${r.ready ? "ready" : ""}">${r.ready ? uiText("lvlup.ready") : uiText("lvlup.notready")}</div>`;
 }
 
 document.getElementById("btnRetakePlacement").addEventListener("click", () => {
@@ -3873,6 +4142,7 @@ const DEFAULT_STATS = {
   cards:     { known: 0, unknown: 0 },
   exams:     { taken: 0, passed: 0, best: 0, bestModules: {} },
   words:     {},   // "al|de": { c: saktë, w: gabim }
+  grammarItems: {},  // indeksi i GRAMMAR_EXERCISES: { c: saktë, w: gabim } — për Level-Up
   bestStreak: 0,
   stageLog:  {},    // "idx": { at: ISO-datë, totalAnswers, correctAnswers }
   homework:  { doneDays: {}, totalDone: 0, streak: 0, bestStreak: 0 },
@@ -3889,20 +4159,53 @@ function ensureStats() {
 }
 
 // Regjistro një përgjigje: burimi, saktë/gabim, dhe fjala (nëse ka)
+/* ============ SPACED REPETITION (SM-2 e thjeshtuar) ============
+   Çdo fjalë ka: c/w (saktë/gabim gjithsej — për statistikat ekzistuese),
+   due (kur duhet përsëritur sërish), interval (ditë), ease (lehtësia, 1.3–2.8).
+   Fjalë e re: due = tani (menjëherë e "fallshme" për t'u mësuar).
+   Përgjigje e saktë: intervali rritet (×ease); Përgjigje e gabuar: kthehet në < 1 ditë. */
+const SRS_DAY = 86400000;
+function srsUpdate(wordKey, correct) {
+  ensureStats();
+  const w = stats.words[wordKey] || (stats.words[wordKey] = { c: 0, w: 0 });
+  if (correct) w.c++; else w.w++;
+  if (w.ease === undefined) w.ease = 2.3;
+  if (correct) {
+    w.interval = w.interval ? Math.round(w.interval * w.ease * 10) / 10 : 1;
+    w.ease = Math.min(2.8, w.ease + 0.05);
+  } else {
+    w.interval = 0.2;   // ~5 orë — rishfaqet po atë ditë
+    w.ease = Math.max(1.3, w.ease - 0.2);
+  }
+  w.due = Date.now() + w.interval * SRS_DAY;
+  w.last = Date.now();
+}
+// Fjalët e "fallshme" sot: ose s'janë prekur kurrë, ose data e tyre "due" ka kaluar.
+function srsDueWords(pool) {
+  ensureStats();
+  const now = Date.now();
+  return (pool || vocab).filter(v => { const k = v.al + "|" + v.de; const rec = stats.words[k]; return !rec || !rec.due || rec.due <= now; });
+}
+function srsDueCount() { return srsDueWords().length; }
+
 function recordStat(source, isCorrect, wordKey) {
   ensureStats();
   if (stats[source] && stats[source].total !== undefined) {
     stats[source].total++;
     if (isCorrect) stats[source].correct++;
   }
-  if (wordKey) {
-    if (!stats.words[wordKey]) stats.words[wordKey] = { c: 0, w: 0 };
-    if (isCorrect) stats.words[wordKey].c++; else stats.words[wordKey].w++;
-  }
+  if (wordKey) srsUpdate(wordKey, isCorrect);
   if (answerStreak > (stats.bestStreak || 0)) stats.bestStreak = answerStreak;
   queueSave();
 }
 
+function recordGrammarItem(idx, correct) {
+  ensureStats();
+  if (!stats.grammarItems) stats.grammarItems = {};
+  const r = stats.grammarItems[idx] || (stats.grammarItems[idx] = { c: 0, w: 0 });
+  if (correct) r.c++; else r.w++;
+  queueSave();
+}
 function recordCard(known) {
   ensureStats();
   if (known) stats.cards.known++; else stats.cards.unknown++;
@@ -4087,18 +4390,23 @@ function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor
 function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML;}
 
 // Zgjedh një zë sipas prefiksit të gjuhës ("de" ose "en"), me preferencë për zë femëror
-function pickVoiceFor(langPrefix) {
+const VOICE_FEMALE_HINTS = ["anna","petra","helena","katja","marlene","conny","viktoria","female","google deutsch","martina","vicki",
+                             "samantha","karen","moira","tessa","serena","zira","google us english","google uk english female","joanna","emma"];
+const VOICE_MALE_HINTS = ["markus","yannick","stefan","male","hans","conrad","daniel","alex","fred","david","google uk english male"];
+// gender: null = e para e lirë (parazgjedhje), "f" = femërore, "m" = mashkullore — për të dalluar folësit në dialog
+function pickVoiceFor(langPrefix, gender) {
   if (!("speechSynthesis" in window)) return null;
   const voices = window.speechSynthesis.getVoices();
   if (!voices.length) return null;
-  const femaleHints = ["anna","petra","helena","katja","marlene","conny","viktoria","female","google deutsch","martina","vicki",
-                       "samantha","karen","moira","tessa","serena","zira","google us english","google uk english female","joanna","emma"];
-  const maleHints = ["markus","yannick","stefan","male","hans","conrad","daniel","alex","fred","david","google uk english male"];
   const pool = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith(langPrefix));
-  let voice = pool.find(v => femaleHints.some(hh => v.name.toLowerCase().includes(hh)));
-  if (!voice) voice = pool.find(v => !maleHints.some(hh => v.name.toLowerCase().includes(hh)));
-  if (!voice) voice = pool[0];
-  return voice || voices[0] || null;
+  if (!pool.length) return voices[0] || null;
+  const isFemale = (v) => VOICE_FEMALE_HINTS.some(hh => v.name.toLowerCase().includes(hh));
+  const isMale = (v) => VOICE_MALE_HINTS.some(hh => v.name.toLowerCase().includes(hh));
+  let voice;
+  if (gender === "m") voice = pool.find(isMale) || pool.find(v => !isFemale(v) && v !== pool[0]) || pool[Math.min(1, pool.length - 1)];
+  else if (gender === "f") voice = pool.find(isFemale) || pool.find(v => !isMale(v));
+  else voice = pool.find(isFemale) || pool.find(v => !isMale(v));
+  return voice || pool[0] || voices[0] || null;
 }
 
 // Mbetet për përputhshmëri me kodin ekzistues
@@ -4326,12 +4634,28 @@ const UI_STRINGS = {
   "panda.next_island_hint": { sq: "Mobilo dhomën plotësisht për ishullin tjetër.", de: "Richte das Zimmer komplett ein für die nächste Insel.", en: "Fully furnish the room for the next island." },
   "panda.rename_prompt": { sq: "Emri i ri i pandës:", de: "Neuer Name für den Panda:", en: "New name for your panda:" },
   "panda.rotate": { sq: "Rrotullo", de: "Drehen", en: "Rotate" },
+  "srs.due": { sq: "{n} fjalë për t'u përsëritur sot", de: "{n} Wörter heute zu wiederholen", en: "{n} words due for review today" },
+  "account.weak.title": { sq: "🎯 Dobësitë e tua kryesore", de: "🎯 Deine größten Schwächen", en: "🎯 Your main weaknesses" },
+  "account.weak.sub": { sq: "Bazuar te gabimet e fundit në Shkrim dhe Të folurit.", de: "Basierend auf den letzten Fehlern in Schreiben und Sprechen.", en: "Based on your recent errors in Writing and Speaking." },
+  "account.weak.practice": { sq: "Ushtro këtë temë", de: "Dieses Thema üben", en: "Practice this topic" },
+  "lvlup.title": { sq: "A je gati për nivelin tjetër?", de: "Bist du bereit für das nächste Niveau?", en: "Are you ready for the next level?" },
+  "lvlup.vocab": { sq: "Fjalori", de: "Wortschatz", en: "Vocabulary" },
+  "lvlup.grammar": { sq: "Gramatika", de: "Grammatik", en: "Grammar" },
+  "lvlup.exam": { sq: "Provimi B1", de: "B1-Prüfung", en: "B1 exam" },
+  "lvlup.ready": { sq: "✓ Duket se je gati!", de: "✓ Du scheinst bereit zu sein!", en: "✓ You seem ready!" },
+  "lvlup.notready": { sq: "Vazhdo të ushtrosh — ende jo gati plotësisht.", de: "Übe weiter — noch nicht ganz bereit.", en: "Keep practicing — not quite ready yet." },
+  "exam.true":  { sq: "E vërtetë", de: "Richtig", en: "True" },
+  "exam.false": { sq: "E gabuar", de: "Falsch", en: "False" },
+  "exam.match_title": { sq: "Përshtat çdo person me njoftimin e duhur", de: "Ordne jeder Person die passende Anzeige zu", en: "Match each person to the right ad" },
   "panda.remove": { sq: "Hiq", de: "Entfernen", en: "Remove" },
   "panda.place":  { sq: "Vendos", de: "Aufstellen", en: "Place" },
   "panda.use":    { sq: "Përdor", de: "Benutzen", en: "Use" },
   "exam.choose_level": { sq: "Zgjidh nivelin e provimit", de: "Wähle das Prüfungsniveau", en: "Choose the exam level" },
   "exam.or_single":    { sq: "Ose ushtro një modul B1 veç e veç", de: "Oder übe ein einzelnes B1-Modul", en: "Or practice a single B1 module" },
   "exam.locked":       { sq: "Në përgatitje — tekstet e këtij niveli s'janë gati ende", de: "In Vorbereitung – niveaugerechte Aufgaben folgen", en: "Coming soon – level-specific tasks in preparation" },
+  "exam.telc_note":    { sq: "provim tjetër, format tjetër", de: "andere Prüfung, anderes Format", en: "different exam, different format" },
+  "exam.telc_hint":    { sq: "Format i telc, jo pjesë e provimit modular Goethe më sipër — mos i ngatërro nëse përgatitesh për Goethe.", de: "telc-Format, nicht Teil der modularen Goethe-Prüfung oben — nicht verwechseln, wenn du dich auf Goethe vorbereitest.", en: "telc format, not part of the modular Goethe exam above — don't mix them up if you're preparing for Goethe." },
+  "exam.noprep": { sq: "Gramatika dhe fjalori i këtij niveli ende s'janë në aplikacion — provimi ekziston, por përgatitja jo ende.", de: "Grammatik und Wortschatz für dieses Niveau sind noch nicht in der App — die Prüfung existiert, die Vorbereitung dazu noch nicht.", en: "Grammar and vocabulary for this level aren't in the app yet — the exam exists, but the preparation for it doesn't yet." },
   "exam.modules_meta": { sq: "module", de: "Module", en: "modules" },
   "exam.min":          { sq: "min", de: "Min.", en: "min" },
   "exam.points":       { sq: "pikë", de: "Punkte", en: "points" },
@@ -4525,16 +4849,69 @@ document.querySelectorAll("#modeToggle [data-mode]").forEach(btn => {
 
 // Lexon me zë në gjuhën e MËSIMIT të modalitetit aktual (gjermanisht ose anglisht).
 // Mund t'i jepet edhe një gjuhë e detyruar, p.sh. speak(txt, "de-DE").
-function speak(text, forceLang) {
+function speak(text, forceLang, gender) {
   if (!("speechSynthesis" in window)) { alert("Pajisja jote nuk mbështet sintezën e zërit."); return; }
   window.speechSynthesis.cancel();
   const lang = forceLang || (typeof modeCfg === "function" ? modeCfg().speak : "de-DE");
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = lang; u.rate = 0.93; u.pitch = 1.04;
-  const voice = pickVoiceFor(lang.slice(0, 2).toLowerCase());
+  u.lang = lang; u.rate = 0.93; u.pitch = gender === "m" ? 0.92 : 1.04;
+  const voice = pickVoiceFor(lang.slice(0, 2).toLowerCase(), gender);
   if (voice) u.voice = voice;
   window.speechSynthesis.speak(u);
 }
+
+/* ============ DIALOGË ME FOLËS TË DALLUESHËM (Hören) ============
+   Shumica e pajisjeve kanë vetëm 1-2 zëra gjermanisht. Për t'i dalluar folësit në
+   dialog PA pretenduar zëra që s'ekzistojnë, ndajmë tekstin sipas "Emri: ..." dhe
+   përdorim: zë të ndryshëm nëse ka >1 në gjuhë, përndryshe të njëjtin zë me
+   lartësi (pitch) të ndryshme sipas gjinisë së emrit — gjithmonë më mirë se një
+   zë i vetëm rrjedhshëm për të dyja anët e bisedës. */
+const FEMALE_NAME_HINTS = ["frau","ärztin","kellnerin","dame","gast in","sela","meier","weber","hoxha","besa","sanije","rinesa"];
+function guessGender(name) {
+  const n = name.toLowerCase();
+  if (/^herr\b|arzt\b|kellner\b|deda|krasniqi/.test(n)) return "m";
+  if (FEMALE_NAME_HINTS.some(h => n.includes(h))) return "f";
+  return null;   // e panjohur → alternohet automatikisht më poshtë
+}
+function parseDialogTurns(script) {
+  const re = /(^|(?<=[.!?]\s))([A-ZÄÖÜ][a-zäöüßA-ZÄÖÜ]*(?:\s[A-ZÄÖÜ][a-zäöüß]+)?):\s/g;
+  const marks = [...script.matchAll(re)];
+  if (marks.length < 2) return null;   // monolog/njoftim — s'ka pse ndahet
+  const turns = [];
+  for (let i = 0; i < marks.length; i++) {
+    const start = marks[i].index + marks[i][0].length;
+    const end = i + 1 < marks.length ? marks[i + 1].index : script.length;
+    turns.push({ speaker: marks[i][2], text: script.slice(start, end).trim() });
+  }
+  return turns;
+}
+let dialogPlayback = null;   // { cancelled } — që "Ndalo" të mund ta ndërpresë sekuencën
+function speakDialog(script, lang, onDone) {
+  const turns = parseDialogTurns(script);
+  if (dialogPlayback) dialogPlayback.cancelled = true;
+  if (!("speechSynthesis" in window)) { alert("Pajisja jote nuk mbështet sintezën e zërit."); return; }
+  window.speechSynthesis.cancel();
+  if (!turns) { speak(script, lang); if (onDone) { const u = new SpeechSynthesisUtterance(""); /* fallback: vlerëso kohën më poshtë */ } return void (onDone && estimateSpeechEnd(script, onDone)); }
+  const names = [...new Set(turns.map(t => t.speaker))];
+  const assigned = {};
+  let alt = "f";
+  names.forEach(n => { const g = guessGender(n); assigned[n] = g || (alt = alt === "f" ? "m" : "f"); });
+  const state = { cancelled: false }; dialogPlayback = state;
+  let i = 0;
+  const step = () => {
+    if (state.cancelled || i >= turns.length) { if (!state.cancelled && onDone) onDone(); return; }
+    const t = turns[i++];
+    const u = new SpeechSynthesisUtterance(t.text);
+    u.lang = lang; u.rate = 0.93; u.pitch = assigned[t.speaker] === "m" ? 0.9 : 1.06;
+    const voice = pickVoiceFor(lang.slice(0, 2).toLowerCase(), assigned[t.speaker]);
+    if (voice) u.voice = voice;
+    u.onend = () => setTimeout(step, 260);   // pauzë e shkurtër mes folësve, si në bisedë reale
+    u.onerror = () => setTimeout(step, 50);
+    window.speechSynthesis.speak(u);
+  };
+  step();
+}
+function estimateSpeechEnd(text, cb) { const ms = Math.max(1500, text.split(/\s+/).length * 380); setTimeout(cb, ms); }
 
 /* ============ NUMRAT: numra me presje dhjetore, me shqiptim ============ */
 const GERMAN_ONES = ["null","eins","zwei","drei","vier","fünf","sechs","sieben","acht","neun",
@@ -4727,9 +5104,16 @@ function activeVocab() {
   return c ? vocab.filter(w => w.cat === c) : vocab;
 }
 let currentDeck = [];
+let srsMode = false;
 function initCardOrder() {
-  currentDeck = shuffle(activeVocab());
+  currentDeck = shuffle(srsMode ? srsDueWords(activeVocab()) : activeVocab());
   cardIndex = 0; knownCount = 0;
+}
+function renderSrsButton() {
+  const btn = document.getElementById("btnSrsReview"); if (!btn) return;
+  const n = srsDueCount();
+  btn.classList.toggle("hidden", n === 0 || srsMode);
+  document.getElementById("srsDueLabel").textContent = uiText("srs.due").replace("{n}", n);
 }
 const flashcard = document.getElementById("flashcard");
 function renderCard() {
@@ -4752,6 +5136,7 @@ function renderCard() {
   flashcard.classList.remove("flipped");
   document.getElementById("cardProgress").textContent = (cardIndex+1)+" / "+currentDeck.length;
   document.getElementById("cardKnown").textContent = "Ditur: "+knownCount;
+  renderSrsButton();
 }
 flashcard.addEventListener("click", e => {
   if (e.target.id === "btnSpeak") return;
@@ -4763,8 +5148,9 @@ document.getElementById("btnSpeak").addEventListener("click", e => {
 });
 document.getElementById("btnKnow").addEventListener("click", () => { if (cardIndex < currentDeck.length){const w=currentDeck[cardIndex];knownCount++;cardIndex++;addPoints(5);feedbackCorrect();recordCard(true);recordStat(null,true,w.al+"|"+w.de);hwTick("cards",1);renderCard();} });
 document.getElementById("btnDontKnow").addEventListener("click", () => { if (cardIndex < currentDeck.length){const w=currentDeck[cardIndex];cardIndex++;feedbackWrong();recordCard(false);recordStat(null,false,w.al+"|"+w.de);hwTick("cards",1);renderCard();} });
-document.getElementById("btnShuffle").addEventListener("click", () => { initCardOrder(); renderCard(); });
-document.getElementById("btnResetProgress").addEventListener("click", () => { initCardOrder(); renderCard(); });
+document.getElementById("btnShuffle").addEventListener("click", () => { srsMode = false; initCardOrder(); renderCard(); });
+document.getElementById("btnResetProgress").addEventListener("click", () => { srsMode = false; initCardOrder(); renderCard(); });
+document.getElementById("btnSrsReview").addEventListener("click", () => { srsMode = true; initCardOrder(); renderCard(); });
 document.getElementById("catFilter").addEventListener("change", () => { initCardOrder(); renderCard(); });
 
 /* ============ QUIZ ============ */
@@ -5623,7 +6009,8 @@ function renderExamMenu() {
   menuEl.classList.remove("hidden");
   // Vetëm nivelet me përmbajtje TË VËRTETË të nivelit janë të hapura. Të tjerat tregohen si "në përgatitje",
   // që askush të mos besojë se ka kaluar një provim C1 me tekste B1.
-  const EXAM_READY = { B1: true };
+  const EXAM_READY = { A1: true, A2: true, B1: true, B2: true, C1: true };
+  const NO_PREP_YET = { B2: true, C1: true };  // provimi ekziston, por Gramatika/Fjalori i nivelit ende jo në aplikacion
   const levelCards = Object.keys(EXAM_LEVELS).map(key => {
     const L = EXAM_LEVELS[key];
     const totalMin = L.modules.reduce((a, m) => a + m.minutes, 0);
@@ -5636,6 +6023,7 @@ function renderExamMenu() {
         <div class="elc-name">${esc(L.name)}</div>
         <div class="elc-desc">${esc(L.desc)}</div>
         <div class="elc-meta">${locked ? "🔒 " + uiText("exam.locked") : `4 ${uiText("exam.modules_meta")} · ${totalMin} ${uiText("exam.min")} · 400 ${uiText("exam.points")}`}</div>
+      ${NO_PREP_YET[key] ? `<div class="elc-noprep">⚠️ ${uiText("exam.noprep")}</div>` : ""}
       </div>
       ${recommended ? '<div class="elc-star">★</div>' : ""}
     </button>`;
@@ -5644,16 +6032,12 @@ function renderExamMenu() {
   menuEl.innerHTML = `
     <div class="exam-section-label">${uiText("exam.choose_level")}</div>
     ${levelCards}
-    <div class="exam-section-label" style="margin-top:18px;">${uiText("exam.or_single")}</div>
+
+    <div class="provider-label goethe">🏛️ Goethe-Institut — ${uiText("exam.or_single")}</div>
     <button class="exam-tile" data-exam="lesen">
       <h3>${uiText("exam.lesen.title")}</h3>
       <p>${uiText("exam.lesen.desc")}</p>
       <div class="meta">${uiText("exam.lesen.meta")}</div>
-    </button>
-    <button class="exam-tile" data-exam="grammatik">
-      <h3>${uiText("exam.gram.title")}</h3>
-      <p>${uiText("exam.gram.desc")}</p>
-      <div class="meta">${uiText("exam.gram.meta")}</div>
     </button>
     <button class="exam-tile" data-exam="hoeren">
       <h3>${uiText("exam.hoeren.title")}</h3>
@@ -5670,6 +6054,14 @@ function renderExamMenu() {
       <p>${uiText("exam.sprechen.desc")}</p>
       <div class="meta">${uiText("exam.sprechen.meta")}</div>
     </button>
+
+    <div class="provider-label telc">🎯 telc — ${uiText("exam.telc_note")}</div>
+    <button class="exam-tile telc" data-exam="grammatik">
+      <h3>${uiText("exam.gram.title")}</h3>
+      <p>${uiText("exam.gram.desc")}</p>
+      <div class="meta">${uiText("exam.gram.meta")}</div>
+    </button>
+    <div class="provider-hint">${uiText("exam.telc_hint")}</div>
   `;
   menuEl.querySelectorAll(".exam-tile").forEach(t =>
     t.addEventListener("click", () => startExam(t.dataset.exam)));
@@ -5708,6 +6100,12 @@ function startExam(kind) {
 /* ===== POOL: TEKSTE PËR LEXIM (Lesen) ===== */
 const READING_POOL = [
 { head: "E-Mail nga një shoqe", body: "Liebe Arta,\n\nendlich habe ich Zeit, dir zu schreiben. Seit drei Monaten wohne ich jetzt in München und langsam fühle ich mich hier zu Hause. Am Anfang war alles sehr schwierig: Ich musste zum Einwohnermeldeamt, ein Bankkonto eröffnen und eine Wohnung suchen. Besonders die Wohnungssuche hat mich viele Nerven gekostet, weil die Mieten in München sehr hoch sind. Zum Glück hat mir eine Kollegin geholfen, und jetzt wohne ich in einem kleinen Zimmer in Sendling.\n\nMein Deutschkurs läuft gut. Ich gehe viermal pro Woche abends zum Unterricht, weil ich tagsüber arbeite. Im Juli mache ich die B1-Prüfung. Ich habe ein bisschen Angst vor dem mündlichen Teil, aber meine Lehrerin sagt, ich soll einfach viel sprechen und keine Angst vor Fehlern haben.\n\nAm Wochenende gehe ich oft in den Englischen Garten oder ich treffe Freunde. Kommst du mich im Sommer besuchen? Dann zeige ich dir die Stadt.\n\nViele Grüße\nBesa",
+  tf: [
+    { s: "Besa wohnt seit drei Monaten in München.", a: true },
+    { s: "Die Wohnungssuche war für Besa einfach.", a: false },
+    { s: "Besa geht tagsüber zum Deutschkurs.", a: false },
+    { s: "Besa macht im Juli die B1-Prüfung.", a: true }
+  ],
   questions: [
     { q: "Wie lange wohnt Besa schon in München?", opts: ["Seit einem Jahr","Seit drei Monaten","Seit dem Sommer"], a: 1, ex: "„Seit drei Monaten wohne ich jetzt in München.“" },
     { q: "Was war für Besa besonders schwierig?", opts: ["Eine Wohnung zu finden","Ein Bankkonto zu eröffnen","Freunde zu finden"], a: 0, ex: "„Besonders die Wohnungssuche hat mich viele Nerven gekostet.“" },
@@ -5740,6 +6138,12 @@ const READING_POOL = [
   ]},
 
 { head: "Artikull: Puna nga shtëpia", body: "Seit einigen Jahren arbeiten immer mehr Menschen in Deutschland zumindest teilweise von zu Hause aus. Laut einer aktuellen Umfrage arbeitet inzwischen jeder vierte Beschäftigte regelmäßig im Homeoffice. Besonders in großen Städten wie München, Frankfurt und Berlin ist dieser Trend stark spürbar.\n\nDie Gründe dafür sind vielfältig. Viele Arbeitnehmer sparen durch das Homeoffice Zeit, weil sie nicht mehr täglich pendeln müssen. Andere schätzen die Möglichkeit, Beruf und Familie besser zu verbinden. Auch Unternehmen profitieren: Sie können kleinere Büros mieten und dadurch Kosten sparen.\n\nAllerdings gibt es auch Kritik. Manche Mitarbeiter fühlen sich im Homeoffice einsam, weil der direkte Kontakt zu Kollegen fehlt. Außerdem berichten einige, dass sie schwerer abschalten können und am Ende sogar mehr arbeiten als im Büro.\n\nExperten empfehlen deshalb ein Modell, bei dem Mitarbeiter einige Tage im Büro und andere Tage zu Hause arbeiten.",
+  tf: [
+    { s: "Jeder vierte Beschäftigte arbeitet regelmäßig im Homeoffice.", a: true },
+    { s: "Der Trend ist vor allem in kleinen Dörfern stark.", a: false },
+    { s: "Manche Mitarbeiter fühlen sich im Homeoffice einsam.", a: true },
+    { s: "Alle Experten empfehlen, nur noch von zu Hause zu arbeiten.", a: false }
+  ],
   questions: [
     { q: "Wie viele Beschäftigte arbeiten regelmäßig im Homeoffice?", opts: ["Jeder zehnte","Jeder vierte","Jeder zweite"], a: 1, ex: "Laut Umfrage jeder vierte." },
     { q: "Welcher Vorteil wird NICHT genannt?", opts: ["Zeitersparnis","Beruf und Familie","Höheres Gehalt"], a: 2, ex: "Höheres Gehalt steht nicht im Text." },
@@ -5814,6 +6218,11 @@ const LISTENING_POOL = [
   ]},
 
 { title: "Mesazh nga shkolla e gjuhëve", script: "Hallo Besa, hier ist Frau Weber von der Sprachschule. Ich rufe wegen deiner Anmeldung für den B1-Kurs an. Der Kurs beginnt am Montag, dem sechsten Oktober, und findet immer montags, mittwochs und freitags von achtzehn bis zwanzig Uhr statt. Bitte bring am ersten Tag deinen Personalausweis und die Kursgebühr mit. Wenn du noch Fragen hast, ruf mich bitte bis Donnerstag zurück. Bis bald!",
+  tf: [
+    { s: "Der Kurs beginnt am 6. Oktober.", a: true },
+    { s: "Der Unterricht ist jeden Tag von 18 bis 20 Uhr.", a: false },
+    { s: "Man soll am ersten Tag den Personalausweis mitbringen.", a: true }
+  ],
   questions: [
     { q: "Warum ruft Frau Weber an?", opts: ["Wegen einer Rechnung","Wegen der Kursanmeldung","Wegen einer Prüfung"], a: 1, ex: "Wegen der Anmeldung für den B1-Kurs." },
     { q: "An welchen Tagen findet der Kurs statt?", opts: ["Montag, Mittwoch, Freitag","Dienstag und Donnerstag","Jeden Tag"], a: 0, ex: "Montags, mittwochs, freitags." },
@@ -5835,6 +6244,11 @@ const LISTENING_POOL = [
   ]},
 
 { title: "Mesazh nga klinika mjekësore", script: "Guten Tag, hier spricht die Praxis Dr. Hoffmann. Wir rufen an, um Ihren Termin am kommenden Dienstag zu bestätigen. Der Termin ist um halb zehn Uhr morgens. Bitte bringen Sie Ihre Versicherungskarte und, falls vorhanden, Ihre letzten Blutwerte mit. Sollten Sie den Termin nicht wahrnehmen können, bitten wir Sie, spätestens einen Tag vorher abzusagen, da wir sonst eine Gebühr berechnen müssen. Auf Wiederhören.",
+  tf: [
+    { s: "Der Termin ist am Dienstagvormittag.", a: true },
+    { s: "Man muss keine Versicherungskarte mitbringen.", a: false },
+    { s: "Eine Absage am selben Tag ist kostenlos.", a: false }
+  ],
   questions: [
     { q: "Worum geht es?", opts: ["Um eine Terminbestätigung","Um eine Rechnung","Um ein Testergebnis"], a: 0, ex: "Um die Bestätigung des Termins." },
     { q: "Was soll man mitbringen?", opts: ["Nur den Ausweis","Versicherungskarte und Blutwerte","Eine Überweisung"], a: 1, ex: "Versicherungskarte und Blutwerte." },
@@ -6014,6 +6428,47 @@ const SPEAKING_PRESENT_POOL = [
 // asnjë provim të mos jetë i njëjtë me tjetrin.
 const EXAM_SET_COUNT = 20;
 
+// Detyrë "Zuordnung" (formati i Goethe B1 Lesen Teil 3): 5 njoftime + 5 njerëz me nevoja të ndryshme.
+// Për secilin njeri gjendet njoftimi që i përshtatet më mirë (një njoftim mund të mos përdoret fare — si në provimin real).
+// Pyetje vijuese pas prezantimit (Sprechen Pjesa 3) — të përgjithshme, funksionojnë me çdo temë prezantimi
+const SPEAKING_FOLLOWUP = [
+  ["Warum ist dieses Thema für dich persönlich wichtig?", "Was würdest du anderen Menschen dazu empfehlen?"],
+  ["Gibt es auch Nachteile bei dem, was du beschrieben hast?", "Wie war das bei dir früher, als du jünger warst?"],
+  ["Was hat dich an diesem Thema am meisten überrascht?", "Was würdest du in Zukunft anders machen?"],
+  ["Wie sehen das deine Freunde oder deine Familie?", "Kannst du ein konkretes Beispiel aus deinem Leben nennen?"]
+];
+const READING_MATCH_POOL = [
+  { ads: [
+      { id: "A", text: "3-Zimmer-Wohnung, 70 m², Balkon, ruhige Lage, Nähe Universität, 850 € warm, ab sofort." },
+      { id: "B", text: "WG-Zimmer, 18 m², möbliert, zentral, ideal für Studierende, 380 € warm, kurzfristig frei." },
+      { id: "C", text: "Einfamilienhaus, 140 m², Garten, Garage, für Familien, außerhalb der Stadt, 1400 € kalt." },
+      { id: "D", text: "1-Zimmer-Apartment, 35 m², Neubau, barrierefrei, Aufzug, zentral, 620 € warm." },
+      { id: "E", text: "2-Zimmer-Wohnung, 55 m², Tiefgarage, ruhige Straße, Haustiere erlaubt, 700 € warm." }
+    ],
+    people: [
+      { text: "Ein Student sucht kurzfristig ein günstiges, möbliertes Zimmer in der Stadtmitte.", correct: "B" },
+      { text: "Eine Familie mit zwei Kindern und einem Hund braucht ein Haus mit Garten.", correct: "C" },
+      { text: "Eine ältere Frau im Rollstuhl braucht eine Wohnung ohne Treppen.", correct: "D" },
+      { text: "Ein Paar mit Katze sucht eine ruhige 2-Zimmer-Wohnung mit Parkplatz.", correct: "E" },
+      { text: "Eine Studentin sucht in der Nähe der Uni eine größere Wohnung mit Balkon.", correct: "A" }
+    ] },
+  { ads: [
+      { id: "A", text: "Deutschkurs A2–B1, abends, dreimal pro Woche, kleine Gruppe, VHS Zentrum, 120 €." },
+      { id: "B", text: "Intensivkurs B1, jeden Vormittag, 4 Wochen, für schnellen Fortschritt, 350 €." },
+      { id: "C", text: "Online-Kurs A1, flexible Zeiten, eigenes Tempo, mit Videos und Chat, 60 €." },
+      { id: "D", text: "Konversationskurs B2–C1, samstags, Diskussionen und Vorträge, 90 €." },
+      { id: "E", text: "Deutschkurs für Kinder (8–12 Jahre), spielerisch, samstagvormittags, 80 €." }
+    ],
+    people: [
+      { text: "Ein Vater arbeitet den ganzen Tag und kann nur am Wochenende lernen — er spricht schon fließend.", correct: "D" },
+      { text: "Eine Mutter möchte, dass ihr Sohn spielerisch Deutsch lernt.", correct: "E" },
+      { text: "Ein Mann hat gerade gekündigt und möchte in einem Monat möglichst viel lernen.", correct: "B" },
+      { text: "Eine Frau arbeitet in Schichten und kann keine festen Termine einhalten.", correct: "C" },
+      { text: "Ein Student besucht abends drei Kurse und braucht ein günstiges Angebot in kleiner Gruppe.", correct: "A" }
+    ] }
+];
+
+
 // Llojet e detyrave të shkrimit sipas formatit Goethe B1 (jo i verifikuar live):
 //  t1 = e-mail jozyrtare (~80 fjalë), t2 = postim/mendim në forum (~80 fjalë), t3 = e-mail zyrtare e shkurtër (~40 fjalë)
 const WRITING_KIND = { 0:"t1", 3:"t1", 5:"t1", 9:"t1", 10:"t1",
@@ -6026,14 +6481,19 @@ const WRITING_PARTS = {
   t3: { label: "Teil 3", words: 40, minutes: 15, weight: 0.20, desc: { sq: "E-mail zyrtare e shkurtër — ~40 fjalë", de: "Kurze formelle E-Mail – ca. 40 Wörter", en: "Short formal e-mail – approx. 40 words" } }
 };
 function pickWriting(kind, i) { const arr = WRITING_POOL.filter(w => w.kind === kind); return arr[i % arr.length]; }
+function pickTf(pool, i) { const arr = pool.filter(x => x.tf && x.tf.length); return arr.length ? arr[i % arr.length] : pool[i % pool.length]; }
 
 function examSetFor(n) {
   const i = ((n % EXAM_SET_COUNT) + EXAM_SET_COUNT) % EXAM_SET_COUNT;
   const R = READING_POOL.length, L = LISTENING_POOL.length;
   return {
     index: i,
-    reading:  [ READING_POOL[i % R], READING_POOL[(i + 4) % R], READING_POOL[(i + 8) % R] ],
-    listening:[ LISTENING_POOL[(i + 1) % L], LISTENING_POOL[(i + 5) % L], LISTENING_POOL[(i + 9) % L] ],
+    // 4 tekste (Goethe B1 Lesen ka disa pjesë) + 1 detyrë zuordnimi (Lesen Teil 3-stil).
+    // Teksti i 4-t ZGJIDHET GJITHMONË nga tekstet me pohime R/GABIM (tf), që ky format
+    // të shfaqet çdo herë — jo rastësisht, siç ndodhte më parë (vetëm 3 nga 20 herë).
+    reading:  [ READING_POOL[i % R], READING_POOL[(i + 4) % R], READING_POOL[(i + 8) % R], pickTf(READING_POOL, i) ],
+    readingMatch: READING_MATCH_POOL[i % READING_MATCH_POOL.length],
+    listening:[ LISTENING_POOL[(i + 1) % L], LISTENING_POOL[(i + 5) % L], LISTENING_POOL[(i + 9) % L], pickTf(LISTENING_POOL, i) ],
     writing:  { t1: pickWriting("t1", i), t2: pickWriting("t2", i + 1), t3: pickWriting("t3", i + 2) },
     plan:     SPEAKING_PLAN_POOL[i % SPEAKING_PLAN_POOL.length],
     present:  SPEAKING_PRESENT_POOL[(i + 2) % SPEAKING_PRESENT_POOL.length]
@@ -6128,6 +6588,18 @@ A1: {
         {q:"Du suchst ein Zimmer. Welche Anzeige?", opts:["A","B","C"], a:0, ex:"Anzeige A: Zimmer frei."},
         {q:"Du willst Deutsch lernen. Welche Anzeige?", opts:["B","C","D"], a:1, ex:"Anzeige C: Deutschkurs."},
         {q:"Was kostet das Fahrrad?", opts:["40 Euro","50 Euro","300 Euro"], a:1, ex:"Fahrrad, 50 Euro."}
+      ]},
+    { head:"E-Mail nga shkolla", body:"Liebe Eltern,\n\nam Freitag ist keine Schule. Die Kinder haben frei.\nAm Montag beginnt der Unterricht wieder um acht Uhr.\nBitte bringen Sie das Buch für Deutsch mit.\n\nMit freundlichen Grüßen\nFrau Berger",
+      questions:[
+        {q:"Wann ist keine Schule?", opts:["Am Montag","Am Freitag","Am Sonntag"], a:1, ex:"„Am Freitag ist keine Schule.“"},
+        {q:"Wann beginnt der Unterricht wieder?", opts:["Am Montag","Am Dienstag","Am Freitag"], a:0, ex:"„Am Montag beginnt der Unterricht wieder.“"},
+        {q:"Was sollen die Kinder mitbringen?", opts:["Das Buch für Deutsch","Geld","Ein Foto"], a:0, ex:"„Bitte bringen Sie das Buch für Deutsch mit.“"}
+      ]},
+    { head:"Menu në restorant", body:"MENÜ DES TAGES\n\nSuppe — 3 Euro\nSchnitzel mit Kartoffeln — 9 Euro\nSalat — 4 Euro\nWasser — 2 Euro\nKaffee — 2 Euro\n\nMontag bis Samstag, 12 bis 15 Uhr.",
+      questions:[
+        {q:"Was kostet das Schnitzel?", opts:["3 Euro","9 Euro","4 Euro"], a:1, ex:"Schnitzel mit Kartoffeln — 9 Euro."},
+        {q:"Wann gibt es das Menü?", opts:["12 bis 15 Uhr","Nur am Sonntag","Am Abend"], a:0, ex:"Montag bis Samstag, 12 bis 15 Uhr."},
+        {q:"Was kostet ein Wasser?", opts:["2 Euro","3 Euro","4 Euro"], a:0, ex:"Wasser — 2 Euro."}
       ]}
   ],
   listening: [
@@ -6154,7 +6626,20 @@ A1: {
         {q:"Wann beginnt der Unterricht morgen?", opts:["Um 8 Uhr","Um 9 Uhr","Um 10 Uhr"], a:1, ex:"Um neun Uhr."},
         {q:"Was sollen die Schüler mitbringen?", opts:["Bücher","Geld","Essen"], a:0, ex:"„bringt eure Bücher mit“"},
         {q:"Welcher Raum?", opts:["Raum 2","Raum 12","Raum 20"], a:1, ex:"Nummer zwölf."}
+      ]},
+    { title:"Njoftim në aeroport", script:"Achtung, liebe Fluggäste! Der Flug nach Rom hat zehn Minuten Verspätung. Der neue Abflug ist um dreizehn Uhr zwanzig, am Gate sieben.",
+      questions:[
+        {q:"Wohin fliegt das Flugzeug?", opts:["Nach Rom","Nach Wien","Nach Madrid"], a:0, ex:"Der Flug nach Rom."},
+        {q:"An welchem Gate?", opts:["Gate 5","Gate 7","Gate 9"], a:1, ex:"Am Gate sieben."},
+        {q:"Wie viel Verspätung?", opts:["Fünf Minuten","Zehn Minuten","Zwanzig Minuten"], a:1, ex:"Zehn Minuten Verspätung."}
+      ]},
+    { title:"Mesazh nga një shoqe", script:"Hallo Elira, hier ist Nora. Ich habe morgen Geburtstag. Die Party ist um achtzehn Uhr bei mir zu Hause. Bring bitte nichts mit, nur gute Laune!",
+      questions:[
+        {q:"Was feiert Nora?", opts:["Geburtstag","Hochzeit","Neues Jahr"], a:0, ex:"„Ich habe morgen Geburtstag.“"},
+        {q:"Um wie viel Uhr ist die Party?", opts:["Um 16 Uhr","Um 18 Uhr","Um 20 Uhr"], a:1, ex:"Um achtzehn Uhr."},
+        {q:"Was soll Elira mitbringen?", opts:["Ein Geschenk","Essen","Nichts, nur gute Laune"], a:2, ex:"„Bring bitte nichts mit, nur gute Laune!“"}
       ]}
+
   ],
   writing: [
     { title:"Formular i thjeshtë", prompt:"Du meldest dich für einen Deutschkurs an. Schreib eine kurze Nachricht an die Schule.",
@@ -6168,7 +6653,10 @@ A1: {
       phrases:"Liebe Familie, / Ich bin in … / Das Wetter ist … / Ich komme am … zurück." },
     { title:"Mesazh fqinjit", prompt:"Ein Paket für deinen Nachbarn ist bei dir. Schreib ihm eine Nachricht.",
       points:["Sag, dass ein Paket da ist.","Sag, wo du wohnst.","Sag, wann du zu Hause bist.","Grüße freundlich."],
-      phrases:"Hallo Herr/Frau …, / Ihr Paket ist bei mir. / Ich wohne … / Ich bin ab … zu Hause." }
+      phrases:"Hallo Herr/Frau …, / Ihr Paket ist bei mir. / Ich wohne … / Ich bin ab … zu Hause." },
+    { title:"Falënderim me shkrim", prompt:"Ein Freund hat dir bei einem Umzug geholfen. Schreib ihm eine kurze Nachricht.",
+      points:["Sag Danke.","Sag, warum du ihm dankst.","Frag, ob er Zeit für einen Kaffee hat.","Sag, wann du frei bist."],
+      phrases:"Danke für … / Das war sehr nett. / Hast du Zeit für … / Ich bin am … frei." }
   ],
   plan: [
     { title:"Planifikoni bashkë", prompt:"Ihr wollt zusammen einkaufen gehen. Plant das zusammen.",
@@ -6176,7 +6664,10 @@ A1: {
       phrases:"Wann gehen wir? / Um … Uhr? / Ja, gut. / Wir kaufen …" },
     { title:"Planifikoni një takim", prompt:"Ihr wollt zusammen Kaffee trinken. Plant das zusammen.",
       points:["Welcher Tag?","Welche Uhrzeit?","Welches Café?","Wer kommt noch mit?"],
-      phrases:"Am Samstag? / Um 16 Uhr? / Ins Café Sonne? / Einverstanden." }
+      phrases:"Am Samstag? / Um 16 Uhr? / Ins Café Sonne? / Einverstanden." },
+    { title:"Planifikoni një darkë", prompt:"Ihr wollt zusammen kochen. Plant das zusammen.",
+      points:["Was kocht ihr?","Wann trefft ihr euch?","Wer kauft ein?","Wo kocht ihr?"],
+      phrases:"Was kochen wir? / Wann treffen wir uns? / Ich kaufe … / Wir kochen bei …" }
   ],
   present: [
     { title:"Prezantim: Unë", prompt:"Stell dich vor.",
@@ -6184,7 +6675,10 @@ A1: {
       phrases:"Ich heiße … / Ich bin … Jahre alt. / Ich komme aus … / Ich wohne in … / Ich spreche …" },
     { title:"Prezantim: Familja ime", prompt:"Erzähle von deiner Familie.",
       points:["Wie viele Personen?","Namen","Alter","Beruf","Wo wohnen sie?"],
-      phrases:"Meine Familie hat … Personen. / Mein Vater heißt … / Er arbeitet als …" }
+      phrases:"Meine Familie hat … Personen. / Mein Vater heißt … / Er arbeitet als …" },
+    { title:"Prezantim: Dita ime e preferuar", prompt:"Erzähl von deinem Lieblingstag.",
+      points:["Welcher Tag?","Was machst du?","Mit wem?","Warum gefällt er dir?"],
+      phrases:"Mein Lieblingstag ist … / Ich … / Mit … / Es gefällt mir, weil …" }
   ]
 },
 
@@ -6217,7 +6711,20 @@ A2: {
         {q:"In welchem Stock ist das Büro?", opts:["Erdgeschoss","Dritter Stock","Fünfter Stock"], a:1, ex:"Im dritten Stock, Zimmer 305."},
         {q:"Wie lange ist Parken kostenlos?", opts:["Eine Stunde","Zwei Stunden","Drei Stunden"], a:1, ex:"Die ersten zwei Stunden."},
         {q:"Was muss man zuerst tun?", opts:["Sich an der Rezeption melden","Direkt hochgehen","Anrufen"], a:0, ex:"„melden Sie sich zuerst an der Rezeption“"}
+      ]},
+    { head:"Postim në forum", body:"Hallo zusammen,\n\nich suche eine Wohnung in Köln, nicht zu teuer. Ich arbeite seit drei Monaten hier und wohne noch im Hotel. Ich brauche zwei Zimmer, weil meine Schwester bald zu mir zieht. Hat jemand einen Tipp für mich?\n\nDanke im Voraus!\nMirlind",
+      questions:[
+        {q:"Wo sucht Mirlind eine Wohnung?", opts:["In Köln","In Berlin","In München"], a:0, ex:"„ich suche eine Wohnung in Köln“"},
+        {q:"Wo wohnt er im Moment?", opts:["Im Hotel","Bei Freunden","Bei seiner Schwester"], a:0, ex:"„wohne noch im Hotel“"},
+        {q:"Warum braucht er zwei Zimmer?", opts:["Seine Schwester zieht zu ihm","Er arbeitet von zu Hause","Er hat viele Bücher"], a:0, ex:"„weil meine Schwester bald zu mir zieht“"}
+      ]},
+    { head:"E-Mail zyrtare", body:"Sehr geehrter Herr Roth,\n\nleider kann ich am Mittwoch nicht zum Termin kommen, weil ich krank bin. Können wir einen neuen Termin für nächste Woche vereinbaren? Am Donnerstag oder Freitag hätte ich Zeit.\n\nMit freundlichen Grüßen\nBesnik Krasniqi",
+      questions:[
+        {q:"Warum kann Herr Krasniqi nicht kommen?", opts:["Er ist krank","Er hat keine Zeit","Er ist im Urlaub"], a:0, ex:"„weil ich krank bin“"},
+        {q:"Was möchte er?", opts:["Einen neuen Termin","Sein Geld zurück","Eine Entschuldigung"], a:0, ex:"„Können wir einen neuen Termin vereinbaren?“"},
+        {q:"Wann hätte er Zeit?", opts:["Am Montag oder Dienstag","Am Donnerstag oder Freitag","Am Wochenende"], a:1, ex:"„Am Donnerstag oder Freitag hätte ich Zeit.“"}
       ]}
+
   ],
   listening: [
     { title:"Njoftim në supermarket", script:"Liebe Kunden, wir haben heute ein besonderes Angebot. Frisches Obst und Gemüse sind zwanzig Prozent billiger. Das Angebot gilt nur heute bis achtzehn Uhr. Sie finden alles in der Abteilung zwei, gleich links neben dem Eingang.",
@@ -6243,7 +6750,20 @@ A2: {
         {q:"Für wie viele Personen ist der Tisch?", opts:["Zwei","Drei","Vier"], a:0, ex:"Für zwei Personen."},
         {q:"Wo ist der Tisch?", opts:["Am Fenster","An der Tür","Draußen"], a:0, ex:"Tisch sieben am Fenster."},
         {q:"Was empfiehlt der Kellner?", opts:["Den Fisch","Das Fleisch","Die Suppe"], a:0, ex:"„Heute empfehle ich den Fisch.“"}
+      ]},
+    { title:"Njoftim në stacion autobusi", script:"Liebe Fahrgäste, der Bus Linie zwölf nach Neustadt fällt heute leider aus. Bitte nehmen Sie die Linie fünfzehn, sie fährt zehn Minuten später von Gleis zwei.",
+      questions:[
+        {q:"Welcher Bus fällt aus?", opts:["Linie 12","Linie 15","Linie 2"], a:0, ex:"„Der Bus Linie zwölf fällt aus.“"},
+        {q:"Welche Linie soll man stattdessen nehmen?", opts:["Linie 10","Linie 15","Linie 20"], a:1, ex:"„nehmen Sie die Linie fünfzehn“"},
+        {q:"Von welchem Gleis fährt sie?", opts:["Gleis 1","Gleis 2","Gleis 12"], a:1, ex:"„von Gleis zwei“"}
+      ]},
+    { title:"Bisedë te parukeria", script:"Kundin: Guten Tag, ich hätte gern einen Termin für einen Haarschnitt. Friseurin: Gern, wann passt es Ihnen? Kundin: Vielleicht am Samstagvormittag? Friseurin: Da haben wir noch um elf Uhr frei. Kundin: Perfekt, das nehme ich.",
+      questions:[
+        {q:"Was möchte die Kundin?", opts:["Einen Haarschnitt","Eine Massage","Eine Maniküre"], a:0, ex:"„einen Termin für einen Haarschnitt“"},
+        {q:"Wann ist der Termin?", opts:["Freitagabend","Samstagvormittag","Sonntagnachmittag"], a:1, ex:"„am Samstagvormittag … um elf Uhr“"},
+        {q:"Um wie viel Uhr genau?", opts:["Um 9 Uhr","Um 11 Uhr","Um 13 Uhr"], a:1, ex:"„um elf Uhr frei“"}
       ]}
+
   ],
   writing: [
     { title:"Email — ftesë", prompt:"Du hast Geburtstag und möchtest deine Freundin einladen. Schreib eine E-Mail.",
@@ -6257,7 +6777,10 @@ A2: {
       phrases:"Liebe Frau …, / vielen Dank für Ihre Hilfe bei … / Wenn Sie mal Hilfe brauchen, … / Viele Grüße" },
     { title:"Email — kërkesë informacioni", prompt:"Du interessierst dich für einen Sportkurs. Schreib an das Sportzentrum.",
       points:["Sag, wofür du dich interessierst.","Frag nach Zeiten.","Frag nach dem Preis.","Frag, ob man anmelden muss."],
-      phrases:"Sehr geehrte Damen und Herren, / ich interessiere mich für … / Wann findet … statt? / Was kostet …?" }
+      phrases:"Sehr geehrte Damen und Herren, / ich interessiere mich für … / Wann findet … statt? / Was kostet …?" },
+    { title:"Email — Ftesë për ditëlindje", prompt:"Du hast Geburtstag. Lade einen Freund per E-Mail ein.",
+      points:["Sag, dass du Geburtstag hast.","Sag, wann und wo die Party ist.","Frag, ob er kommen kann.","Bitte um Antwort."],
+      phrases:"Ich habe bald Geburtstag. / Die Party ist am … um … Uhr. / Kannst du kommen? / Antworte mir bitte." }
   ],
   plan: [
     { title:"Planifikoni një festë", prompt:"Ihr wollt eine kleine Party für einen Freund organisieren.",
@@ -6265,7 +6788,10 @@ A2: {
       phrases:"Ich schlage vor … / Wollen wir …? / Gute Idee. / Lieber nicht, weil …" },
     { title:"Planifikoni një udhëtim", prompt:"Ihr wollt zusammen einen Tagesausflug machen.",
       points:["Wohin?","Wann?","Wie fahrt ihr?","Was nehmt ihr mit?","Wann kommt ihr zurück?"],
-      phrases:"Wie wäre es mit …? / Fahren wir mit …? / Einverstanden. / Ich finde besser …" }
+      phrases:"Wie wäre es mit …? / Fahren wir mit …? / Einverstanden. / Ich finde besser …" },
+    { title:"Planifikoni një aktivitet fundjave", prompt:"Ihr wollt am Wochenende etwas zusammen unternehmen. Plant das gemeinsam.",
+      points:["Was macht ihr?","Wann trefft ihr euch?","Wo trefft ihr euch?","Was braucht ihr?"],
+      phrases:"Was machen wir am Wochenende? / Treffen wir uns um …? / Wir treffen uns bei … / Wir brauchen …" }
   ],
   present: [
     { title:"Prezantim: Dita ime", prompt:"Erzähle über deinen Tagesablauf.",
@@ -6273,7 +6799,10 @@ A2: {
       phrases:"Ich stehe um … auf. / Dann … / Am Nachmittag … / Um … gehe ich schlafen." },
     { title:"Prezantim: Vendlindja ime", prompt:"Erzähle über deine Heimatstadt.",
       points:["Wo liegt sie?","Wie groß ist sie?","Was ist dort schön?","Was machen die Leute?","Was fehlt dir?"],
-      phrases:"Meine Heimatstadt liegt in … / Dort leben etwa … / Besonders schön ist … / Mir fehlt …" }
+      phrases:"Meine Heimatstadt liegt in … / Dort leben etwa … / Besonders schön ist … / Mir fehlt …" },
+    { title:"Prezantim: Hobi im", prompt:"Erzähl von deinem Hobby.",
+      points:["Welches Hobby?","Seit wann?","Wie oft?","Warum magst du es?"],
+      phrases:"Mein Hobby ist … / Ich mache das seit … / Ich mache es … Mal pro Woche. / Ich mag es, weil …" }
   ]
 }
 };
@@ -6309,7 +6838,20 @@ B2: {
         {q:"Wie lang ist die Kündigungsfrist in der Probezeit?", opts:["Zwei Wochen","Vier Wochen","Drei Monate"], a:0, ex:"Verkürzte Frist von zwei Wochen, für beide Seiten."},
         {q:"Braucht eine Kündigung in der Probezeit eine Begründung?", opts:["Ja, immer","Grundsätzlich nicht","Nur bei Vollzeit"], a:1, ex:"„bedarf grundsätzlich keiner Begründung“"},
         {q:"Was passiert nach der Probezeit ohne Kündigung?", opts:["Der Vertrag endet","Er wird automatisch regulär","Er muss neu unterschrieben werden"], a:1, ex:"„geht automatisch in ein reguläres über“"}
+      ]},
+    { head:"Debat: Detyra shtëpie po", body:"In vielen Schulen wird derzeit diskutiert, ob Hausaufgaben überhaupt sinnvoll sind. Befürworter argumentieren, dass Hausaufgaben den Lernstoff vertiefen und Schüler dazu anregen, selbstständig zu arbeiten. Ohne die Wiederholung zu Hause, so das Argument, würden viele Inhalte schnell wieder vergessen.\n\nKritiker hingegen verweisen auf Studien, die zeigen, dass der Lerneffekt von Hausaufgaben oft überschätzt wird, während der zusätzliche Stress für Schüler und Familien erheblich sein kann. Besonders Kinder aus bildungsfernen Haushalten hätten dadurch Nachteile, weil ihnen zu Hause weniger Unterstützung zur Verfügung stehe.\n\nEinige Schulen experimentieren deshalb mit Alternativen, etwa mit längeren, aber selteneren Übungsphasen direkt im Unterricht.",
+      questions:[
+        {q:"Was ist ein Argument für Hausaufgaben?", opts:["Sie vertiefen den Lernstoff","Sie sind gesetzlich vorgeschrieben","Sie ersetzen den Unterricht"], a:0, ex:"„Hausaufgaben vertiefen den Lernstoff und regen selbstständiges Arbeiten an.“"},
+        {q:"Welchen Nachteil nennen Kritiker?", opts:["Zu wenig Freizeit für Lehrer","Zusätzlicher Stress, besonders für benachteiligte Familien","Zu hohe Kosten für Schulbücher"], a:1, ex:"„der zusätzliche Stress … kann erheblich sein … Kinder aus bildungsfernen Haushalten hätten dadurch Nachteile.“"},
+        {q:"Was probieren manche Schulen stattdessen aus?", opts:["Gar keine Übungen mehr","Längere Übungsphasen im Unterricht","Nur noch Online-Hausaufgaben"], a:1, ex:"„mit längeren, aber selteneren Übungsphasen direkt im Unterricht.“"}
+      ]},
+    { head:"Koment: Fast Fashion", body:"Die Modeindustrie steht zunehmend in der Kritik. Sogenannte Fast-Fashion-Ketten bringen im Wochentakt neue Kollektionen auf den Markt, die oft schon nach wenigen Malen Tragen entsorgt werden. Umweltverbände weisen darauf hin, dass die Produktion enorme Mengen an Wasser verbraucht und häufig in Ländern mit niedrigen Sozialstandards stattfindet.\n\nAuf der anderen Seite ermöglicht dieses Modell vielen Menschen mit geringerem Einkommen, sich modisch zu kleiden. Ganz auf Fast Fashion zu verzichten, ist daher für viele keine realistische Option.\n\nEin wachsender Teil der Konsumenten setzt inzwischen auf Second-Hand-Kleidung oder auf Marken, die auf Nachhaltigkeit setzen — auch wenn diese meist teurer sind.",
+      questions:[
+        {q:"Was wird der Fast-Fashion-Industrie vorgeworfen?", opts:["Hoher Wasserverbrauch und niedrige Sozialstandards","Zu hohe Preise","Zu wenig Auswahl"], a:0, ex:"„die Produktion enorme Mengen an Wasser verbraucht und häufig in Ländern mit niedrigen Sozialstandards stattfindet.“"},
+        {q:"Welchen Vorteil hat Fast Fashion laut Text?", opts:["Sie ist umweltfreundlich","Sie ermöglicht günstige Mode für alle","Sie hält sehr lange"], a:1, ex:"„ermöglicht … Menschen mit geringerem Einkommen, sich modisch zu kleiden.“"},
+        {q:"Was tun manche Konsumenten stattdessen?", opts:["Sie kaufen Second-Hand oder nachhaltige Marken","Sie kaufen mehr Fast Fashion","Sie tragen nur noch Uniformen"], a:0, ex:"„setzt inzwischen auf Second-Hand-Kleidung oder auf Marken, die auf Nachhaltigkeit setzen.“"}
       ]}
+
   ],
   listening: [
     { title:"Radio: Intervistë për fjetjen", script:"Moderatorin: Herr Doktor Weber, viele Menschen klagen über Schlafprobleme. Woran liegt das? Dr. Weber: Häufig an unregelmäßigen Zeiten. Der Körper braucht einen festen Rhythmus. Wer am Wochenende drei Stunden später ins Bett geht, bringt die innere Uhr durcheinander. Moderatorin: Was raten Sie konkret? Dr. Weber: Erstens: möglichst immer zur gleichen Zeit aufstehen, auch am Wochenende. Zweitens: mindestens eine Stunde vor dem Schlafengehen keine Bildschirme mehr. Das blaue Licht unterdrückt die Melatoninproduktion. Moderatorin: Und wenn man trotzdem wach liegt? Dr. Weber: Dann sollte man aufstehen und etwas Ruhiges tun, statt sich stundenlang im Bett zu wälzen.",
@@ -6335,7 +6877,20 @@ B2: {
         {q:"Ab wann gilt das neue System?", opts:["Ab 1. September","Ab 1. Oktober","Ab 30. Oktober"], a:1, ex:"Ab dem ersten Oktober."},
         {q:"Wann sind die Schulungen?", opts:["Dienstags und donnerstags","Montags und mittwochs","Nur freitags"], a:0, ex:"Dienstags und donnerstags, 14–16 Uhr."},
         {q:"Was gilt für die Teilnahme?", opts:["Freiwillig","Verpflichtend","Nur für neue Mitarbeiter"], a:1, ex:"„Die Teilnahme ist verpflichtend.“"}
+      ]},
+    { title:"Radio: Fjetja dhe ekranet", script:"Moderator: Frau Dr. Klein, viele Menschen schauen abends noch lange auf ihr Handy. Wie wirkt sich das auf den Schlaf aus? Dr. Klein: Das blaue Licht der Bildschirme kann die Ausschüttung des Schlafhormons Melatonin verzögern. Deshalb empfehle ich, mindestens eine halbe Stunde vor dem Schlafen keine Bildschirme mehr zu benutzen. Moderator: Und wenn das nicht möglich ist? Dr. Klein: Dann helfen zumindest ein Nachtmodus mit wärmerem Licht und eine geringere Helligkeit.",
+      questions:[
+        {q:"Was verzögert das blaue Licht laut der Ärztin?", opts:["Die Verdauung","Die Ausschüttung von Melatonin","Den Herzschlag"], a:1, ex:"„kann die Ausschüttung des Schlafhormons Melatonin verzögern.“"},
+        {q:"Was empfiehlt sie?", opts:["Gar kein Handy mehr besitzen","Eine halbe Stunde vor dem Schlafen keine Bildschirme","Nur am Wochenende aufs Handy schauen"], a:1, ex:"„mindestens eine halbe Stunde vor dem Schlafen keine Bildschirme mehr zu benutzen.“"},
+        {q:"Was ist eine Alternative, wenn das nicht klappt?", opts:["Nachtmodus mit wärmerem Licht","Lauter Musik hören","Das Zimmer heller machen"], a:0, ex:"„ein Nachtmodus mit wärmerem Licht und eine geringere Helligkeit.“"}
+      ]},
+    { title:"Njoftim në universitet", script:"Liebe Studierende, aufgrund von Bauarbeiten ist die Bibliothek in der kommenden Woche nur von acht bis vierzehn Uhr geöffnet. Der Lesesaal im zweiten Stock bleibt komplett geschlossen. Ausweichmöglichkeiten finden Sie im Studierendenzentrum.",
+      questions:[
+        {q:"Warum sind die Öffnungszeiten eingeschränkt?", opts:["Wegen Bauarbeiten","Wegen der Semesterferien","Wegen Personalmangels"], a:0, ex:"„aufgrund von Bauarbeiten“"},
+        {q:"Was ist komplett geschlossen?", opts:["Die ganze Bibliothek","Der Lesesaal im zweiten Stock","Das Studierendenzentrum"], a:1, ex:"„Der Lesesaal im zweiten Stock bleibt komplett geschlossen.“"},
+        {q:"Wo kann man ausweichen?", opts:["Im Studierendenzentrum","In der Mensa","Zu Hause"], a:0, ex:"„Ausweichmöglichkeiten finden Sie im Studierendenzentrum.“"}
       ]}
+
   ],
   writing: [
     { title:"Forum — argumentim", prompt:"In einem Online-Forum wird diskutiert: „Sollten Unternehmen zur Vier-Tage-Woche verpflichtet werden?“ Verfasse einen argumentativen Beitrag (ca. 150 Wörter).",
@@ -6398,7 +6953,20 @@ C1: {
         {q:"Wie viele Stellschrauben werden genannt?", opts:["Zwei","Drei","Vier"], a:2, ex:"Renteneintrittsalter, Beitragssätze, Rentenniveau, Steuerfinanzierung."},
         {q:"Warum sind Mehrheiten schwer zu organisieren?", opts:["Kosten sofort, Nutzen erst später","Das Thema ist unbekannt","Es gibt keine Vorschläge"], a:0, ex:"„Die Kosten fallen unmittelbar an, der Nutzen … langfristig.“"},
         {q:"Welche Tendenz beschreibt der Text?", opts:["Reformen werden aufgeschoben","Reformen kommen zu schnell","Reformen sind abgeschlossen"], a:0, ex:"„aufgeschoben statt gestaltet zu werden“"}
+      ]},
+    { head:"Ese: Vetmia në epokën dixhitale", body:"So paradox es klingen mag: Nie waren Menschen so vernetzt wie heute, und zugleich beklagt eine wachsende Zahl von ihnen ein Gefühl tiefer Einsamkeit. Soziologische Studien deuten darauf hin, dass die schiere Menge an digitalen Kontakten die Qualität zwischenmenschlicher Beziehungen keineswegs garantiert — mitunter scheint sie ihr sogar entgegenzuwirken.\n\nEin Erklärungsansatz besagt, dass die permanente Verfügbarkeit sozialer Medien zu einer Verflachung von Beziehungen führt: Ein flüchtiges Like ersetzt das Gespräch, die kuratierte Selbstdarstellung verdrängt die authentische Begegnung. Zugleich warnen andere Forscher davor, den digitalen Wandel vorschnell zum alleinigen Schuldigen zu erklären; gesellschaftliche Entwicklungen wie zunehmende Mobilität und die Auflösung traditioneller Gemeinschaftsstrukturen dürften ebenso zur Vereinsamung beitragen.\n\nUnbestritten bleibt jedenfalls, dass die Frage, wie digitale und analoge Formen der Verbundenheit sinnvoll zusammenwirken können, zu den zentralen Herausforderungen unserer Zeit zählt.",
+      questions:[
+        {q:"Was wird als paradox beschrieben?", opts:["Hohe Vernetzung bei gleichzeitig zunehmender Einsamkeit","Zu wenig Internetzugang weltweit","Steigende Kosten für Mobiltelefone"], a:0, ex:"„Nie waren Menschen so vernetzt wie heute, und zugleich beklagt eine wachsende Zahl von ihnen ein Gefühl tiefer Einsamkeit.“"},
+        {q:"Was besagt der erste Erklärungsansatz?", opts:["Soziale Medien verflachen Beziehungen","Soziale Medien verbessern jede Beziehung","Menschen nutzen zu wenig soziale Medien"], a:0, ex:"„die permanente Verfügbarkeit sozialer Medien führt zu einer Verflachung von Beziehungen“"},
+        {q:"Wovor warnen andere Forscher?", opts:["Digitale Medien als alleinigen Schuldigen zu sehen","Soziale Medien ganz zu verbieten","Zu wenig Forschung zu betreiben"], a:0, ex:"„warnen … davor, den digitalen Wandel vorschnell zum alleinigen Schuldigen zu erklären“"}
+      ]},
+    { head:"Analizë: Gjuha e lajmeve", body:"Die Sprache, in der Nachrichten verfasst werden, ist selten neutral, auch wenn journalistische Objektivität als Ideal gilt. Bereits die Auswahl einzelner Wörter kann eine Berichterstattung in eine bestimmte Richtung lenken: Wird von „Flüchtlingen“ oder von „Migranten“ gesprochen, von einer „Reform“ oder einem „Eingriff“? Solche Begriffe transportieren, oft unbemerkt, Wertungen mit.\n\nLinguisten sprechen in diesem Zusammenhang von Framing: Ein und derselbe Sachverhalt wird je nach gewähltem sprachlichen Rahmen unterschiedlich wahrgenommen. Dies bedeutet nicht zwangsläufig, dass Journalisten bewusst manipulieren; häufig handelt es sich um unbewusste sprachliche Routinen, die dennoch erhebliche Wirkung entfalten können.\n\nFür Rezipienten folgt daraus die Notwendigkeit, Nachrichtentexte nicht nur inhaltlich, sondern auch sprachlich kritisch zu hinterfragen.",
+      questions:[
+        {q:"Was zeigt das Beispiel „Flüchtlinge“ vs. „Migranten“?", opts:["Wortwahl kann Wertungen transportieren","Beide Wörter bedeuten exakt dasselbe ohne Unterschied","Journalisten dürfen diese Wörter nicht verwenden"], a:0, ex:"„Solche Begriffe transportieren, oft unbemerkt, Wertungen mit.“"},
+        {q:"Was bezeichnet der Begriff „Framing“?", opts:["Das Layout einer Zeitung","Dass derselbe Sachverhalt je nach sprachlichem Rahmen unterschiedlich wahrgenommen wird","Eine Zensurmethode"], a:1, ex:"„Ein und derselbe Sachverhalt wird je nach gewähltem sprachlichen Rahmen unterschiedlich wahrgenommen.“"},
+        {q:"Was folgt laut Text für Leser?", opts:["Nachrichten ignorieren","Nachrichtentexte auch sprachlich kritisch hinterfragen","Nur noch eine Zeitung lesen"], a:1, ex:"„die Notwendigkeit, Nachrichtentexte nicht nur inhaltlich, sondern auch sprachlich kritisch zu hinterfragen.“"}
       ]}
+
   ],
   listening: [
     { title:"Diskutim në panel", script:"Moderator: Frau Professor Reinhardt, Sie kritisieren den Begriff Digitalisierung als zu unscharf. Warum? Reinhardt: Weil unter diesem Etikett höchst Unterschiedliches verhandelt wird — von der Aktenverwaltung bis zu lernenden Systemen. Wer alles zusammenwirft, kann keine differenzierten Antworten geben. Moderator: Herr Sandner, Sie sehen das anders? Sandner: Nur teilweise. Unschärfe ist in öffentlichen Debatten unvermeidlich, sonst spricht man aneinander vorbei. Entscheidend ist, dass man bei konkreten Maßnahmen präzise wird. Reinhardt: Dem widerspreche ich nicht grundsätzlich. Mein Einwand zielt darauf, dass die Unschärfe hier systematisch genutzt wird, um Zuständigkeiten zu verwischen.",
@@ -6424,7 +6992,20 @@ C1: {
         {q:"Was entfällt ab dem Wintersemester?", opts:["Die Zwischenprüfung","Die Abschlussarbeit","Die Anwesenheitspflicht"], a:0, ex:"Die bisherige Zwischenprüfung entfällt."},
         {q:"Was tritt an ihre Stelle?", opts:["Zwei studienbegleitende Nachweise","Eine mündliche Prüfung","Nichts"], a:0, ex:"Zwei Leistungsnachweise im 3. und 5. Semester."},
         {q:"Was gilt für die Wahl der Prüfungsordnung?", opts:["Einmalig und unwiderruflich","Jederzeit änderbar","Automatisch"], a:0, ex:"„einmalig und unwiderruflich“"}
+      ]},
+    { title:"Leksion: Bias njohës", script:"Der Bestätigungsfehler, auf Englisch confirmation bias, beschreibt die menschliche Tendenz, Informationen bevorzugt so wahrzunehmen und zu interpretieren, dass sie die eigenen bestehenden Überzeugungen bestätigen. Widersprechende Fakten werden dagegen häufig ausgeblendet oder als weniger relevant eingestuft. Dieser Mechanismus erklärt teilweise, warum sachliche Debatten, etwa in politischen Kontroversen, oft so schwierig zu führen sind: Beide Seiten interpretieren dieselben Fakten auf eine Weise, die ihre jeweilige Position stützt.",
+      questions:[
+        {q:"Was beschreibt der Bestätigungsfehler?", opts:["Die Tendenz, Informationen so zu interpretieren, dass sie eigene Überzeugungen bestätigen","Einen Fehler in der Statistik","Eine Krankheit des Gedächtnisses"], a:0, ex:"„die menschliche Tendenz, Informationen bevorzugt so wahrzunehmen … dass sie die eigenen bestehenden Überzeugungen bestätigen.“"},
+        {q:"Was passiert mit widersprechenden Fakten?", opts:["Sie werden besonders ernst genommen","Sie werden ausgeblendet oder als weniger relevant eingestuft","Sie werden sofort veröffentlicht"], a:1, ex:"„Widersprechende Fakten werden … häufig ausgeblendet oder als weniger relevant eingestuft.“"},
+        {q:"Was erklärt dieser Mechanismus laut dem Vortrag?", opts:["Warum politische Debatten oft schwierig sind","Warum das Wetter sich ändert","Warum Menschen vergesslich sind"], a:0, ex:"„erklärt teilweise, warum sachliche Debatten … oft so schwierig zu führen sind.“"}
+      ]},
+    { title:"Intervistë: Etika e kërkimit", script:"Interviewer: Frau Professor Adler, wo liegen die größten ethischen Herausforderungen in der aktuellen Genforschung? Prof. Adler: Vor allem in der Frage, wie weit wir Eingriffe in das menschliche Erbgut zulassen sollten, selbst wenn sie medizinisch möglich wären. Nur weil etwas technisch machbar ist, heißt das nicht automatisch, dass es auch verantwortungsvoll ist. Interviewer: Braucht es dafür internationale Regeln? Prof. Adler: Unbedingt, denn nationale Alleingänge könnten sonst zu einem Wettlauf führen, bei dem ethische Standards auf der Strecke bleiben.",
+      questions:[
+        {q:"Was sieht Prof. Adler als größte Herausforderung?", opts:["Eingriffe ins menschliche Erbgut","Zu wenig Forschungsgelder","Zu viele Studierende"], a:0, ex:"„wie weit wir Eingriffe in das menschliche Erbgut zulassen sollten“"},
+        {q:"Was betont sie zur technischen Machbarkeit?", opts:["Machbar bedeutet automatisch verantwortungsvoll","Nur weil etwas machbar ist, ist es nicht automatisch verantwortungsvoll","Technik sollte verboten werden"], a:1, ex:"„Nur weil etwas technisch machbar ist, heißt das nicht automatisch, dass es auch verantwortungsvoll ist.“"},
+        {q:"Was befürwortet sie zum Schluss?", opts:["Internationale Regeln","Komplettes Forschungsverbot","Nationale Alleingänge"], a:0, ex:"„Unbedingt [braucht es internationale Regeln], denn nationale Alleingänge könnten … zu einem Wettlauf führen.“"}
       ]}
+
   ],
   writing: [
     { title:"Ese argumentuese", prompt:"Verfasse einen argumentativen Text zum Thema „Sollte lebenslanges Lernen verpflichtend gefördert werden?“ (ca. 200 Wörter).",
@@ -6515,7 +7096,7 @@ function buildLevelExamSet(levelKey, n) {
     for (let k = 0; k < count; k++) out.push(arr[(start + k * step) % arr.length]);
     return out;
   };
-  return {
+  const set = {
     index: i,
     reading: pickN(c.reading, i, readCount),
     listening: pickN(c.listening, i + 1, listenCount),
@@ -6523,6 +7104,15 @@ function buildLevelExamSet(levelKey, n) {
     plan: c.plan[i % c.plan.length],
     present: c.present[(i + 1) % c.present.length]
   };
+  // B1: shto pjesët shtesë të ndërtuara në Prioritetin 1 — 1 tekst i 4-t (Lesen) + Zuordnung,
+  // 1 tekst i 4-t (Hören) me R/GABIM, dhe Shkrimi si {t1,t2,t3} sipas formatit Goethe B1.
+  if (levelKey === "B1") {
+    set.reading = set.reading.concat([pickTf(READING_POOL, i)]);
+    set.readingMatch = READING_MATCH_POOL[i % READING_MATCH_POOL.length];
+    set.listening = set.listening.concat([pickTf(LISTENING_POOL, i)]);
+    set.writing = { t1: pickWriting("t1", i), t2: pickWriting("t2", i + 1), t3: pickWriting("t3", i + 2) };
+  }
+  return set;
 }
 
 function showFullExamIntro() {
@@ -6649,10 +7239,14 @@ function runFullLesen(mod) {
   let html = fullProgressBar() +
     `<div class="note" style="text-align:left;margin:0 0 12px;">Lexo tekstet dhe përgjigju pyetjeve. Ke ${mod.minutes} minuta — planifiko rreth 5 minuta për kontrollin final.</div>`;
   let n = 0;
-  parts.forEach(part => {
+  parts.forEach((part, pi) => {
     html += `<div class="reading-text"><h4>${esc(part.head)}</h4>${esc(part.body).replace(/\n/g,"<br>")}</div>`;
-    part.questions.forEach(q => { html += buildQuestionHtml(q, n); n++; });
+    // Teksti i fundit (indeksi 3) përdor pohime R/GABIM nëse ka; të tjerët MC si më parë
+    const useTf = pi === 3 && part.tf && part.tf.length;
+    const qs = useTf ? part.tf.map(t => ({ type: "tf", s: t.s, a: t.a })) : part.questions;
+    qs.forEach(q => { html += buildQuestionHtml(q, n); n++; });
   });
+  if (currentExamSet.readingMatch) { html += buildMatchHtml(currentExamSet.readingMatch, n); n += currentExamSet.readingMatch.people.length; }
   examShell(`${mod.icon} ${currentExamLevel} · Moduli ${fullModuleIndex+1}/4 — ${mod.name}`, mod.minutes, html);
   wireModuleQuestions(document.getElementById("examBody"), n);
 }
@@ -6670,7 +7264,9 @@ function runFullHoeren(mod) {
         <button class="btn btn-secondary" data-stop="1">⏹ Ndalo</button>
       </div>
     </div>`;
-    part.questions.forEach(q => { html += buildQuestionHtml(q, n); n++; });
+    const useTf = pi === 3 && part.tf && part.tf.length;
+    const qs = useTf ? part.tf.map(t => ({ type: "tf", s: t.s, a: t.a })) : part.questions;
+    qs.forEach(q => { html += buildQuestionHtml(q, n); n++; });
   });
   examShell(`${mod.icon} ${currentExamLevel} · Moduli ${fullModuleIndex+1}/4 — ${mod.name}`, mod.minutes, html);
   const body = document.getElementById("examBody");
@@ -6681,14 +7277,14 @@ function runFullHoeren(mod) {
     b.addEventListener("click", () => {
       if (plays[pi] >= 2) return;
       plays[pi]++;
-      speak(parts[pi].script);
+      speakDialog(parts[pi].script, (typeof modeCfg === "function" ? modeCfg().speak : "de-DE"));
       const left = 2 - plays[pi];
       b.textContent = left > 0 ? `🔊 Dëgjo (mbetet ${left})` : "🔊 U dëgjua 2 herë";
       if (left === 0) { b.disabled = true; b.style.opacity = ".5"; }
     });
   });
   body.querySelectorAll("[data-stop]").forEach(b =>
-    b.addEventListener("click", () => window.speechSynthesis && window.speechSynthesis.cancel()));
+    b.addEventListener("click", () => { if (dialogPlayback) dialogPlayback.cancelled = true; window.speechSynthesis && window.speechSynthesis.cancel(); }));
   wireModuleQuestions(body, n);
 }
 
@@ -6717,14 +7313,33 @@ function wireModuleQuestions(container, allQ) {
       });
     });
   });
+  // Rreshtat e zuordnimit (select): numërohen si të njëjtat pyetje, kontrollohen kur ndryshon zgjedhja
+  container.querySelectorAll(".match-row").forEach(row => {
+    row.querySelector("select").addEventListener("change", (e) => {
+      if (row.dataset.done) return;
+      const val = e.target.value; if (!val) return;
+      row.dataset.done = "1"; answered++;
+      const ok = val === row.dataset.answer;
+      row.classList.add(ok ? "match-correct" : "match-wrong");
+      if (!row.classList.contains("match-wrong")) e.target.disabled = true; else e.target.insertAdjacentHTML("afterend", ` <span class="match-hint">→ ${esc(row.dataset.answer)}</span>`);
+      if (ok) { correct++; awardPoints(10, "exam"); registerAnswer(true); } else registerAnswer(false);
+      if (answered === allQ) finishModule((correct / allQ) * 100);
+    });
+  });
 }
 
 /* --- Moduli 3: Schreiben (60 min) --- */
 function runFullSchreiben(mod) {
-  const set = currentExamSet.writing;                 // { t1, t2, t3 }
-  const parts = ["t1","t2","t3"];
+  const raw = currentExamSet.writing;
+  // B1 ka strukturën e re {t1,t2,t3}; nivelet e tjera (A1/A2/B2/C1) kanë ende një detyrë të vetme —
+  // e trajtojmë si "t1" të vetme, që të mos ketë rrëzim dhe të funksionojë për të gjitha nivelet.
+  const set = raw.t1 ? raw : { t1: raw };
+  const parts = raw.t1 ? ["t1","t2","t3"] : ["t1"];
+  // Nivelet pa strukturën {t1,t2,t3}: gjatësia e pritur varet nga niveli, jo nga vlerat fikse të B1
+  const FALLBACK_WORDS = { A1: 20, A2: 35, B2: 120, C1: 180 };
+  const fallbackWords = FALLBACK_WORDS[currentExamLevel] || 60;
   window.__currentModuleProgress = () => ({ correct: 0, total: 0 });
-  const partHtml = (k) => { const task = set[k], P = WRITING_PARTS[k]; return `
+  const partHtml = (k) => { const task = set[k]; const P = raw.t1 ? WRITING_PARTS[k] : { label: "", desc: { sq: "", de: "", en: "" }, words: fallbackWords, minutes: mod.minutes }; return `
     <div class="speak-card write-part" data-part="${k}">
       <h4>${P.label} · ${P.desc[menuLang] || P.desc.sq} <span class="write-part-time">⏱ ~${P.minutes} min</span></h4>
       <div style="font-weight:700;margin:6px 0 4px;">${esc(task.title)}</div>
@@ -6822,74 +7437,156 @@ function renderWritingFeedback(result, part) {
     ${result.korrigiert ? `<details class="wf-corr"><summary>Teksti i korrigjuar</summary><div>${esc(result.korrigiert)}</div></details>` : ""}</div>`;
 }
 
+/* ============ VLERËSIMI I TË FOLURIT ============
+   Regjistrohet zëri (nëse shfletuesi lejon) + transkriptohet automatikisht (Web Speech API).
+   Transkripti vlerësohet nga AI si te Shkrimi, por me kritere për të folurit. RRETH SAKTËSISË:
+   Kjo VLERËSON PËRMBAJTJEN DHE GJUHËN nga transkripti — jo shqiptimin/intonacionin, sepse
+   kjo kërkon analizë audio që nuk është e mundur këtu. Kjo thuhet HAPUR te përdoruesi. */
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+
+async function evaluateSpeakingAI(task, transcript, partLabel) {
+  const words = transcript.trim().split(/\s+/).filter(Boolean).length;
+  const sys = `Du bist Prüfer für das Goethe-Zertifikat B1, Modul Sprechen. Du bekommst das TRANSKRIPT einer mündlichen Leistung (automatisch erkannt, kann kleine Erkennungsfehler enthalten — ignoriere offensichtliche Erkennungsfehler wie falsch erkannte einzelne Wörter). Bewerte NUR Inhalt und Sprache, NICHT Aussprache (nicht verfügbar). Kriterien, je 0-33 Punkte: "aufgabe" (Aufgabenbewältigung: Thema erfüllt, Punkte angesprochen), "ausdruck" (Wortschatz, Zusammenhang, flüssig wirkender Ausdruck), "grammatik" (grammatische Korrektheit, Satzbau). Antworte AUSSCHLIESSLICH mit JSON, kein Markdown:
+{"aufgabe":0-33,"ausdruck":0-33,"grammatik":0-33,"fehler":[{"typ":"<Kasus|Verbstellung|Konjugation|Präposition|Wortwahl|Register>","original":"...","korrektur":"...","erklaerung":"kurz auf Deutsch"}],"kommentar":"2-3 Sätze Feedback auf Deutsch"}
+Sei fair, aber nicht großzügig. Sehr kurze oder thematisch verfehlte Antworten bekommen bei "aufgabe" wenig Punkte.`;
+  const user = `AUFGABE (${partLabel}):\n${task}\n\nTRANSKRIPT (${words} Wörter):\n${transcript}`;
+  const res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1200, system: sys, messages: [{ role: "user", content: user }] }) });
+  if (!res.ok) throw new Error("API " + res.status);
+  const data = await res.json();
+  const raw = (data.content || []).map(c => c.text || "").join("").replace(/```json|```/g, "").trim();
+  const j = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1));
+  const c = (v) => Math.max(0, Math.min(33, Math.round(+v || 0)));
+  const scores = { aufgabe: c(j.aufgabe), ausdruk: c(j.ausdruck), grammatik: c(j.grammatik) };
+  return { total: scores.aufgabe + scores.ausdruk + scores.grammatik, scores, fehler: Array.isArray(j.fehler) ? j.fehler.slice(0, 15) : [], kommentar: j.kommentar || "", ai: true };
+}
+function evaluateSpeakingHeuristic(task, transcript, partLabel) {
+  const words = transcript.trim().split(/\s+/).filter(Boolean).length;
+  const lenScore = Math.min(1, words / 40);   // ~40 fjalë = përgjigje e arsyeshme e folur
+  const conn = /\b(weil|deshalb|obwohl|trotzdem|dass|wenn|aber|denn|zuerst|dann|danach)\b/i.test(transcript) ? 1 : 0.4;
+  const scores = { aufgabe: Math.round(33 * lenScore), ausdruk: Math.round(33 * (0.5 * lenScore + 0.5 * conn)), grammatik: Math.round(33 * 0.6) };
+  return { total: scores.aufgabe + scores.ausdruk + scores.grammatik, scores, fehler: [], kommentar: "", ai: false };
+}
+async function evaluateSpeaking(task, transcript, partLabel) {
+  if (!transcript || transcript.trim().split(/\s+/).filter(Boolean).length < 5) return { total: 0, scores: { aufgabe: 0, ausdruk: 0, grammatik: 0 }, fehler: [], kommentar: "Shumë pak fjalë për t'u vlerësuar.", ai: true };
+  try { return await evaluateSpeakingAI(task, transcript, partLabel); }
+  catch (e) { console.warn("AI-Bewertung Sprechen nicht verfügbar → Heuristik:", e.message); return evaluateSpeakingHeuristic(task, transcript, partLabel); }
+}
+function renderSpeakingFeedback(result) {
+  const s = result.scores;
+  const bar = (label, v) => `<div class="wf-row"><span>${label}</span><div class="wf-track"><div class="wf-fill" style="width:${v * 3}%"></div></div><strong>${v}/33</strong></div>`;
+  const errs = result.fehler.length ? `<div class="wf-errors">${result.fehler.map(f => `<div class="wf-err"><span class="wf-tag">${esc(f.typ)}</span> <s>${esc(f.original)}</s> → <strong>${esc(f.korrektur)}</strong></div>`).join("")}</div>` : "";
+  return `<div class="wf-card"><div class="wf-head">${result.total}/99 ${result.ai ? "" : '<span class="wf-note">⚠ vlerësim i thjeshtë (AI jo e arritshme)</span>'}</div>
+    ${bar("Aufgabe", s.aufgabe)}${bar("Ausdruck", s.ausdruk)}${bar("Grammatik", s.grammatik)}
+    ${result.kommentar ? `<div class="wf-comment">${esc(result.kommentar)}</div>` : ""}${errs}
+    <div class="wf-note" style="display:block;margin-top:8px;">ℹ️ Vlerësimi mbulon përmbajtjen dhe gjuhën nga transkripti — jo shqiptimin (kërkon analizë audio, jo e mundur këtu).</div></div>`;
+}
+
+// Komponenti i regjistrimit: mikrofon + transkriptim i drejtpërdrejtë (Web Speech API), me alternativë me shkrim
+function attachSpeakingRecorder(container, taskKey, taskText, partLabel) {
+  const box = document.createElement("div"); box.className = "speak-recorder";
+  const supported = !!SpeechRec;
+  box.innerHTML = supported ? `
+    <button class="btn btn-blue" data-rec-start>🎤 Fillo të flasësh</button>
+    <button class="btn btn-secondary hidden" data-rec-stop>⏹ Ndalo dhe vlerëso</button>
+    <div class="rec-status" data-rec-status></div>
+    <textarea class="writing-area hidden" data-rec-transcript placeholder="Transkripti do të shfaqet këtu..." rows="3"></textarea>
+  ` : `
+    <div class="note" style="margin:0 0 8px;">⚠ Shfletuesi yt nuk mbështet njohjen e të folurit. Shkruaj përafërsisht çfarë do të thuash me zë — do të vlerësohet gjuha njësoj.</div>
+    <textarea class="writing-area" data-rec-transcript placeholder="Shkruaj këtu çfarë do të thuash..." rows="4"></textarea>
+  `;
+  box.innerHTML += `<button class="btn btn-primary" data-rec-eval style="width:100%;margin-top:8px;">Vlerëso →</button><div data-rec-feedback></div>`;
+  container.appendChild(box);
+  let finalTranscript = "", recognition = null, recording = false;
+  const statusEl = box.querySelector("[data-rec-status]");
+  const taEl = box.querySelector("[data-rec-transcript]");
+  if (supported) {
+    box.querySelector("[data-rec-start]").addEventListener("click", () => {
+      try { recognition = new SpeechRec(); } catch (e) { statusEl.textContent = "Mikrofoni nuk u aktivizua."; return; }
+      recognition.lang = (typeof modeCfg === "function" ? modeCfg().speak : "de-DE"); recognition.continuous = true; recognition.interimResults = true;
+      finalTranscript = ""; recording = true;
+      recognition.onresult = (ev) => {
+        let interim = "";
+        for (let i = ev.resultIndex; i < ev.results.length; i++) { const r = ev.results[i]; if (r.isFinal) finalTranscript += r[0].transcript + " "; else interim += r[0].transcript; }
+        statusEl.textContent = "🔴 " + finalTranscript + interim;
+      };
+      recognition.onerror = (e) => { statusEl.textContent = "Gabim: " + e.error + ". Provo përsëri ose shkruaj tekstin poshtë."; };
+      recognition.onend = () => { if (recording) { try { recognition.start(); } catch (e) {} } };   // rifillon vetë nëse ndalet vetvetiu
+      recognition.start();
+      box.querySelector("[data-rec-start]").classList.add("hidden");
+      box.querySelector("[data-rec-stop]").classList.remove("hidden");
+      statusEl.textContent = "🔴 Po dëgjon…";
+    });
+    box.querySelector("[data-rec-stop]").addEventListener("click", () => {
+      recording = false; if (recognition) recognition.stop();
+      box.querySelector("[data-rec-stop]").classList.add("hidden");
+      taEl.value = finalTranscript.trim(); taEl.classList.remove("hidden");
+      statusEl.textContent = "✓ U regjistrua. Mund ta redaktosh tekstin para se ta vlerësosh.";
+    });
+  }
+  let lastScore = { total: 0, ai: false };
+  box.querySelector("[data-rec-eval]").addEventListener("click", async () => {
+    const text = taEl.value.trim();
+    if (text.split(/\s+/).filter(Boolean).length < 5) { alert("Shkruaj ose thuaj të paktën disa fjali para se të vlerësohet."); return; }
+    const btn = box.querySelector("[data-rec-eval]"); btn.disabled = true; btn.textContent = "Po vlerësohet…";
+    const r = await evaluateSpeaking(taskText, text, partLabel);
+    recordWritingErrors(r);   // të njëjtat kategori gabimesh si te shkrimi
+    lastScore = r; box.dataset.score = r.total;
+    box.querySelector("[data-rec-feedback]").innerHTML = renderSpeakingFeedback(r);
+    btn.textContent = "Vlerëso përsëri"; btn.disabled = false;
+    if (box._onScored) box._onScored(r.total);
+  });
+  return { get score() { return lastScore.total; }, onScored: (fn) => { box._onScored = fn; } };
+}
+
 /* --- Moduli 4: Sprechen (15 min përgatitje + bisedë) --- */
 function runFullSprechen(mod) {
   const plan = currentExamSet.plan;
   const present = currentExamSet.present;
   window.__currentModuleProgress = () => ({ correct: 0, total: 0 });
+  const followup = SPEAKING_FOLLOWUP[currentExamSet.index % SPEAKING_FOLLOWUP.length];
   let html = fullProgressBar() +
-    `<div class="note" style="text-align:left;margin:0 0 12px;">Në provimin e vërtetë ke <strong>15 minuta përgatitje</strong>, pastaj flet me një partner përballë komisionit. Këtu: lexo detyrat, fol me zë të lartë (mundësisht regjistro veten) dhe pastaj vlerëso ndershmërisht.</div>`;
+    `<div class="note" style="text-align:left;margin:0 0 12px;">Në provimin e vërtetë ke <strong>15 minuta përgatitje</strong>, pastaj flet me një partner përballë komisionit. Këtu: lexo detyrën, shtyp 🎤 dhe FOL me zë të lartë në gjermanisht — do transkriptohet dhe vlerësohet automatikisht.</div>`;
 
-  html += `<div class="speak-card">
+  html += `<div class="speak-card" id="speakPart0">
       <h4>Pjesa 1 — Planifikoni bashkë</h4>
       <div style="font-size:.92rem;line-height:1.55;">${esc(plan.prompt)}</div>
       <ul>${plan.points.map(p => "<li>" + esc(p) + "</li>").join("")}</ul>
       <div class="phrase-box"><strong>Shprehje ndihmëse:</strong><br>${esc(plan.phrases)}</div>
-      <div class="self-rate">
-        <div class="self-rate-label">Si ia dole?</div>
-        <button class="self-rate-btn" data-task="0" data-val="100">Shumë mirë</button>
-        <button class="self-rate-btn" data-task="0" data-val="75">Mirë</button>
-        <button class="self-rate-btn" data-task="0" data-val="50">Me vështirësi</button>
-        <button class="self-rate-btn" data-task="0" data-val="20">Nuk ia dola</button>
-      </div>
     </div>`;
 
-  html += `<div class="speak-card">
+  html += `<div class="speak-card" id="speakPart1">
       <h4>Pjesa 2 — Prezantim</h4>
       <div style="font-size:.92rem;line-height:1.55;">${esc(present.prompt)}</div>
       <ul>${present.points.map(p => "<li>" + esc(p) + "</li>").join("")}</ul>
       <div class="phrase-box"><strong>Shprehje ndihmëse:</strong><br>${esc(present.phrases)}</div>
-      <div class="self-rate">
-        <div class="self-rate-label">Si ia dole?</div>
-        <button class="self-rate-btn" data-task="1" data-val="100">Shumë mirë</button>
-        <button class="self-rate-btn" data-task="1" data-val="75">Mirë</button>
-        <button class="self-rate-btn" data-task="1" data-val="50">Me vështirësi</button>
-        <button class="self-rate-btn" data-task="1" data-val="20">Nuk ia dola</button>
-      </div>
     </div>`;
 
-  html += `<div class="speak-card">
+  html += `<div class="speak-card" id="speakPart2">
       <h4>Pjesa 3 — Pyetje pas prezantimit</h4>
-      <div style="font-size:.92rem;line-height:1.55;">Partneri ose komisioni të bën pyetje për prezantimin tënd. Përgjigju shkurt dhe qartë.</div>
-      <ul><li>Përgjigju të paktën dy pyetjeve të mundshme.</li><li>Jep një shembull konkret.</li><li>Falëndero në fund.</li></ul>
+      <div style="font-size:.92rem;line-height:1.55;">Komisioni të bën këto pyetje për prezantimin tënd. Përgjigju me zë, shkurt dhe qartë:</div>
+      <ul>${followup.map(q => "<li>" + esc(q) + "</li>").join("")}</ul>
       <div class="phrase-box"><strong>Shprehje ndihmëse:</strong><br>Das ist eine gute Frage. / Wie ich schon gesagt habe, … / Zum Beispiel … / Danke für die Frage.</div>
-      <div class="self-rate">
-        <div class="self-rate-label">Si ia dole?</div>
-        <button class="self-rate-btn" data-task="2" data-val="100">Shumë mirë</button>
-        <button class="self-rate-btn" data-task="2" data-val="75">Mirë</button>
-        <button class="self-rate-btn" data-task="2" data-val="50">Me vështirësi</button>
-        <button class="self-rate-btn" data-task="2" data-val="20">Nuk ia dola</button>
-      </div>
     </div>`;
 
-  html += `<button class="btn btn-primary" id="btnFinishFullSpeak" style="width:100%;padding:15px;margin-top:6px;">Përfundo modulin →</button>`;
+  html += `<button class="btn btn-primary" id="btnFinishFullSpeak" style="width:100%;padding:15px;margin-top:6px;" disabled>Vlerëso të tria pjesët më sipër së pari →</button>`;
   examShell(`${mod.icon} ${currentExamLevel} · Moduli ${fullModuleIndex+1}/4 — ${mod.name}`, mod.minutes, html);
 
-  const ratings = {};
-  document.querySelectorAll(".self-rate-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const t = btn.dataset.task;
-      ratings[t] = parseInt(btn.dataset.val);
-      document.querySelectorAll(`.self-rate-btn[data-task="${t}"]`).forEach(b => b.classList.remove("selected"));
-      btn.classList.add("selected");
-      const vals = Object.values(ratings);
-      window.__currentModuleProgress = () => ({ correct: vals.reduce((a,b)=>a+b,0)/Math.max(vals.length,1), total: 100 });
-    });
-  });
+  const scores = [null, null, null];
+  const recorders = [
+    attachSpeakingRecorder(document.getElementById("speakPart0"), 0, plan.prompt + " " + plan.points.join(" "), "Pjesa 1"),
+    attachSpeakingRecorder(document.getElementById("speakPart1"), 1, present.prompt + " " + present.points.join(" "), "Pjesa 2"),
+    attachSpeakingRecorder(document.getElementById("speakPart2"), 2, followup.join(" "), "Pjesa 3")
+  ];
+  const finishBtn = document.getElementById("btnFinishFullSpeak");
+  recorders.forEach((rec, i) => rec.onScored((score) => {
+    scores[i] = score;
+    window.__currentModuleProgress = () => ({ correct: scores.filter(s=>s!==null).reduce((a,b)=>a+b,0) / Math.max(1, scores.filter(s=>s!==null).length), total: 100 });
+    if (scores.every(s => s !== null)) { finishBtn.disabled = false; finishBtn.textContent = "Përfundo modulin →"; }
+  }));
   document.getElementById("btnFinishFullSpeak").addEventListener("click", () => {
-    const vals = Object.values(ratings);
-    if (vals.length < 3) { alert("Ju lutem vlerëso të tria pjesët."); return; }
-    finishModule(vals.reduce((a, b) => a + b, 0) / vals.length);
+    if (scores.some(s => s === null)) return;
+    finishModule(scores.reduce((a, b) => a + b, 0) / scores.length);
   });
 }
 
@@ -7022,11 +7719,32 @@ function showGrandGift(score) {
 }
 
 function buildQuestionHtml(q, idx) {
+  if (q.type === "tf") {
+    // Richtig/Falsch: 2 opsione fikse, teksti i pohimit vjen nga q.s
+    return `<div class="exam-q" data-idx="${idx}" data-answer="${q.a ? 0 : 1}">
+      <div class="qtext">${idx+1}. ${esc(q.s)}</div>
+      <button class="opt" data-opt="0">${uiText("exam.true")}</button>
+      <button class="opt" data-opt="1">${uiText("exam.false")}</button>
+    </div>`;
+  }
   return `<div class="exam-q" data-idx="${idx}" data-answer="${q.a}">
     <div class="qtext">${idx+1}. ${esc(q.q)}</div>
     ${q.opts.map((o,i)=>`<button class="opt" data-opt="${i}">${esc(o)}</button>`).join("")}
     <div class="explain hidden">${esc(q.ex||"")}</div>
   </div>`;
+}
+// Detyra e zuordnimit: një <select> për njeri, me shkronjat e njoftimeve
+function buildMatchHtml(matchSet, startIdx) {
+  const adsHtml = matchSet.ads.map(a => `<div class="match-ad"><strong>${a.id}</strong> — ${esc(a.text)}</div>`).join("");
+  const rowsHtml = matchSet.people.map((p, i) => `
+    <div class="match-row" data-idx="${startIdx + i}" data-answer="${p.correct}">
+      <div class="match-person">${i+1}. ${esc(p.text)}</div>
+      <select class="match-select" data-mopt>
+        <option value="">–</option>
+        ${matchSet.ads.map(a => `<option value="${a.id}">${a.id}</option>`).join("")}
+      </select>
+    </div>`).join("");
+  return `<div class="reading-text"><h4>${uiText("exam.match_title")}</h4><div class="match-ads">${adsHtml}</div></div>${rowsHtml}`;
 }
 
 function wireQuestions(container, onFinish, allQ) {
@@ -7125,9 +7843,9 @@ function runHoeren() {
   examShell(e.title, e.minutes, html);
   const body = document.getElementById("examBody");
   body.querySelectorAll("[data-play]").forEach(b =>
-    b.addEventListener("click", () => speak(parts[parseInt(b.dataset.play)].script)));
+    b.addEventListener("click", () => speakDialog(parts[parseInt(b.dataset.play)].script, (typeof modeCfg === "function" ? modeCfg().speak : "de-DE"))));
   body.querySelectorAll("[data-stop]").forEach(b =>
-    b.addEventListener("click", () => window.speechSynthesis && window.speechSynthesis.cancel()));
+    b.addEventListener("click", () => { if (dialogPlayback) dialogPlayback.cancelled = true; window.speechSynthesis && window.speechSynthesis.cancel(); }));
   body.querySelectorAll("[data-show]").forEach(b =>
     b.addEventListener("click", () => document.getElementById("script-"+b.dataset.show).classList.toggle("hidden")));
   wireQuestions(body, showResult, n);
@@ -8511,89 +9229,283 @@ const GRAMMAR_EN = [
 {en:"I'm tired, nevertheless I keep working.", ex:"\"trotzdem\" is an adverb in position 1 → the verb comes right after it (inversion): trotzdem arbeite ich."},
 {en:"It's raining, that's why I'm taking the umbrella.", ex:"Consequence → deshalb (verb comes right after it)."},
 {en:"I like tea, whereas my brother prefers coffee.", ex:"Simple contrast → aber (word order doesn't change)."},
-{en:"The more I practice, the better I get.", ex:"Fixed expression: je … desto."}
+{en:"The more I practice, the better I get.", ex:"Fixed expression: je … desto."},
+{en:"I learn German.", ex:"1st person singular: ich lerne (-e)."},
+{en:"You speak English very well.", ex:"Irregular verb: e→i in 2nd/3rd person singular: sprechen → du sprichst."},
+{en:"He rides a bike every day.", ex:"Irregular verb: a→ä in 3rd person singular: fahren → er fährt."},
+{en:"We are students.", ex:"\"sein\", 1st person plural: wir sind."},
+{en:"Are you tired?", ex:"\"sein\", 2nd person singular: du bist."},
+{en:"I don't have time.", ex:"\"haben\", 1st person singular: ich habe."},
+{en:"They have two children.", ex:"\"haben\", 3rd person plural: sie haben."},
+{en:"I don't understand that.", ex:"\"nicht\" negates the verb/whole sentence, not a noun."},
+{en:"I don't have a car.", ex:"\"kein\" before a noun: das Auto (neuter) → kein Auto."},
+{en:"This is my book.", ex:"das Buch (neuter) Nominative → mein."},
+{en:"This is my sister.", ex:"die Schwester (feminine) Nominative → meine."},
+{en:"Do you know my brother?", ex:"der Bruder (masculine) Accusative → meinen."},
+{en:"Where do you live?", ex:"Question word for place: wo."},
+{en:"Who is that?", ex:"Question word for a person: wer."},
+{en:"Do you drink coffee?", ex:"Yes/no question: verb comes first (inversion)."},
+{en:"Open the door, please!", ex:"Imperative, \"du\" form: verb stem (sometimes with -e)."},
+{en:"Please have a seat!", ex:"Imperative, \"Sie\" form: verb + Sie."},
+{en:"Yesterday I was sick.", ex:"Präteritum of \"sein\", 1st person singular: ich war."},
+{en:"Yesterday we had no time.", ex:"Präteritum of \"haben\", 1st person plural: wir hatten."},
+{en:"As a child I could swim well.", ex:"Präteritum of \"können\", 1st person singular: ich konnte."},
+{en:"He wanted to read the book.", ex:"Präteritum of \"wollen\", 3rd person singular: er wollte."},
+{en:"I wash (myself) every morning.", ex:"Reflexive verb, 1st person singular: ich wasche mich."},
+{en:"He's looking forward to the holidays.", ex:"Reflexive pronoun, 3rd person singular: sich."},
+{en:"He said he was sick.", ex:"Indirect speech, Konjunktiv I of \"sein\": er sei."},
+{en:"She claimed she was telling the truth.", ex:"Konjunktiv I of \"sagen\", 3rd person singular: sie sage."},
+{en:"The task must be done today.", ex:"Modal verb + past participle + werden: die Aufgabe muss erledigt werden."},
+{en:"The window must not be opened.", ex:"Modal \"dürfen\", 3rd person singular + passive: darf geöffnet werden."},
+{en:"The problem can easily be solved.", ex:"\"sich lassen\" + infinitive = can be (passive substitute): lässt sich lösen."},
+{en:"This rule is easy to understand.", ex:"\"sein\" + zu + infinitive = can be (passive substitute): ist zu verstehen."},
+{en:"The waiting man is standing at the door.", ex:"Partizip I as adjective (ongoing action): der wartende Mann."},
+{en:"The repaired car belongs to my neighbor.", ex:"Partizip II as adjective (completed action): das reparierte Auto."},
+{en:"The implementation of the project took three months.", ex:"Nominalization of \"durchführen\" → die Durchführung."},
+{en:"After passing the exam, everyone was relieved.", ex:"Nominalized infinitive after the preposition \"nach\": dem Bestehen."},
+{en:"He improved his fitness by jogging every day.", ex:"\"indem\" = the manner in which something is done (by doing something)."},
+{en:"She worked hard, so that she got promoted.", ex:"\"sodass\" = consequence (the result of an action)."},
+{en:"In case it rains, the party will take place indoors.", ex:"\"falls\" = a possible condition (in case)."},
+{en:"He is tired, but he keeps working.", ex:"Fixed pair: zwar … aber (concession/contrast)."},
+{en:"By tomorrow I will have finished the work.", ex:"Futur II: werden + past participle + haben/sein — an action completed by a future point."},
+{en:"By next summer we will have finished building the house.", ex:"Futur II, 1st person plural: wir werden … gebaut haben."},
+{en:"She must already be home, her car is parked outside.", ex:"Subjective \"müssen\" = strong assumption based on evidence."},
+{en:"He is said to have said that, but I don't believe it.", ex:"Subjective \"sollen\" = something reportedly said (by others), not confirmed."},
+{en:"This is the company I've worked at for five years.", ex:"\"arbeiten bei\" + feminine relative pronoun Dative: bei der."},
+{en:"This is the car I've been dreaming of for a long time.", ex:"\"träumen von\" + neuter relative pronoun Dative: von dem."},
+{en:"The government has made a decision.", ex:"Fixed collocation: eine Entscheidung treffen (not \"machen\")."},
+{en:"We have to take the problem into consideration.", ex:"Fixed expression: etwas in Betracht ziehen (to take something into consideration)."},
+{en:"Despite the bad weather, the game took place.", ex:"\"trotz\" + Genitive = concession (despite)."},
+{en:"As a result of the strike, many trains were cancelled.", ex:"\"infolge\" + Genitive = as a consequence of something."},
+{en:"The door is already open.", ex:"Zustandspassiv (achieved state): sein + past participle. Compare: \"wird geöffnet\" = an action in progress."},
+{en:"While the party was being celebrated, the police arrived.", ex:"Vorgangspassiv (ongoing action): werden + past participle, Präteritum: wurde gefeiert."},
+{en:"The man who had just arrived immediately left the room.", ex:"Extended participial attribute (Partizip II + adverb before the noun): der gerade eingetroffene Mann."},
+{en:"The recently published study provides new insights.", ex:"Extended participial attribute: kürzlich veröffentlichte Studie (Partizip II + adverb)."},
+{en:"The company announced the postponement of the project.", ex:"Nominalization of \"verschieben\" → die Verschiebung (nominal style, typical for C1)."},
+{en:"The spread of new technologies is fundamentally changing the world of work.", ex:"Nominalization of \"verbreiten\" → die Verbreitung."},
+{en:"He had no experience, nevertheless he got the job.", ex:"\"nichtsdestotrotz\" = formal concession (nevertheless), C1 level."},
+{en:"The measure was controversial; nonetheless it was implemented.", ex:"\"gleichwohl\" = nonetheless, formal, often at the start of the second clause."},
+{en:"Regardless of the criticism, he stuck to his plan.", ex:"\"ungeachtet\" + Genitive = regardless of (formal register, replaces \"trotz\")."},
+{en:"He reported that his colleague had said she had already completed the project.", ex:"Konjunktiv I Perfekt, within embedded indirect speech: sie habe abgeschlossen."},
+{en:"The spokesperson explained that the situation would be closely monitored.", ex:"Konjunktiv I future form (werden + infinitive) in indirect speech: man werde beobachten."},
+{en:"The results of the thorough investigation were unambiguous.", ex:"Feminine Genitive + adjective: der eingehenden Untersuchung (thorough investigation)."},
+{en:"Given the worsening situation, the government felt compelled to act.", ex:"\"angesichts\" + feminine Genitive with reflexive participle: der sich verschärfenden Lage."},
+{en:"Had he been informed in time, he would have reacted differently.", ex:"Konjunktiv II Vergangenheit: hätte reagiert (unreal past condition)."},
+{en:"Had the warnings been taken seriously, the catastrophe could have been avoided.", ex:"Konjunktiv II Vergangenheit with passive substitute: hätte sich vermeiden lassen."},
+{en:"The study concludes that the measure was ineffective.", ex:"\"zu einem Schluss gelangen\" = fixed formal expression, more precise than \"kommen\" in academic context."},
+{en:"The government sees itself forced to implement unpopular reforms.", ex:"\"sich gezwungen sehen\" = fixed formal expression (feels compelled)."},
+{en:"This is the politician whose statements caused major controversy.", ex:"Masculine genitive relative pronoun: dessen Aussagen (his statements)."},
+{en:"The company, whose products are known worldwide, continues to expand.", ex:"Feminine genitive relative pronoun: deren Produkte (its products)."},
+{en:"In his place, I would have decided differently.", ex:"Konjunktiv II Vergangenheit: hätte entschieden."},
+{en:"I spoke with the student.", ex:"N-Deklination: der Student → Accusative/Dative/Genitive singular = den/dem/des Studenten (adds -en in all cases except Nominative)."},
+{en:"This is the customer's car.", ex:"N-Deklination, Genitive: der Kunde → des Kunden."},
+{en:"I don't trust this gentleman.", ex:"N-Deklination, Dative: der Herr → dem Herrn."},
+{en:"Because of the rain, we stayed home.", ex:"\"wegen\" + Genitive = because of."},
+{en:"During the concert it rained heavily.", ex:"\"während\" + Genitive = during (time)."},
+{en:"Despite her illness, she came to work.", ex:"\"trotz\" + Genitive = despite."},
+{en:"I'm having my car repaired.", ex:"\"lassen\" + infinitive = to have someone else do something for you. 1st person singular: ich lasse."},
+{en:"Let me explain that, please!", ex:"Imperative \"du\" of \"lassen\": Lass mich … (let me)."},
+{en:"You don't need to do that.", ex:"\"nicht brauchen\" + zu + infinitive = there's no need to."},
+{en:"You don't need to come if you have no time.", ex:"\"nicht brauchen\" + zu + infinitive: du brauchst nicht zu kommen."},
+{en:"The house was built in 1990.", ex:"Passive in Präteritum: werden (Präteritum) + past participle: wurde gebaut."},
+{en:"The nice man comes from Italy.", ex:"Definite article, masculine Nominative, weak declension: der nette Mann."},
+{en:"I know the nice man.", ex:"Definite article, masculine Accusative: den netten Mann."},
+{en:"The friendly woman is smiling.", ex:"Definite article, feminine Nominative: die freundliche Frau."},
+{en:"The small child is playing.", ex:"Definite article, neuter Nominative: das kleine Kind."},
+{en:"A nice man is standing there.", ex:"Indefinite article, masculine Nominative, strong declension: ein netter Mann."},
+{en:"I see a nice man.", ex:"Indefinite article, masculine Accusative: einen netten Mann."},
+{en:"That is a good idea.", ex:"Indefinite article, feminine Nominative: eine gute Idee."},
+{en:"We have a beautiful house.", ex:"Indefinite article, neuter Accusative: ein schönes Haus."},
+{en:"The picture is hanging on the wall.", ex:"No movement (where?) → Dative: an der Wand (hanging on the wall)."},
+{en:"I'm hanging the picture on the wall.", ex:"With movement (to where?) → Accusative: an die Wand (hanging it onto the wall)."},
+{en:"He arrived late, which annoyed everyone.", ex:"\"was\" as relative pronoun referring to the whole preceding clause, not a specific noun."},
+{en:"Be that as it may, we have to continue.", ex:"Fixed formal expression: \"wie dem auch sei\" = be that as it may."},
+{en:"He speaks both German and English fluently.", ex:"Fixed pair: sowohl … als auch (both … and)."},
+{en:"She has neither time nor desire.", ex:"Fixed pair: weder … noch (neither … nor)."},
+{en:"The request must be submitted within the deadline.", ex:"\"innerhalb\" + Genitive = within (a time limit)."},
+{en:"Depending on the weather, we'll go hiking or stay home.", ex:"\"je nachdem\" = depending on (the circumstances)."},
+{en:"We're coming tomorrow, unless it rains heavily.", ex:"\"es sei denn\" = unless (an exceptive condition)."},
+{en:"The reform makes sense insofar as it saves costs.", ex:"\"insofern als\" = insofar as, to the extent that."},
+{en:"He can't even swim, let alone dive.", ex:"\"geschweige denn\" = let alone, much less."},
 ];
 
 const GRAMMAR_EXERCISES = [
   // --- Nyjat (der/die/das) ---
-  { cat:"Nyjat", q:"Ich sehe ___ Hund im Garten.", sq:"Unë shoh qenin në kopsht.", opts:["der","den","dem"], a:1, ex:"„sehen“ kërkon Akkusativ. Mashkullore: der → den." },
-  { cat:"Nyjat", q:"Ich gebe ___ Kind einen Apfel.", sq:"I jap fëmijës një mollë.", opts:["das","dem","des"], a:1, ex:"„geben“ kërkon Dativ për marrësin. das Kind → dem Kind." },
-  { cat:"Nyjat", q:"___ Frau dort ist meine Lehrerin.", sq:"Gruaja atje është mësuesja ime.", opts:["Die","Der","Den"], a:0, ex:"Femërore në Nominativ: die Frau." },
-  { cat:"Nyjat", q:"Das ist das Auto ___ Vaters.", sq:"Kjo është makina e babait.", opts:["der","des","dem"], a:1, ex:"Genitiv mashkullore: des Vaters (pronësi)." },
-  { cat:"Nyjat", q:"Ich helfe ___ Frau mit den Taschen.", sq:"E ndihmoj gruan me çantat.", opts:["die","der","den"], a:1, ex:"„helfen“ gjithmonë me Dativ. die Frau → der Frau." },
+  { lvl:"A1", cat:"Nyjat", q:"Ich sehe ___ Hund im Garten.", sq:"Unë shoh qenin në kopsht.", opts:["der","den","dem"], a:1, ex:"„sehen“ kërkon Akkusativ. Mashkullore: der → den." },
+  { lvl:"A2", cat:"Nyjat", q:"Ich gebe ___ Kind einen Apfel.", sq:"I jap fëmijës një mollë.", opts:["das","dem","des"], a:1, ex:"„geben“ kërkon Dativ për marrësin. das Kind → dem Kind." },
+  { lvl:"A1", cat:"Nyjat", q:"___ Frau dort ist meine Lehrerin.", sq:"Gruaja atje është mësuesja ime.", opts:["Die","Der","Den"], a:0, ex:"Femërore në Nominativ: die Frau." },
+  { lvl:"B1", cat:"Nyjat", q:"Das ist das Auto ___ Vaters.", sq:"Kjo është makina e babait.", opts:["der","des","dem"], a:1, ex:"Genitiv mashkullore: des Vaters (pronësi)." },
+  { lvl:"A2", cat:"Nyjat", q:"Ich helfe ___ Frau mit den Taschen.", sq:"E ndihmoj gruan me çantat.", opts:["die","der","den"], a:1, ex:"„helfen“ gjithmonë me Dativ. die Frau → der Frau." },
 
   // --- Parafjalët ---
-  { cat:"Parafjalë", q:"Ich warte ___ den Bus.", sq:"Po pres autobusin.", opts:["für","auf","an"], a:1, ex:"warten AUF + Akkusativ — gjithmonë kështu." },
-  { cat:"Parafjalë", q:"Ich interessiere mich ___ Musik.", sq:"Interesohem për muzikë.", opts:["für","auf","über"], a:0, ex:"sich interessieren FÜR + Akkusativ." },
-  { cat:"Parafjalë", q:"Wir sprechen ___ das Wetter.", sq:"Po flasim për motin.", opts:["von","über","auf"], a:1, ex:"sprechen ÜBER + Akkusativ (ose: von + Dativ)." },
-  { cat:"Parafjalë", q:"Ich fahre ___ Bus zur Arbeit.", sq:"Shkoj në punë me autobus.", opts:["mit dem","mit den","mit der"], a:0, ex:"„mit“ gjithmonë Dativ. der Bus → dem Bus." },
-  { cat:"Parafjalë", q:"Das Buch liegt ___ Tisch.", sq:"Libri ndodhet mbi tavolinë.", opts:["auf den","auf dem","auf der"], a:1, ex:"Pa lëvizje (ku?) → Dativ: auf dem Tisch." },
-  { cat:"Parafjalë", q:"Ich lege das Buch ___ Tisch.", sq:"E vendos librin mbi tavolinë.", opts:["auf den","auf dem","auf der"], a:0, ex:"Me lëvizje (ku drejt?) → Akkusativ: auf den Tisch." },
-  { cat:"Parafjalë", q:"Ich freue mich ___ das Wochenende.", sq:"Gëzohem për fundjavën (që vjen).", opts:["über","auf","für"], a:1, ex:"sich freuen AUF = diçka në të ardhmen." },
-  { cat:"Parafjalë", q:"Ich freue mich ___ dein Geschenk.", sq:"Gëzohem për dhuratën tënde.", opts:["über","auf","an"], a:0, ex:"sich freuen ÜBER = diçka që ka ndodhur tashmë." },
-  { cat:"Parafjalë", q:"Er wohnt ___ Berlin.", sq:"Ai jeton në Berlin.", opts:["in","nach","zu"], a:0, ex:"Për qytete pa lëvizje: in + Dativ." },
-  { cat:"Parafjalë", q:"Wir fahren morgen ___ Italien.", sq:"Nesër shkojmë në Itali.", opts:["in","nach","zu"], a:1, ex:"Për shtete pa nyjë: nach Italien." },
-  { cat:"Parafjalë", q:"Ich gehe ___ Arzt.", sq:"Po shkoj te mjeku.", opts:["zum","nach","in"], a:0, ex:"Te një person: zu + Dativ → zum Arzt." },
+  { lvl:"A2", cat:"Parafjalë", q:"Ich warte ___ den Bus.", sq:"Po pres autobusin.", opts:["für","auf","an"], a:1, ex:"warten AUF + Akkusativ — gjithmonë kështu." },
+  { lvl:"B1", cat:"Parafjalë", q:"Ich interessiere mich ___ Musik.", sq:"Interesohem për muzikë.", opts:["für","auf","über"], a:0, ex:"sich interessieren FÜR + Akkusativ." },
+  { lvl:"B1", cat:"Parafjalë", q:"Wir sprechen ___ das Wetter.", sq:"Po flasim për motin.", opts:["von","über","auf"], a:1, ex:"sprechen ÜBER + Akkusativ (ose: von + Dativ)." },
+  { lvl:"A1", cat:"Parafjalë", q:"Ich fahre ___ Bus zur Arbeit.", sq:"Shkoj në punë me autobus.", opts:["mit dem","mit den","mit der"], a:0, ex:"„mit“ gjithmonë Dativ. der Bus → dem Bus." },
+  { lvl:"A2", cat:"Parafjalë", q:"Das Buch liegt ___ Tisch.", sq:"Libri ndodhet mbi tavolinë.", opts:["auf den","auf dem","auf der"], a:1, ex:"Pa lëvizje (ku?) → Dativ: auf dem Tisch." },
+  { lvl:"A2", cat:"Parafjalë", q:"Ich lege das Buch ___ Tisch.", sq:"E vendos librin mbi tavolinë.", opts:["auf den","auf dem","auf der"], a:0, ex:"Me lëvizje (ku drejt?) → Akkusativ: auf den Tisch." },
+  { lvl:"B1", cat:"Parafjalë", q:"Ich freue mich ___ das Wochenende.", sq:"Gëzohem për fundjavën (që vjen).", opts:["über","auf","für"], a:1, ex:"sich freuen AUF = diçka në të ardhmen." },
+  { lvl:"B1", cat:"Parafjalë", q:"Ich freue mich ___ dein Geschenk.", sq:"Gëzohem për dhuratën tënde.", opts:["über","auf","an"], a:0, ex:"sich freuen ÜBER = diçka që ka ndodhur tashmë." },
+  { lvl:"A1", cat:"Parafjalë", q:"Er wohnt ___ Berlin.", sq:"Ai jeton në Berlin.", opts:["in","nach","zu"], a:0, ex:"Për qytete pa lëvizje: in + Dativ." },
+  { lvl:"A1", cat:"Parafjalë", q:"Wir fahren morgen ___ Italien.", sq:"Nesër shkojmë në Itali.", opts:["in","nach","zu"], a:1, ex:"Për shtete pa nyjë: nach Italien." },
+  { lvl:"A2", cat:"Parafjalë", q:"Ich gehe ___ Arzt.", sq:"Po shkoj te mjeku.", opts:["zum","nach","in"], a:0, ex:"Te një person: zu + Dativ → zum Arzt." },
 
   // --- Fjali të nënrenditura ---
-  { cat:"Fjali të nënrenditura", q:"Ich lerne Deutsch, ___ ich hier arbeiten will.", sq:"Mësoj gjermanisht, sepse dua të punoj këtu.", opts:["weil","denn","obwohl"], a:0, ex:"„weil“ = sepse; folja shkon në fund." },
-  { cat:"Fjali të nënrenditura", q:"Er kam nicht, ___ er krank war.", sq:"Ai nuk erdhi, sepse ishte i sëmurë.", opts:["weil","aber","damit"], a:0, ex:"Arsyeja → weil." },
-  { cat:"Fjali të nënrenditura", q:"Ich gehe früh schlafen, ___ ich morgen fit bin.", sq:"Shkoj herët të fle, që të jem në formë nesër.", opts:["damit","weil","obwohl"], a:0, ex:"Qëllimi → damit." },
-  { cat:"Fjali të nënrenditura", q:"___ es regnete, gingen wir spazieren.", sq:"Megjithëse binte shi, dolëm shëtitje.", opts:["Obwohl","Weil","Damit"], a:0, ex:"Kundërshti → obwohl." },
-  { cat:"Fjali të nënrenditura", q:"Ich weiß nicht, ___ er heute kommt.", sq:"Nuk e di nëse ai vjen sot.", opts:["ob","wenn","dass"], a:0, ex:"Pyetje e tërthortë po/jo → ob." },
-  { cat:"Fjali të nënrenditura", q:"___ ich Zeit habe, besuche ich dich.", sq:"Kur/nëse kam kohë, të vizitoj.", opts:["Wenn","Als","Ob"], a:0, ex:"Kusht ose përsëritje → wenn." },
-  { cat:"Fjali të nënrenditura", q:"___ ich klein war, wohnten wir in Tirana.", sq:"Kur isha i vogël, jetonim në Tiranë.", opts:["Als","Wenn","Ob"], a:0, ex:"Një herë në të kaluarën → als." },
-  { cat:"Fjali të nënrenditura", q:"Er sagt, ___ er müde ist.", sq:"Ai thotë se është i lodhur.", opts:["dass","ob","weil"], a:0, ex:"Fjali plotësuese → dass." },
-  { cat:"Fjali të nënrenditura", q:"___ ich gegessen hatte, ging ich schlafen.", sq:"Pasi kisha ngrënë, shkova të fle.", opts:["Nachdem","Bevor","Während"], a:0, ex:"„Nachdem“ = pasi; veprimi i parë në kohë." },
-  { cat:"Fjali të nënrenditura", q:"___ du gehst, ruf mich bitte an.", sq:"Para se të shkosh, të lutem më merr në telefon.", opts:["Bevor","Nachdem","Seitdem"], a:0, ex:"„Bevor“ = para se." },
+  { lvl:"B1", cat:"Fjali të nënrenditura", q:"Ich lerne Deutsch, ___ ich hier arbeiten will.", sq:"Mësoj gjermanisht, sepse dua të punoj këtu.", opts:["weil","denn","obwohl"], a:0, ex:"„weil“ = sepse; folja shkon në fund." },
+  { lvl:"B1", cat:"Fjali të nënrenditura", q:"Er kam nicht, ___ er krank war.", sq:"Ai nuk erdhi, sepse ishte i sëmurë.", opts:["weil","aber","damit"], a:0, ex:"Arsyeja → weil." },
+  { lvl:"B1", cat:"Fjali të nënrenditura", q:"Ich gehe früh schlafen, ___ ich morgen fit bin.", sq:"Shkoj herët të fle, që të jem në formë nesër.", opts:["damit","weil","obwohl"], a:0, ex:"Qëllimi → damit." },
+  { lvl:"B1", cat:"Fjali të nënrenditura", q:"___ es regnete, gingen wir spazieren.", sq:"Megjithëse binte shi, dolëm shëtitje.", opts:["Obwohl","Weil","Damit"], a:0, ex:"Kundërshti → obwohl." },
+  { lvl:"B1", cat:"Fjali të nënrenditura", q:"Ich weiß nicht, ___ er heute kommt.", sq:"Nuk e di nëse ai vjen sot.", opts:["ob","wenn","dass"], a:0, ex:"Pyetje e tërthortë po/jo → ob." },
+  { lvl:"B1", cat:"Fjali të nënrenditura", q:"___ ich Zeit habe, besuche ich dich.", sq:"Kur/nëse kam kohë, të vizitoj.", opts:["Wenn","Als","Ob"], a:0, ex:"Kusht ose përsëritje → wenn." },
+  { lvl:"B1", cat:"Fjali të nënrenditura", q:"___ ich klein war, wohnten wir in Tirana.", sq:"Kur isha i vogël, jetonim në Tiranë.", opts:["Als","Wenn","Ob"], a:0, ex:"Një herë në të kaluarën → als." },
+  { lvl:"B1", cat:"Fjali të nënrenditura", q:"Er sagt, ___ er müde ist.", sq:"Ai thotë se është i lodhur.", opts:["dass","ob","weil"], a:0, ex:"Fjali plotësuese → dass." },
+  { lvl:"B1", cat:"Fjali të nënrenditura", q:"___ ich gegessen hatte, ging ich schlafen.", sq:"Pasi kisha ngrënë, shkova të fle.", opts:["Nachdem","Bevor","Während"], a:0, ex:"„Nachdem“ = pasi; veprimi i parë në kohë." },
+  { lvl:"B1", cat:"Fjali të nënrenditura", q:"___ du gehst, ruf mich bitte an.", sq:"Para se të shkosh, të lutem më merr në telefon.", opts:["Bevor","Nachdem","Seitdem"], a:0, ex:"„Bevor“ = para se." },
 
   // --- Foljet & kohët ---
-  { cat:"Foljet", q:"Gestern ___ ich ins Kino gegangen.", sq:"Dje kam shkuar në kinema.", opts:["habe","bin","war"], a:1, ex:"Foljet e lëvizjes (gehen) bëjnë Perfekt me „sein“." },
-  { cat:"Foljet", q:"Ich ___ gestern einen Film gesehen.", sq:"Dje pashë një film.", opts:["bin","habe","war"], a:1, ex:"„sehen“ bën Perfekt me „haben“." },
-  { cat:"Foljet", q:"Er ___ jeden Morgen um 7 Uhr auf.", sq:"Ai zgjohet çdo mëngjes në orën 7.", opts:["steht","stehet","aufsteht"], a:0, ex:"Folje e ndashme: aufstehen → er steht … auf." },
-  { cat:"Foljet", q:"Wir ___ nächstes Jahr nach Berlin ziehen.", sq:"Vitin e ardhshëm do të zhvendosemi në Berlin.", opts:["werden","wollen","sind"], a:0, ex:"E ardhmja: werden + infinitiv." },
-  { cat:"Foljet", q:"Sie ___ als Kind sehr gern gemalt.", sq:"Si fëmijë ajo pikturonte me shumë dëshirë.", opts:["hat","ist","war"], a:0, ex:"„malen“ → Perfekt me haben." },
-  { cat:"Foljet", q:"Ich ___ dir helfen, wenn du willst.", sq:"Mund të të ndihmoj, nëse dëshiron.", opts:["kann","können","kannst"], a:0, ex:"1. veta njëjës: ich kann." },
-  { cat:"Foljet", q:"Man ___ hier nicht rauchen.", sq:"Këtu nuk lejohet të pihet duhan.", opts:["darf","kann","will"], a:0, ex:"Ndalim/leje → dürfen." },
-  { cat:"Foljet", q:"Du ___ mehr Wasser trinken.", sq:"Ti duhet të pish më shumë ujë.", opts:["solltest","willst","darfst"], a:0, ex:"Këshillë → sollen (Konjunktiv: solltest)." },
-  { cat:"Foljet", q:"Das Fenster ___ jeden Morgen geöffnet.", sq:"Dritarja hapet çdo mëngjes.", opts:["wird","ist","hat"], a:0, ex:"Pasiv: werden + Partizip II." },
-  { cat:"Foljet", q:"Der Brief ___ gestern geschrieben.", sq:"Letra u shkrua dje.", opts:["wurde","wird","hat"], a:0, ex:"Pasiv në të kaluarën: wurde + Partizip II." },
+  { lvl:"A2", cat:"Foljet", q:"Gestern ___ ich ins Kino gegangen.", sq:"Dje kam shkuar në kinema.", opts:["habe","bin","war"], a:1, ex:"Foljet e lëvizjes (gehen) bëjnë Perfekt me „sein“." },
+  { lvl:"A2", cat:"Foljet", q:"Ich ___ gestern einen Film gesehen.", sq:"Dje pashë një film.", opts:["bin","habe","war"], a:1, ex:"„sehen“ bën Perfekt me „haben“." },
+  { lvl:"A2", cat:"Foljet", q:"Er ___ jeden Morgen um 7 Uhr auf.", sq:"Ai zgjohet çdo mëngjes në orën 7.", opts:["steht","stehet","aufsteht"], a:0, ex:"Folje e ndashme: aufstehen → er steht … auf." },
+  { lvl:"B1", cat:"Foljet", q:"Wir ___ nächstes Jahr nach Berlin ziehen.", sq:"Vitin e ardhshëm do të zhvendosemi në Berlin.", opts:["werden","wollen","sind"], a:0, ex:"E ardhmja: werden + infinitiv." },
+  { lvl:"A2", cat:"Foljet", q:"Sie ___ als Kind sehr gern gemalt.", sq:"Si fëmijë ajo pikturonte me shumë dëshirë.", opts:["hat","ist","war"], a:0, ex:"„malen“ → Perfekt me haben." },
+  { lvl:"A1", cat:"Foljet", q:"Ich ___ dir helfen, wenn du willst.", sq:"Mund të të ndihmoj, nëse dëshiron.", opts:["kann","können","kannst"], a:0, ex:"1. veta njëjës: ich kann." },
+  { lvl:"A1", cat:"Foljet", q:"Man ___ hier nicht rauchen.", sq:"Këtu nuk lejohet të pihet duhan.", opts:["darf","kann","will"], a:0, ex:"Ndalim/leje → dürfen." },
+  { lvl:"B1", cat:"Foljet", q:"Du ___ mehr Wasser trinken.", sq:"Ti duhet të pish më shumë ujë.", opts:["solltest","willst","darfst"], a:0, ex:"Këshillë → sollen (Konjunktiv: solltest)." },
+  { lvl:"B1", cat:"Foljet", q:"Das Fenster ___ jeden Morgen geöffnet.", sq:"Dritarja hapet çdo mëngjes.", opts:["wird","ist","hat"], a:0, ex:"Pasiv: werden + Partizip II." },
+  { lvl:"B1", cat:"Foljet", q:"Der Brief ___ gestern geschrieben.", sq:"Letra u shkrua dje.", opts:["wurde","wird","hat"], a:0, ex:"Pasiv në të kaluarën: wurde + Partizip II." },
 
   // --- Konjunktiv II ---
-  { cat:"Konjunktiv II", q:"Wenn ich Zeit ___, würde ich mehr lesen.", sq:"Nëse do të kisha kohë, do të lexoja më shumë.", opts:["habe","hätte","hatte"], a:1, ex:"Kusht joreal → hätte." },
-  { cat:"Konjunktiv II", q:"An deiner Stelle ___ ich das nicht machen.", sq:"Në vendin tënd nuk do ta bëja këtë.", opts:["würde","werde","will"], a:0, ex:"Këshillë e sjellshme → würde." },
-  { cat:"Konjunktiv II", q:"___ Sie mir bitte helfen?", sq:"A mund të më ndihmoni, ju lutem?", opts:["Könnten","Können","Konnten"], a:0, ex:"Kërkesë e sjellshme → könnten." },
-  { cat:"Konjunktiv II", q:"Ich ___ gern einen Kaffee, bitte.", sq:"Do të doja një kafe, ju lutem.", opts:["hätte","habe","hatte"], a:0, ex:"Porosi e sjellshme: ich hätte gern." },
-  { cat:"Konjunktiv II", q:"Wenn er früher gekommen ___, hätten wir ihn gesehen.", sq:"Nëse do të kishte ardhur më herët, do ta kishim parë.", opts:["wäre","hätte","würde"], a:0, ex:"Kusht joreal i së shkuarës, folje lëvizjeje → wäre." },
+  { lvl:"B1", cat:"Konjunktiv II", q:"Wenn ich Zeit ___, würde ich mehr lesen.", sq:"Nëse do të kisha kohë, do të lexoja më shumë.", opts:["habe","hätte","hatte"], a:1, ex:"Kusht joreal → hätte." },
+  { lvl:"B1", cat:"Konjunktiv II", q:"An deiner Stelle ___ ich das nicht machen.", sq:"Në vendin tënd nuk do ta bëja këtë.", opts:["würde","werde","will"], a:0, ex:"Këshillë e sjellshme → würde." },
+  { lvl:"B1", cat:"Konjunktiv II", q:"___ Sie mir bitte helfen?", sq:"A mund të më ndihmoni, ju lutem?", opts:["Könnten","Können","Konnten"], a:0, ex:"Kërkesë e sjellshme → könnten." },
+  { lvl:"B1", cat:"Konjunktiv II", q:"Ich ___ gern einen Kaffee, bitte.", sq:"Do të doja një kafe, ju lutem.", opts:["hätte","habe","hatte"], a:0, ex:"Porosi e sjellshme: ich hätte gern." },
+  { lvl:"B1", cat:"Konjunktiv II", q:"Wenn er früher gekommen ___, hätten wir ihn gesehen.", sq:"Nëse do të kishte ardhur më herët, do ta kishim parë.", opts:["wäre","hätte","würde"], a:0, ex:"Kusht joreal i së shkuarës, folje lëvizjeje → wäre." },
 
   // --- Përemrat lidhorë ---
-  { cat:"Përemrat lidhorë", q:"Das ist der Mann, ___ mir geholfen hat.", sq:"Ky është burri që më ndihmoi.", opts:["der","den","dem"], a:0, ex:"Kryefjalë e fjalisë lidhore → Nominativ: der." },
-  { cat:"Përemrat lidhorë", q:"Das ist das Buch, ___ ich gekauft habe.", sq:"Ky është libri që bleva.", opts:["das","dem","des"], a:0, ex:"Asnjanëse Akkusativ → das." },
-  { cat:"Përemrat lidhorë", q:"Die Frau, ___ ich geschrieben habe, antwortet nicht.", sq:"Gruaja së cilës i shkrova nuk përgjigjet.", opts:["die","der","den"], a:1, ex:"„schreiben“ + Dativ → der (femërore Dativ)." },
-  { cat:"Përemrat lidhorë", q:"Der Mann, ___ Auto kaputt ist, wartet draußen.", sq:"Burri, makina e të cilit është prishur, pret jashtë.", opts:["dessen","deren","der"], a:0, ex:"Genitiv mashkullore → dessen." },
+  { lvl:"B1", cat:"Përemrat lidhorë", q:"Das ist der Mann, ___ mir geholfen hat.", sq:"Ky është burri që më ndihmoi.", opts:["der","den","dem"], a:0, ex:"Kryefjalë e fjalisë lidhore → Nominativ: der." },
+  { lvl:"B1", cat:"Përemrat lidhorë", q:"Das ist das Buch, ___ ich gekauft habe.", sq:"Ky është libri që bleva.", opts:["das","dem","des"], a:0, ex:"Asnjanëse Akkusativ → das." },
+  { lvl:"B1", cat:"Përemrat lidhorë", q:"Die Frau, ___ ich geschrieben habe, antwortet nicht.", sq:"Gruaja së cilës i shkrova nuk përgjigjet.", opts:["die","der","den"], a:1, ex:"„schreiben“ + Dativ → der (femërore Dativ)." },
+  { lvl:"B1", cat:"Përemrat lidhorë", q:"Der Mann, ___ Auto kaputt ist, wartet draußen.", sq:"Burri, makina e të cilit është prishur, pret jashtë.", opts:["dessen","deren","der"], a:0, ex:"Genitiv mashkullore → dessen." },
 
   // --- Mbiemrat ---
-  { cat:"Mbiemrat", q:"Ich habe einen ___ Hund.", sq:"Kam një qen të vogël.", opts:["kleinen","kleiner","kleines"], a:0, ex:"ein + Akkusativ mashkullore → -en." },
-  { cat:"Mbiemrat", q:"Das ist eine ___ Idee.", sq:"Kjo është një ide e mirë.", opts:["gute","guten","gutes"], a:0, ex:"eine + femërore Nominativ → -e." },
-  { cat:"Mbiemrat", q:"Er trinkt ___ Kaffee.", sq:"Ai pi kafe të nxehtë.", opts:["heißen","heißer","heiße"], a:0, ex:"Pa nyjë: mbiemri merr mbaresën e nyjës. Akkusativ mashkullore (den) → -en: heißen Kaffee." },
-  { cat:"Mbiemrat", q:"Berlin ist ___ als München.", sq:"Berlini është më i madh se Mynihu.", opts:["größer","am größten","groß"], a:0, ex:"Krahasim me „als“ → Komparativ." },
-  { cat:"Mbiemrat", q:"Das ist ___ Restaurant in der Stadt.", sq:"Ky është restoranti më i mirë në qytet.", opts:["das beste","besser","am besten"], a:0, ex:"Superlativ me nyjë: das beste." },
+  { lvl:"A2", cat:"Mbiemrat", q:"Ich habe einen ___ Hund.", sq:"Kam një qen të vogël.", opts:["kleinen","kleiner","kleines"], a:0, ex:"ein + Akkusativ mashkullore → -en." },
+  { lvl:"A2", cat:"Mbiemrat", q:"Das ist eine ___ Idee.", sq:"Kjo është një ide e mirë.", opts:["gute","guten","gutes"], a:0, ex:"eine + femërore Nominativ → -e." },
+  { lvl:"B1", cat:"Mbiemrat", q:"Er trinkt ___ Kaffee.", sq:"Ai pi kafe të nxehtë.", opts:["heißen","heißer","heiße"], a:0, ex:"Pa nyjë: mbiemri merr mbaresën e nyjës. Akkusativ mashkullore (den) → -en: heißen Kaffee." },
+  { lvl:"A2", cat:"Mbiemrat", q:"Berlin ist ___ als München.", sq:"Berlini është më i madh se Mynihu.", opts:["größer","am größten","groß"], a:0, ex:"Krahasim me „als“ → Komparativ." },
+  { lvl:"A2", cat:"Mbiemrat", q:"Das ist ___ Restaurant in der Stadt.", sq:"Ky është restoranti më i mirë në qytet.", opts:["das beste","besser","am besten"], a:0, ex:"Superlativ me nyjë: das beste." },
 
   // --- Përemrat & rendi i fjalëve ---
-  { cat:"Rendi i fjalëve", q:"Morgen ___ ich meine Oma.", sq:"Nesër vizitoj gjyshen time.", opts:["besuche","ich besuche","besuchen"], a:0, ex:"Kur fjalia nis me kohë, folja mbetet e dyta." },
-  { cat:"Rendi i fjalëve", q:"Ich gebe ___ das Buch.", sq:"Ia jap librin atij.", opts:["ihm","ihn","er"], a:0, ex:"Marrësi → Dativ: ihm." },
-  { cat:"Rendi i fjalëve", q:"Kennst du ___ ?", sq:"A e njeh atë (burrin)?", opts:["ihn","ihm","er"], a:0, ex:"Objekt i drejtë → Akkusativ: ihn." },
-  { cat:"Rendi i fjalëve", q:"Ich habe ___ gestern im Park gesehen.", sq:"E pashë atë (gruan) dje në park.", opts:["sie","ihr","ihnen"], a:0, ex:"Akkusativ femërore → sie." },
-  { cat:"Rendi i fjalëve", q:"Er hat mir ___ Geschichte erzählt.", sq:"Ai më tregoi historinë.", opts:["die","der","den"], a:0, ex:"Akkusativ femërore → die Geschichte." },
+  { lvl:"A2", cat:"Rendi i fjalëve", q:"Morgen ___ ich meine Oma.", sq:"Nesër vizitoj gjyshen time.", opts:["besuche","ich besuche","besuchen"], a:0, ex:"Kur fjalia nis me kohë, folja mbetet e dyta." },
+  { lvl:"A2", cat:"Rendi i fjalëve", q:"Ich gebe ___ das Buch.", sq:"Ia jap librin atij.", opts:["ihm","ihn","er"], a:0, ex:"Marrësi → Dativ: ihm." },
+  { lvl:"A2", cat:"Rendi i fjalëve", q:"Kennst du ___ ?", sq:"A e njeh atë (burrin)?", opts:["ihn","ihm","er"], a:0, ex:"Objekt i drejtë → Akkusativ: ihn." },
+  { lvl:"A2", cat:"Rendi i fjalëve", q:"Ich habe ___ gestern im Park gesehen.", sq:"E pashë atë (gruan) dje në park.", opts:["sie","ihr","ihnen"], a:0, ex:"Akkusativ femërore → sie." },
+  { lvl:"A2", cat:"Rendi i fjalëve", q:"Er hat mir ___ Geschichte erzählt.", sq:"Ai më tregoi historinë.", opts:["die","der","den"], a:0, ex:"Akkusativ femërore → die Geschichte." },
 
   // --- Infinitiv me zu / lidhëza të tjera ---
-  { cat:"Infinitiv me zu", q:"Ich habe vergessen, dich ___.", sq:"Kam harruar të të marr në telefon.", opts:["anzurufen","anrufen","zu anrufen"], a:0, ex:"Folje e ndashme: an|rufen → anzurufen." },
-  { cat:"Infinitiv me zu", q:"Es ist wichtig, jeden Tag ___.", sq:"Është e rëndësishme të ushtrosh çdo ditë.", opts:["zu üben","üben","geübt"], a:0, ex:"Infinitiv me „zu“ pas shprehjeve si „es ist wichtig“." },
-  { cat:"Infinitiv me zu", q:"Ich lerne Deutsch, ___ eine Arbeit zu finden.", sq:"Mësoj gjermanisht, për të gjetur një punë.", opts:["um","damit","dass"], a:0, ex:"Qëllim me të njëjtën kryefjalë → um … zu." },
-  { cat:"Lidhëzat", q:"Ich bin müde, ___ arbeite ich weiter.", sq:"Jam i lodhur, megjithatë vazhdoj të punoj.", opts:["trotzdem","weil","damit"], a:0, ex:"„trotzdem“ është ndajfolje në pozicionin 1 → folja vjen menjëherë pas saj (inversion): trotzdem arbeite ich." },
-  { cat:"Lidhëzat", q:"Es regnet, ___ nehme ich den Schirm mit.", sq:"Po bie shi, prandaj marr çadrën.", opts:["deshalb","weil","obwohl"], a:0, ex:"Pasojë → deshalb (folja pas tij)." },
-  { cat:"Lidhëzat", q:"Ich mag Tee, ___ mein Bruder trinkt lieber Kaffee.", sq:"Më pëlqen çaji, ndërsa vëllai im pi më shumë kafe.", opts:["aber","weil","dass"], a:0, ex:"Kundërvënie e thjeshtë → aber (rendi nuk ndryshon)." },
-  { cat:"Lidhëzat", q:"Je mehr ich übe, ___ besser werde ich.", sq:"Sa më shumë ushtroj, aq më i mirë bëhem.", opts:["desto","als","wie"], a:0, ex:"Shprehje fikse: je … desto." }
+  { lvl:"B1", cat:"Infinitiv me zu", q:"Ich habe vergessen, dich ___.", sq:"Kam harruar të të marr në telefon.", opts:["anzurufen","anrufen","zu anrufen"], a:0, ex:"Folje e ndashme: an|rufen → anzurufen." },
+  { lvl:"B1", cat:"Infinitiv me zu", q:"Es ist wichtig, jeden Tag ___.", sq:"Është e rëndësishme të ushtrosh çdo ditë.", opts:["zu üben","üben","geübt"], a:0, ex:"Infinitiv me „zu“ pas shprehjeve si „es ist wichtig“." },
+  { lvl:"B1", cat:"Infinitiv me zu", q:"Ich lerne Deutsch, ___ eine Arbeit zu finden.", sq:"Mësoj gjermanisht, për të gjetur një punë.", opts:["um","damit","dass"], a:0, ex:"Qëllim me të njëjtën kryefjalë → um … zu." },
+  { lvl:"B1", cat:"Lidhëzat", q:"Ich bin müde, ___ arbeite ich weiter.", sq:"Jam i lodhur, megjithatë vazhdoj të punoj.", opts:["trotzdem","weil","damit"], a:0, ex:"„trotzdem“ është ndajfolje në pozicionin 1 → folja vjen menjëherë pas saj (inversion): trotzdem arbeite ich." },
+  { lvl:"B1", cat:"Lidhëzat", q:"Es regnet, ___ nehme ich den Schirm mit.", sq:"Po bie shi, prandaj marr çadrën.", opts:["deshalb","weil","obwohl"], a:0, ex:"Pasojë → deshalb (folja pas tij)." },
+  { lvl:"A2", cat:"Lidhëzat", q:"Ich mag Tee, ___ mein Bruder trinkt lieber Kaffee.", sq:"Më pëlqen çaji, ndërsa vëllai im pi më shumë kafe.", opts:["aber","weil","dass"], a:0, ex:"Kundërvënie e thjeshtë → aber (rendi nuk ndryshon)." },
+  { lvl:"B1", cat:"Lidhëzat", q:"Je mehr ich übe, ___ besser werde ich.", sq:"Sa më shumë ushtroj, aq më i mirë bëhem.", opts:["desto","als","wie"], a:0, ex:"Shprehje fikse: je … desto." },
+  { lvl:"A1", cat:"Foljet", q:"Ich ___ Deutsch.", sq:"Unë mësoj gjermanisht.", opts:["lerne", "lernst", "lernt"], a:0, ex:"Veta e parë njëjës: ich lerne (-e)." },
+  { lvl:"A1", cat:"Foljet", q:"Du ___ sehr gut Englisch.", sq:"Ti flet anglisht shumë mirë.", opts:["sprichst", "sprechst", "sprecht"], a:0, ex:"Folje e parregullt: e→i te veta 2/3 njëjës: sprechen → du sprichst." },
+  { lvl:"A1", cat:"Foljet", q:"Er ___ jeden Tag Fahrrad.", sq:"Ai bën çiklizëm çdo ditë.", opts:["fährt", "fahrt", "fahre"], a:0, ex:"Folje e parregullt: a→ä te veta 3 njëjës: fahren → er fährt." },
+  { lvl:"A1", cat:"Foljet", q:"Wir ___ Studenten.", sq:"Ne jemi studentë.", opts:["sind", "ist", "bist"], a:0, ex:"„sein“, veta 1 shumës: wir sind." },
+  { lvl:"A1", cat:"Foljet", q:"___ du müde?", sq:"A je i lodhur?", opts:["Bist", "Sind", "Ist"], a:0, ex:"„sein“, veta 2 njëjës: du bist." },
+  { lvl:"A1", cat:"Foljet", q:"Ich ___ keine Zeit.", sq:"Unë s'kam kohë.", opts:["habe", "hast", "hat"], a:0, ex:"„haben“, veta 1 njëjës: ich habe." },
+  { lvl:"A1", cat:"Foljet", q:"Sie (Pl.) ___ zwei Kinder.", sq:"Ata kanë dy fëmijë.", opts:["haben", "hat", "habt"], a:0, ex:"„haben“, veta 3 shumës: sie haben." },
+  { lvl:"A1", cat:"Mohimi", q:"Ich verstehe das ___.", sq:"Unë nuk e kuptoj këtë.", opts:["nicht", "kein", "keinen"], a:0, ex:"„nicht“ mohon foljen/gjithë fjalinë, jo një emër." },
+  { lvl:"A1", cat:"Mohimi", q:"Ich habe ___ Auto.", sq:"Unë nuk kam makinë.", opts:["kein", "nicht", "keine"], a:0, ex:"„kein“ para emrit: das Auto (asnjanëse) → kein Auto." },
+  { lvl:"A1", cat:"Pronomi pronor", q:"Das ist ___ Buch.", sq:"Ky është libri im.", opts:["mein", "meine", "meinen"], a:0, ex:"das Buch (asnjanëse) Nominativ → mein." },
+  { lvl:"A1", cat:"Pronomi pronor", q:"Das ist ___ Schwester.", sq:"Kjo është motra ime.", opts:["meine", "mein", "meinen"], a:0, ex:"die Schwester (femërore) Nominativ → meine." },
+  { lvl:"A1", cat:"Pronomi pronor", q:"Kennst du ___ Bruder?", sq:"E njeh vëllain tim?", opts:["meinen", "mein", "meine"], a:0, ex:"der Bruder (mashkullore) Akkusativ → meinen." },
+  { lvl:"A1", cat:"Pyetjet", q:"___ wohnst du?", sq:"Ku banon?", opts:["Wo", "Wer", "Was"], a:0, ex:"Pyetje për vend: wo." },
+  { lvl:"A1", cat:"Pyetjet", q:"___ ist das?", sq:"Kush është ky/kjo?", opts:["Wer", "Wo", "Wann"], a:0, ex:"Pyetje për person: wer." },
+  { lvl:"A1", cat:"Pyetjet", q:"___ du Kaffee?", sq:"A pi kafe?", opts:["Trinkst", "Du trinkst", "Trinken"], a:0, ex:"Pyetje po/jo: folja në fillim (inversion)." },
+  { lvl:"A1", cat:"Urdhërorja", q:"___ bitte die Tür!", sq:"Hape derën, të lutem!", opts:["Öffne", "Öffnest", "Öffnet"], a:0, ex:"Urdhërore, forma „du“: folja pa mbaresë (ndonjëherë -e)." },
+  { lvl:"A1", cat:"Urdhërorja", q:"___ bitte Platz!", sq:"Uluni, të lutem!", opts:["Nehmen Sie", "Nimmst", "Nimm"], a:0, ex:"Urdhërore, forma „Sie“: folje + Sie." },
+  { lvl:"A2", cat:"Foljet", q:"Gestern ___ ich krank.", sq:"Dje isha i sëmurë.", opts:["war", "warst", "ist"], a:0, ex:"Präteritum i „sein“, veta 1 njëjës: ich war." },
+  { lvl:"A2", cat:"Foljet", q:"Wir ___ gestern keine Zeit.", sq:"Dje ne s'kishim kohë.", opts:["hatten", "haben", "hatte"], a:0, ex:"Präteritum i „haben“, veta 1 shumës: wir hatten." },
+  { lvl:"A2", cat:"Foljet", q:"Als Kind ___ ich gut schwimmen.", sq:"Si fëmijë, notoja mirë.", opts:["konnte", "kann", "könnte"], a:0, ex:"Präteritum i „können“, veta 1 njëjës: ich konnte." },
+  { lvl:"A2", cat:"Foljet", q:"Er ___ das Buch lesen.", sq:"Ai donte ta lexonte librin.", opts:["wollte", "will", "wollten"], a:0, ex:"Präteritum i „wollen“, veta 3 njëjës: er wollte." },
+  { lvl:"A2", cat:"Foljet reflektive", q:"Ich ___ mich jeden Morgen.", sq:"Unë lahem çdo mëngjes.", opts:["wasche", "wäscht", "wäschst"], a:0, ex:"Folje reflektive, veta 1 njëjës: ich wasche mich." },
+  { lvl:"A2", cat:"Foljet reflektive", q:"Er freut ___ auf die Ferien.", sq:"Ai gëzohet për pushimet.", opts:["sich", "ihn", "ihm"], a:0, ex:"Përemër vetvetor, veta 3 njëjës: sich." },
+  { lvl:"B2", cat:"Konjunktiv I", q:"Er sagte, er ___ krank.", sq:"Ai tha se ishte i sëmurë.", opts:["sei", "ist", "wäre"], a:0, ex:"Ligjërim i zhdrejtë, Konjunktiv I i „sein“: er sei." },
+  { lvl:"B2", cat:"Konjunktiv I", q:"Sie behauptete, sie ___ die Wahrheit.", sq:"Ajo pretendoi se thoshte të vërtetën.", opts:["sage", "sagt", "sagte"], a:0, ex:"Konjunktiv I i „sagen“, veta 3 njëjës: sie sage." },
+  { lvl:"B2", cat:"Pasivi me modale", q:"Die Aufgabe ___ heute erledigt werden.", sq:"Detyra duhet të kryhet sot.", opts:["muss", "musst", "müssen"], a:0, ex:"Modal + Partizip II + werden: die Aufgabe muss erledigt werden." },
+  { lvl:"B2", cat:"Pasivi me modale", q:"Das Fenster ___ nicht geöffnet werden.", sq:"Dritarja nuk duhet të hapet.", opts:["darf", "dürfen", "darfst"], a:0, ex:"Modal „dürfen“, veta 3 njëjës + Pasiv: darf geöffnet werden." },
+  { lvl:"B2", cat:"Zëvendësimi i pasivit", q:"Das Problem ___ sich leicht lösen.", sq:"Problemi mund të zgjidhet lehtë.", opts:["lässt", "lasst", "ließt"], a:0, ex:"„sich lassen“ + infinitiv = mund të (Pasiv-zëvendësim): lässt sich lösen." },
+  { lvl:"B2", cat:"Zëvendësimi i pasivit", q:"Diese Regel ist leicht ___.", sq:"Ky rregull kuptohet lehtë.", opts:["zu verstehen", "verstehen", "verstanden"], a:0, ex:"„sein“ + zu + infinitiv = mund të (Pasiv-zëvendësim): ist zu verstehen." },
+  { lvl:"B2", cat:"Pjesorja si mbiemër", q:"Der ___ Mann wartet vor der Tür.", sq:"Burri që po pret është para derës.", opts:["wartende", "wartend", "gewartete"], a:0, ex:"Partizip I si mbiemër (veprim i vazhdueshëm): der wartende Mann." },
+  { lvl:"B2", cat:"Pjesorja si mbiemër", q:"Das ___ Auto gehört meinem Nachbarn.", sq:"Makina e riparuar i përket fqinjit tim.", opts:["reparierte", "reparierende", "reparieren"], a:0, ex:"Partizip II si mbiemër (veprim i kryer): das reparierte Auto." },
+  { lvl:"B2", cat:"Nominalizimi", q:"___ des Projekts dauerte drei Monate.", sq:"Zbatimi i projektit zgjati tre muaj.", opts:["Die Durchführung", "Durchführen", "Durchgeführt"], a:0, ex:"Emërzimi i foljes „durchführen“ → die Durchführung." },
+  { lvl:"B2", cat:"Nominalizimi", q:"Nach ___ der Prüfung waren alle erleichtert.", sq:"Pas kalimit të provimit, të gjithë u qetësuan.", opts:["dem Bestehen", "bestehen", "bestanden"], a:0, ex:"Infinitivi i emërzuar pas parafjalës „nach“: dem Bestehen." },
+  { lvl:"B2", cat:"Lidhëza të avancuara", q:"Er verbesserte seine Fitness, ___ er jeden Tag joggte.", sq:"Ai përmirësoi formën fizike duke vrapuar çdo ditë.", opts:["indem", "damit", "obwohl"], a:0, ex:"„indem“ = mënyra si diçka bëhet (duke bërë diçka)." },
+  { lvl:"B2", cat:"Lidhëza të avancuara", q:"Sie arbeitete hart, ___ sie befördert wurde.", sq:"Ajo punoi shumë, kështu që u avancua.", opts:["sodass", "damit", "indem"], a:0, ex:"„sodass“ = pasojë (rezultati i një veprimi)." },
+  { lvl:"B2", cat:"Lidhëza të avancuara", q:"___ es regnet, findet das Fest drinnen statt.", sq:"Nëse bie shi, festa mbahet brenda.", opts:["Falls", "Obwohl", "Indem"], a:0, ex:"„falls“ = kusht i mundshëm (në rast se)." },
+  { lvl:"B2", cat:"Lidhëza të avancuara", q:"Er ist zwar müde, ___ arbeitet er weiter.", sq:"Ai është i lodhur, por vazhdon të punojë.", opts:["aber", "trotzdem", "doch"], a:0, ex:"Çift fiks: zwar … aber (kundërshti)." },
+  { lvl:"B2", cat:"Futur II", q:"Bis morgen ___ ich die Arbeit beendet haben.", sq:"Deri nesër do ta kem përfunduar punën.", opts:["werde", "werden", "würde"], a:0, ex:"Futur II: werden + Partizip II + haben/sein — veprim i kryer deri në një pikë të ardhme." },
+  { lvl:"B2", cat:"Futur II", q:"Nächsten Sommer ___ wir das Haus fertig gebaut haben.", sq:"Verën e ardhshme do ta kemi përfunduar ndërtimin e shtëpisë.", opts:["werden", "werdet", "wird"], a:0, ex:"Futur II, veta 1 shumës: wir werden … gebaut haben." },
+  { lvl:"B2", cat:"Modale subjektive", q:"Sie ___ schon zu Hause sein, ihr Auto steht vor der Tür.", sq:"Ajo duhet të jetë tashmë në shtëpi, makina e saj është para derës.", opts:["muss", "soll", "könnte"], a:0, ex:"„müssen“ subjektiv = supozim i fortë bazuar në prova." },
+  { lvl:"B2", cat:"Modale subjektive", q:"Er ___ das gesagt haben, ich glaube es aber nicht.", sq:"Thuhet se ai e ka thënë këtë, por unë s'e besoj.", opts:["soll", "muss", "kann"], a:0, ex:"„sollen“ subjektiv = diçka që thuhet (nga të tjerët), jo e sigurt." },
+  { lvl:"B2", cat:"Fjali lidhore me parafjalë", q:"Das ist die Firma, ___ ich seit fünf Jahren arbeite.", sq:"Kjo është firma ku unë punoj prej pesë vitesh.", opts:["bei der", "die", "der"], a:0, ex:"„arbeiten bei“ + përemër lidhor femëror Dativ: bei der." },
+  { lvl:"B2", cat:"Fjali lidhore me parafjalë", q:"Das ist das Auto, ___ ich schon lange träume.", sq:"Kjo është makina për të cilën kam ëndërruar prej kohësh.", opts:["von dem", "das", "wovon"], a:0, ex:"„träumen von“ + përemër lidhor asnjanës Dativ: von dem." },
+  { lvl:"B2", cat:"Shprehje me folje funksionale", q:"Die Regierung hat eine Entscheidung ___.", sq:"Qeveria ka marrë një vendim.", opts:["getroffen", "gemacht", "genommen"], a:0, ex:"Shprehje fikse: eine Entscheidung treffen (jo „machen“)." },
+  { lvl:"B2", cat:"Shprehje me folje funksionale", q:"Wir müssen das Problem in ___ ziehen.", sq:"Duhet ta marrim parasysh problemin.", opts:["Betracht", "Rechnung", "Frage"], a:0, ex:"Shprehje fikse: etwas in Betracht ziehen (të marrësh parasysh diçka)." },
+  { lvl:"B2", cat:"Parafjalë me Gjinore", q:"___ des schlechten Wetters fand das Spiel statt.", sq:"Pavarësisht motit të keq, ndeshja u zhvillua.", opts:["Trotz", "Wegen", "Während"], a:0, ex:"„trotz“ + Gjinore = kundërshti (pavarësisht)." },
+  { lvl:"B2", cat:"Parafjalë me Gjinore", q:"___ des Streiks fielen viele Züge aus.", sq:"Si pasojë e grevës, shumë trena u anuluan.", opts:["Infolge", "Anlässlich", "Mangels"], a:0, ex:"„infolge“ + Gjinore = si pasojë e diçkaje." },
+  { lvl:"C1", cat:"Zustandspasiv vs. Veprimi", q:"Die Tür ___ schon geöffnet.", sq:"Dera është tashmë e hapur (gjendje).", opts:["ist", "wird", "war"], a:0, ex:"Zustandspassiv (gjendje e arritur): sein + Partizip II. Krahaso: „wird geöffnet“ = veprim në zhvillim e sipër." },
+  { lvl:"C1", cat:"Zustandspasiv vs. Veprimi", q:"Während die Party gefeiert ___, kam die Polizei.", sq:"Ndërsa festa po festohej, erdhi policia.", opts:["wurde", "war", "ist"], a:0, ex:"Vorgangspassiv (veprim në zhvillim): werden + Partizip II, Präteritum: wurde gefeiert." },
+  { lvl:"C1", cat:"Pjesore e zgjeruar", q:"Der ___ Mann verließ sofort den Raum.", sq:"Burri që sapo kishte mbërritur u largua menjëherë nga dhoma.", opts:["gerade eingetroffene", "eintreffende", "eingetroffen"], a:0, ex:"Pjesore e zgjeruar (Partizip II + ndajfolje si atribut para emrit): der gerade eingetroffene Mann." },
+  { lvl:"C1", cat:"Pjesore e zgjeruar", q:"Die ___ Studie liefert neue Erkenntnisse.", sq:"Studia e sapopublikuar sjell njohuri të reja.", opts:["kürzlich veröffentlichte", "veröffentlichende", "veröffentlicht"], a:0, ex:"Pjesore e zgjeruar: kürzlich veröffentlichte Studie (Partizip II + ndajfolje si atribut)." },
+  { lvl:"C1", cat:"Stili nominal", q:"Die Firma kündigte ___ des Projekts an.", sq:"Kompania njoftoi shtyrjen e projektit.", opts:["die Verschiebung", "verschieben", "verschoben"], a:0, ex:"Emërzim i foljes „verschieben“ → die Verschiebung (stili nominal, tipik për C1)." },
+  { lvl:"C1", cat:"Stili nominal", q:"___ neuer Technologien verändert die Arbeitswelt grundlegend.", sq:"Përhapja e teknologjive të reja po ndryshon rrënjësisht botën e punës.", opts:["Die Verbreitung", "Verbreiten", "Verbreitet"], a:0, ex:"Emërzim i foljes „verbreiten“ → die Verbreitung." },
+  { lvl:"C1", cat:"Lidhëza formale", q:"Er hatte keine Erfahrung, ___ bekam er die Stelle.", sq:"Nuk kishte eksperiencë, megjithatë e mori vendin e punës.", opts:["nichtsdestotrotz", "deshalb", "damit"], a:0, ex:"„nichtsdestotrotz“ = kundërshti formale (megjithatë), niveli C1." },
+  { lvl:"C1", cat:"Lidhëza formale", q:"Die Maßnahme war umstritten; ___ wurde sie umgesetzt.", sq:"Masa ishte e diskutueshme; megjithatë u zbatua.", opts:["gleichwohl", "deshalb", "somit"], a:0, ex:"„gleichwohl“ = megjithatë, formal, shpesh në fillim të fjalisë së dytë." },
+  { lvl:"C1", cat:"Lidhëza formale", q:"___ der Kritik hielt er an seinem Plan fest.", sq:"Pavarësisht kritikave, ai u përmbajt planit të tij.", opts:["Ungeachtet", "Trotzdem", "Obwohl"], a:0, ex:"„ungeachtet“ + Gjinore = pavarësisht (regjistër formal, zëvendëson „trotz“)." },
+  { lvl:"C1", cat:"Konjunktiv I i ngulitur", q:"Er berichtete, seine Kollegin habe gesagt, sie ___ das Projekt bereits abgeschlossen.", sq:"Ai raportoi se kolegia e tij kishte thënë se e kishte përfunduar tashmë projektin.", opts:["habe", "hat", "hätte"], a:0, ex:"Konjunktiv I i së kryerës, brenda ligjërimit të zhdrejtë të ngulitur: sie habe abgeschlossen." },
+  { lvl:"C1", cat:"Konjunktiv I i ngulitur", q:"Der Sprecher erklärte, man ___ die Situation genau beobachten.", sq:"Zëdhënësi shpjegoi se do të vëzhgohej me kujdes situata.", opts:["werde", "wird", "würde"], a:0, ex:"Konjunktiv I i së ardhmes (werden + infinitiv) në ligjërim të zhdrejtë: man werde beobachten." },
+  { lvl:"C1", cat:"Gjinore e zgjeruar", q:"Die Ergebnisse ___ Untersuchung waren eindeutig.", sq:"Rezultatet e hetimit të thelluar ishin të qarta.", opts:["der eingehenden", "die eingehende", "den eingehenden"], a:0, ex:"Gjinore femërore + mbiemër: der eingehenden Untersuchung (hetim i thelluar)." },
+  { lvl:"C1", cat:"Gjinore e zgjeruar", q:"Angesichts ___ Lage sah sich die Regierung zum Handeln gezwungen.", sq:"Përballë situatës së përkeqësuar, qeveria u detyrua të veprojë.", opts:["der sich verschärfenden", "die sich verschärfende", "den sich verschärfenden"], a:0, ex:"„angesichts“ + Gjinore femërore me pjesore reflektive: der sich verschärfenden Lage." },
+  { lvl:"C1", cat:"Konjunktiv II i shkuar", q:"Wäre er rechtzeitig informiert gewesen, ___ er anders reagiert.", sq:"Sikur të ishte informuar në kohë, do të kishte reaguar ndryshe.", opts:["hätte", "würde", "hat"], a:0, ex:"Konjunktiv II i së shkuarës: hätte reagiert (kusht joreal i së shkuarës)." },
+  { lvl:"C1", cat:"Konjunktiv II i shkuar", q:"Hätte man die Warnungen ernst genommen, ___ sich die Katastrophe vermeiden lassen.", sq:"Sikur paralajmërimet të merreshin seriozisht, katastrofa do të mund të shmangej.", opts:["hätte", "würde", "hat"], a:0, ex:"Konjunktiv II i së shkuarës me Pasiv-zëvendësim: hätte sich vermeiden lassen." },
+  { lvl:"C1", cat:"Regjistër i saktë", q:"Die Studie ___ zu dem Schluss, dass die Maßnahme wirkungslos war.", sq:"Studia arrin në përfundimin se masa ishte joefektive.", opts:["gelangt", "kommt", "geht"], a:0, ex:"„zu einem Schluss gelangen“ = shprehje fikse formale, më e saktë se „kommen“ në kontekst akademik." },
+  { lvl:"C1", cat:"Regjistër i saktë", q:"Die Regierung sieht sich ___, unpopuläre Reformen durchzusetzen.", sq:"Qeveria e sheh veten të detyruar të zbatojë reforma jopopullore.", opts:["gezwungen", "zwingen", "gezwängt"], a:0, ex:"„sich gezwungen sehen“ = shprehje formale fikse (ndihet e detyruar)." },
+  { lvl:"C1", cat:"Fjali lidhore e avancuar", q:"Das ist der Politiker, ___ Aussagen große Kontroversen auslösten.", sq:"Ky është politikani, deklaratat e të cilit shkaktuan polemika të mëdha.", opts:["dessen", "deren", "den"], a:0, ex:"Përemër lidhor gjinor mashkullor: dessen Aussagen (deklaratat e tij)." },
+  { lvl:"C1", cat:"Fjali lidhore e avancuar", q:"Die Firma, ___ Produkte weltweit bekannt sind, expandiert weiter.", sq:"Kompania, produktet e së cilës janë të njohura në mbarë botën, po zgjerohet më tej.", opts:["deren", "dessen", "die"], a:0, ex:"Përemër lidhor gjinor femëror: deren Produkte (produktet e saj)." },
+  { lvl:"C1", cat:"Konjunktiv II i shkuar", q:"An seiner Stelle ___ ich anders entschieden.", sq:"Në vendin e tij, unë do të kisha vendosur ndryshe.", opts:["hätte", "würde", "habe"], a:0, ex:"Konjunktiv II i së shkuarës: hätte entschieden." },
+  { lvl:"B1", cat:"N-Deklinacioni", q:"Ich habe mit dem ___ gesprochen.", sq:"Fola me studentin.", opts:["Studenten", "Student", "Studente"], a:0, ex:"N-Deklinacion: der Student → Akkusativ/Dativ/Gjinore njëjës = den/dem/des Studenten (shton -en në të gjitha rasat, përveç Nominativ)." },
+  { lvl:"B1", cat:"N-Deklinacioni", q:"Das ist das Auto ___ Kunden.", sq:"Kjo është makina e klientit.", opts:["des Kunden", "der Kunde", "den Kunden"], a:0, ex:"N-Deklinacion, Gjinore: der Kunde → des Kunden." },
+  { lvl:"B1", cat:"N-Deklinacioni", q:"Ich vertraue diesem ___ nicht.", sq:"Nuk i besoj këtij zotërie.", opts:["Herrn", "Herr", "Herre"], a:0, ex:"N-Deklinacion, Dativ: der Herr → dem Herrn." },
+  { lvl:"B1", cat:"Parafjalë me Gjinore", q:"___ des Regens blieben wir zu Hause.", sq:"Për shkak të shiut, ne qëndruam në shtëpi.", opts:["Wegen", "Trotz", "Während"], a:0, ex:"„wegen“ + Gjinore = për shkak të." },
+  { lvl:"B1", cat:"Parafjalë me Gjinore", q:"___ des Konzerts regnete es stark.", sq:"Gjatë koncertit ra shi i fortë.", opts:["Während", "Wegen", "Trotz"], a:0, ex:"„während“ + Gjinore = gjatë (kohë)." },
+  { lvl:"B1", cat:"Parafjalë me Gjinore", q:"___ ihrer Krankheit kam sie zur Arbeit.", sq:"Pavarësisht sëmundjes së saj, ajo erdhi në punë.", opts:["Trotz", "Wegen", "Während"], a:0, ex:"„trotz“ + Gjinore = pavarësisht." },
+  { lvl:"B1", cat:"lassen + Infinitiv", q:"Ich lasse mein Auto reparieren.", sq:"E lë makinën time të riparohet (dikush tjetër e bën).", opts:["lasse", "lasst", "ließ"], a:0, ex:"„lassen“ + Infinitiv = t'i japësh dikujt të bëjë diçka për ty. Veta 1 njëjës: ich lasse." },
+  { lvl:"B1", cat:"lassen + Infinitiv", q:"Lass mich das bitte erklären!", sq:"Më lër të ta shpjegoj këtë, të lutem!", opts:["Lass", "Lasst", "Lässt"], a:0, ex:"Urdhërore „du“ e „lassen“: Lass mich … (më lejo)." },
+  { lvl:"B1", cat:"brauchen + zu", q:"Du brauchst das nicht zu machen.", sq:"Nuk ke nevojë ta bësh këtë.", opts:["zu machen", "machen", "gemacht"], a:0, ex:"„nicht brauchen“ + zu + Infinitiv = nuk ka nevojë të." },
+  { lvl:"B1", cat:"brauchen + zu", q:"Du brauchst nicht ___ kommen, wenn du keine Zeit hast.", sq:"Nuk ke nevojë të vish, nëse s'ke kohë.", opts:["zu", "-", "um"], a:0, ex:"„nicht brauchen“ + zu + Infinitiv: du brauchst nicht zu kommen." },
+  { lvl:"B1", cat:"Pasivi", q:"Das Haus ___ 1990 gebaut.", sq:"Shtëpia u ndërtua në vitin 1990.", opts:["wurde", "ist", "war"], a:0, ex:"Pasivi në Präteritum: werden (Präteritum) + Partizip II: wurde gebaut." },
+  { lvl:"A2", cat:"Mbiemrat (deklinim)", q:"Der ___ Mann kommt aus Italien.", sq:"Burri i sjellshëm vjen nga Italia.", opts:["nette", "netter", "nettes"], a:0, ex:"Nyje e caktuar, Nominativ mashkullor, deklinim i dobët: der nette Mann." },
+  { lvl:"A2", cat:"Mbiemrat (deklinim)", q:"Ich kenne den ___ Mann.", sq:"E njoh burrin e sjellshëm.", opts:["netten", "nette", "netter"], a:0, ex:"Nyje e caktuar, Akkusativ mashkullor: den netten Mann." },
+  { lvl:"A2", cat:"Mbiemrat (deklinim)", q:"Die ___ Frau lächelt.", sq:"Gruaja miqësore buzëqesh.", opts:["freundliche", "freundlicher", "freundlichen"], a:0, ex:"Nyje e caktuar, Nominativ femëror: die freundliche Frau." },
+  { lvl:"A2", cat:"Mbiemrat (deklinim)", q:"Das ___ Kind spielt.", sq:"Fëmija i vogël po luan.", opts:["kleine", "kleiner", "kleines"], a:0, ex:"Nyje e caktuar, Nominativ asnjanës: das kleine Kind." },
+  { lvl:"A2", cat:"Mbiemrat (deklinim)", q:"Ein ___ Mann steht dort.", sq:"Një burrë i sjellshëm qëndron atje.", opts:["netter", "nette", "nettes"], a:0, ex:"Nyje e pacaktuar, Nominativ mashkullor, deklinim i fortë: ein netter Mann." },
+  { lvl:"A2", cat:"Mbiemrat (deklinim)", q:"Ich sehe einen ___ Mann.", sq:"Shoh një burrë të sjellshëm.", opts:["netten", "netter", "nette"], a:0, ex:"Nyje e pacaktuar, Akkusativ mashkullor: einen netten Mann." },
+  { lvl:"A2", cat:"Mbiemrat (deklinim)", q:"Das ist eine ___ Idee.", sq:"Kjo është një ide e mirë.", opts:["gute", "guter", "gutes"], a:0, ex:"Nyje e pacaktuar, Nominativ femëror: eine gute Idee." },
+  { lvl:"A2", cat:"Mbiemrat (deklinim)", q:"Wir haben ein ___ Haus.", sq:"Ne kemi një shtëpi të bukur.", opts:["schönes", "schöne", "schöner"], a:0, ex:"Nyje e pacaktuar, Akkusativ asnjanës: ein schönes Haus." },
+  { lvl:"A2", cat:"Parafjalë me rasa të dyfishta", q:"Das Bild hängt ___ der Wand.", sq:"Fotografia varet në mur.", opts:["an", "auf", "in"], a:0, ex:"Pa lëvizje (ku?) → Dativ: an der Wand (varur në mur)." },
+  { lvl:"A2", cat:"Parafjalë me rasa të dyfishta", q:"Ich hänge das Bild ___ die Wand.", sq:"E var fotografinë në mur.", opts:["an", "auf", "in"], a:0, ex:"Me lëvizje (ku drejt?) → Akkusativ: an die Wand (e var në mur)." },
+  { lvl:"C1", cat:"Lidhëza formale shtesë", q:"Er kam zu spät, ___ alle verärgerte.", sq:"Erdhi vonë, gjë që i acaroi të gjithë.", opts:["was", "das", "dass"], a:0, ex:"„was“ si përemër lidhor kur i referohet gjithë fjalisë paraardhëse, jo një emri konkret." },
+  { lvl:"C1", cat:"Lidhëza formale shtesë", q:"___, wir müssen weitermachen.", sq:"Sido që të jetë, duhet të vazhdojmë.", opts:["Wie dem auch sei", "Obwohl das", "Damit"], a:0, ex:"Shprehje fikse formale: „wie dem auch sei“ = sido që të jetë." },
+  { lvl:"C1", cat:"Lidhëza formale shtesë", q:"Er spricht ___ Deutsch als auch Englisch fließend.", sq:"Ai flet rrjedhshëm si gjermanisht ashtu edhe anglisht.", opts:["sowohl", "entweder", "weder"], a:0, ex:"Çift fiks: sowohl … als auch (si … ashtu edhe)." },
+  { lvl:"C1", cat:"Lidhëza formale shtesë", q:"Sie hat ___ Zeit noch Lust.", sq:"Ajo nuk ka as kohë, as dëshirë.", opts:["weder", "sowohl", "sowie"], a:0, ex:"Çift fiks: weder … noch (as … as)." },
+  { lvl:"C1", cat:"Lidhëza formale shtesë", q:"___ der Frist muss die Anfrage eingereicht werden.", sq:"Brenda afatit duhet të dorëzohet kërkesa.", opts:["Innerhalb", "Außerhalb", "Während"], a:0, ex:"„innerhalb“ + Gjinore = brenda (afatit kohor)." },
+  { lvl:"C1", cat:"Lidhëza formale shtesë", q:"___, wie das Wetter wird, gehen wir wandern oder bleiben zu Hause.", sq:"Në varësi se si do të jetë moti, do të shkojmë për shëtitje ose do të qëndrojmë në shtëpi.", opts:["Je nachdem", "Falls", "Obwohl"], a:0, ex:"„je nachdem“ = në varësi nga (rrethanat)." },
+  { lvl:"C1", cat:"Lidhëza formale shtesë", q:"Wir kommen morgen, ___ es regnet stark.", sq:"Ne vijmë nesër, përveç nëse bie shi i fortë.", opts:["es sei denn", "obwohl", "damit"], a:0, ex:"„es sei denn“ = përveç nëse (kusht përjashtues)." },
+  { lvl:"C1", cat:"Lidhëza formale shtesë", q:"Die Reform ist sinnvoll, ___ sie Kosten spart.", sq:"Reforma është e arsyeshme, në atë masë sa kursen kosto.", opts:["insofern als", "obwohl", "damit"], a:0, ex:"„insofern als“ = në masën që, në atë farë mase." },
+  { lvl:"C1", cat:"Lidhëza formale shtesë", q:"Er kann nicht einmal schwimmen, ___ tauchen.", sq:"Ai s'di as të notojë, e lëre më të zhytet.", opts:["geschweige denn", "obwohl", "damit"], a:0, ex:"„geschweige denn“ = e lëre më, aq më pak." },
 ];
 
 /* ============ DETYRAT E DITËS (Hausaufgaben, ~1 orë, ndryshojnë çdo ditë) ============ */
@@ -8786,11 +9698,13 @@ function renderGrammar() {
         awardPoints(12, "grammar");
         registerAnswer(true);
         recordStat("grammar", true, null);
+        recordGrammarItem(exIdx, true);
         hwTick("grammar", 1);
         document.getElementById("grammarFlash").textContent = "+12";
       } else {
         registerAnswer(false);
         recordStat("grammar", false, null);
+        recordGrammarItem(exIdx, false);
         document.getElementById("grammarFlash").textContent = "Saktë: " + ex.opts[ex.a];
       }
       document.getElementById("grammarScore").textContent = "Saktë: " + grammarScore;
@@ -9716,7 +10630,39 @@ function renderProfileView() {
     </div>`;
   }).join("");
 
+  renderWeaknessCard();
   renderPrestigeAccountCard();
+}
+
+// Kategoritë e gabimeve (nga vlerësimi i Shkrimit/Të folurit me AI) -> tema përkatëse e Gramatikës,
+// që butoni "Ushtro" të çojë direkt te ushtrimet e duhura.
+const ERROR_TO_GRAMMAR_CAT = {
+  "Kasus": "Nyjat", "Artikel": "Nyjat", "Verbstellung": "Rendi i fjalëve", "Konjugation": "Foljet",
+  "Präposition": "Parafjalë", "Wortwahl": null, "Register": null, "Kohärenz": null,
+  "Rechtschreibung": null, "Aufgabenerfüllung": null
+};
+function renderWeaknessCard() {
+  ensureStats();
+  const card = document.getElementById("weaknessCard"); if (!card) return;
+  const cats = stats.errorCats || {};
+  const entries = Object.entries(cats).filter(([,n]) => n > 0).sort((a,b) => b[1]-a[1]).slice(0, 5);
+  card.classList.toggle("hidden", entries.length === 0);
+  if (!entries.length) return;
+  const total = entries.reduce((a,[,n])=>a+n, 0);
+  document.getElementById("weaknessList").innerHTML = entries.map(([cat, n]) => {
+    const pct = Math.round((n / total) * 100);
+    const gcat = ERROR_TO_GRAMMAR_CAT[cat];
+    return `<div class="weak-row">
+      <div class="weak-top"><strong>${esc(cat)}</strong><span>${n}× (${pct}%)</span></div>
+      <div class="acc-bar"><div class="acc-fill" style="width:${pct}%;background:var(--red)"></div></div>
+      ${gcat ? `<button class="btn btn-secondary weak-practice" data-gcat="${esc(gcat)}">${uiText("account.weak.practice")} →</button>` : ""}
+    </div>`;
+  }).join("");
+  document.querySelectorAll(".weak-practice").forEach(b => b.addEventListener("click", () => {
+    goToView("grammar");
+    const sel = document.getElementById("grammarCatFilter");
+    if (sel) { sel.value = b.dataset.gcat; startGrammar(); }
+  }));
 }
 
 function renderPrestigeAccountCard() {
