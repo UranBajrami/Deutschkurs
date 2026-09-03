@@ -1879,6 +1879,7 @@
       <div class="farm-coins"><span class="fc-icon">🪙</span><span id="farmCoinsValue">0</span></div>
       <span class="panda-chip" id="pandaLevel">⭐ 1</span>
       <span class="panda-chip" id="pandaStreak">🔥 0</span>
+      <span class="panda-chip" id="pandaClock">☀️</span>
     </div>
     <div class="panda-xp-track"><div class="panda-xp-fill" id="pandaXpFill" style="width:0%"></div></div>
 
@@ -1899,7 +1900,7 @@
       <button class="panda-act" id="btnPandaDrink"><span>🥤</span><em data-i18n="panda.act.drink">Pije</em></button>
       <button class="panda-act" id="btnPandaPlay"><span>🎾</span><em data-i18n="panda.act.play">Luaj</em></button>
       <button class="panda-act" id="btnPandaWash"><span>🧼</span><em data-i18n="panda.act.wash">Laje</em></button>
-      <button class="panda-act" id="btnPandaSleep"><span>💤</span><em data-i18n="panda.sleep">Fle</em></button>
+      <button class="panda-act hidden" id="btnPandaWake"><span>⏰</span><em data-i18n="panda.wake">Zgjo</em></button>
     </div>
 
     <div id="pandaNeeds" class="panda-needs"></div>
@@ -8867,9 +8868,28 @@ function ensureFarmCoins() {
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function savePanda() { queueSave(); }
 
-/* ---------- TIME SYSTEM: rënia e nevojave + koha offline ---------- */
+/* ---------- TIME SYSTEM: bota në kohë reale — nata 23:00–09:00 (10 orë gjumë = energji e plotë) ---------- */
+const NIGHT_START = 23, NIGHT_END = 9;
+function isNightAt(ts) { const hh = new Date(ts).getHours(); return hh >= NIGHT_START || hh < NIGHT_END; }
+function isNight() { return isNightAt(Date.now()); }
+// Pandaja duhet të flejë tani? (natë dhe s'është zgjuar nga lojtari kohët e fundit) — ose lodhje ekstreme ditën
+function pandaShouldSleep(p) {
+  if (p.awakeUntil && Date.now() < p.awakeUntil) return false;
+  if (isNight()) return true;
+  return p.energy < 18;
+}
+function pandaWake() {
+  const p = ensurePanda();
+  p.awakeUntil = Date.now() + 20 * 60000;   // 20 min zgjuar; nëse është ende natë, kthehet vetë në shtrat
+  p._sleeping = false;
+  if (window.Panda3D) window.Panda3D.doAction("wake");
+  pandaSay(pt("awake"), 3000); pandaAddXp(1);
+  savePanda(); renderPandaView();
+}
+
 // Për orë: pandaja duhet të durojë disa orë pa kujdes (lojë e qetë, jo stres).
 const DECAY_PER_HOUR = { hunger: -8, thirst: -10, energy: -6, hygiene: -4, toilet: +9, affection: -5 };
+const SLEEP_ENERGY_PER_HOUR = 10;   // 10 orë × 10 = 100
 
 function applyDecay(hours, p) {
   p.hunger    = clamp(p.hunger    + DECAY_PER_HOUR.hunger    * hours, 0, 100);
@@ -8878,7 +8898,7 @@ function applyDecay(hours, p) {
   p.toilet    = clamp(p.toilet    + DECAY_PER_HOUR.toilet    * hours, 0, 100);
   p.affection = clamp(p.affection + DECAY_PER_HOUR.affection * hours, 0, 100);
   // Energjia: bie kur është zgjuar, rritet kur fle (AI vendos "sleeping")
-  if (p._sleeping) p.energy = clamp(p.energy + 25 * hours, 0, 100);
+  if (p._sleeping) p.energy = clamp(p.energy + SLEEP_ENERGY_PER_HOUR * hours, 0, 100);
   else p.energy = clamp(p.energy + DECAY_PER_HOUR.energy * hours, 0, 100);
   // Pesha ndryshon NGADALË sipas ushqimit (dhjetë herë më ngadalë se uria)
   if (p.hunger < 25) p.weight = clamp(p.weight - 0.6 * hours, 15, 100);
@@ -8901,16 +8921,17 @@ function updateOfflineTime() {
   const hoursReal = Math.max(0, (now - (p.lastUpdated || now)) / 3600000);
   if (hoursReal >= 0.05) {
     const before = { ...p };
-    const hours = Math.min(12, hoursReal);
-    let left = hours;
+    // Simulim orë për orë me orën REALE: gjatë natës (23–09) pandaja fle dhe merr energji
+    const hours = Math.min(48, hoursReal);
+    let t = now - hours * 3600000, left = hours;
     while (left > 0) {
       const step = Math.min(1, left);
-      p._sleeping = p.energy < 25 || (p._forceSleep && p.energy < 95);
+      p._sleeping = isNightAt(t) || p.energy < 18;
       applyDecay(step, p);
-      left -= step;
+      t += step * 3600000; left -= step;
     }
-    p._sleeping = false;
-    for (const k in OFFLINE_FLOOR) if (p[k] < OFFLINE_FLOOR[k]) p[k] = OFFLINE_FLOOR[k];
+    p._sleeping = isNight();
+    for (const k in OFFLINE_FLOOR) if (k !== "energy" && p[k] < OFFLINE_FLOOR[k]) p[k] = OFFLINE_FLOOR[k];
     p.toilet = Math.min(p.toilet, 85);
     if (hoursReal >= 1) pandaShowAwayReport(hoursReal, before, p);
   }
@@ -8940,7 +8961,7 @@ function getPetEmotion() {
   if (p.energy < 20) return "tired";
   if (p._surprisedUntil && Date.now() < p._surprisedUntil) return "surprised";
   if (p._angryUntil && Date.now() < p._angryUntil) return "angry";
-  if (p.energy < 32 && p.mood > 40) return "sleepy";
+  if ((p.energy < 32 && p.mood > 40) || (isNight() && !(p.awakeUntil && Date.now() < p.awakeUntil))) return "sleepy";
   if (p.hygiene < 20) return "dirty";
   if (p.affection < 20) return "lonely";
   if (p.mood < 25) return "sad";
@@ -9068,7 +9089,7 @@ function pandaPet() {
 }
 function pandaPlay() {
   const p = ensurePanda();
-  if (p.energy < 15) { pandaSay(pt("tootired"), 3000); return; }
+  if (p.energy < 15 || (p._sleeping && isNight())) { pandaSay(pt("tootired"), 3000); return; }
   p.mood = clamp(p.mood + 12, 0, 100);
   p.affection = clamp(p.affection + 6, 0, 100);
   p.energy = clamp(p.energy - 8, 0, 100);
@@ -9078,13 +9099,6 @@ function pandaPlay() {
   pandaSay(pt("fun"), 3000);
   pandaAddXp(5); pandaTaskTick("play");
   savePanda(); renderPandaView();
-}
-function pandaSleepToggle() {
-  const p = ensurePanda();
-  p._forceSleep = !p._forceSleep;
-  if (window.Panda3D) window.Panda3D.doAction(p._forceSleep ? "sleep" : "wake");
-  pandaSay(p._forceSleep ? pt("sleepy") : pt("awake"), 3000);
-  renderPandaView();
 }
 function pandaFeedQuick() {
   const p = ensurePanda();
@@ -9274,7 +9288,11 @@ function renderPandaView() {
   // 3D-Szene starten (einmalig)
   const holder = document.getElementById("pandaScene");
   if (holder && !panda3DStarted && window.Panda3D) {
-    panda3DStarted = window.Panda3D.init(holder, {
+    panda3DStarted = true;   // vetëm një herë; init() është async
+    window.Panda3D.init(holder, {
+      getGrowth: () => pandaGrowthStage(),
+      shouldSleep: () => pandaShouldSleep(ensurePanda()),
+      isNight: () => isNight(),
       items: PANDA_ITEMS, getState: () => ensurePanda(), getEmotion: getPetEmotion,
       onTransform: (instId, t) => updateFurnitureTransform(instId, t),
       onPandaTransform: (t) => updatePandaTransform(t),
@@ -9282,8 +9300,7 @@ function renderPandaView() {
       onArrive: (use, instId) => pandaOnArrive(use, instId),
       onPet: () => pandaPet(),
       say: (k) => pandaSay(pt(k), 3500)
-    });
-    if (panda3DStarted) window.Panda3D.setGrowth(pandaGrowthStage());
+    }).then(ok => { if (!ok) panda3DStarted = false; else window.Panda3D.setGrowth(pandaGrowthStage()); });
   }
   if (!pandaTickTimer) {
     pandaTickTimer = setInterval(() => {
@@ -9336,8 +9353,10 @@ function renderPandaStatus() {
   const w = p.weight;
   const wLbl = w < 30 ? uiText("panda.w.thin") : w > 75 ? uiText("panda.w.round") : uiText("panda.w.ok");
   document.getElementById("pandaWeight").textContent = "⚖️ " + wLbl;
-  const sl = document.getElementById("btnPandaSleep");
-  if (sl) sl.textContent = p._forceSleep ? uiText("panda.wake") : uiText("panda.sleep");
+  const wk = document.getElementById("btnPandaWake");
+  if (wk) wk.classList.toggle("hidden", !p._sleeping);
+  const nightEl = document.getElementById("pandaClock");
+  if (nightEl) { const d = new Date(); nightEl.textContent = (isNight() ? "🌙 " : "☀️ ") + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
 }
 
 function renderPandaInventory() {
@@ -9456,7 +9475,7 @@ function renderPandaDebugInfo() {
   on("btnPandaDrink", pandaDrinkQuick);
   on("btnPandaPlay", pandaPlay);
   on("btnPandaWash", pandaWashQuick);
-  on("btnPandaSleep", pandaSleepToggle);
+  on("btnPandaWake", pandaWake);
   document.querySelectorAll("[data-learn]").forEach(b => b.addEventListener("click", () => startLearnSession(parseInt(b.dataset.learn))));
   on("btnPandaLearnCancel", cancelLearnSession);
   on("btnPandaRotate", () => { if (window.Panda3D) window.Panda3D.rotateSelected(); });
@@ -9869,7 +9888,7 @@ const RIG_STATE_CLIPS = { hungry: "stomp", angry: "stomp", lonely: "help", sad: 
 // gjendje e lojës → emri i klipit (nëse gjendja s'ka klip me të njëjtin emër)
 const RIG_STATE_ALIAS = { play: "dance", rest: "sit", tired: "sit" };
 const RIG_ONCE = new Set(["greeting", "cheer", "sit", "stomp", "help", "surprised"]);   // luhen një herë; të tjerat në lak
-const RIG_SPEED = { walk: 0.85, run: 1.0 };
+const RIG_SPEED = () => ({ walk: 0.9 * (S.moveTempo || 1), run: 0.9 * (S.moveTempo || 1) });
 const texLoader = new THREE.TextureLoader();
 
 function loadTex(url, srgb) {
@@ -10011,7 +10030,9 @@ function rigAnim(dt) {
   const react = (name === "idle" && RIG_STATE_CLIPS[em] && rig.clips[RIG_STATE_CLIPS[em]] && rig.stompUntil > performance.now()) ? RIG_STATE_CLIPS[em] : null;
   const wantClip = alias || react;
   if (wantClip) {
-    if (rigPlayClip(rig, wantClip, { once: RIG_ONCE.has(wantClip), speed: RIG_SPEED[wantClip] || 1 })) {
+    const spd = RIG_SPEED()[wantClip] || 1;
+    if (rig.currentName === wantClip && rig.current) rig.current.setEffectiveTimeScale(spd);   // ritmi ndryshon live (lodhje)
+    if (rigPlayClip(rig, wantClip, { once: RIG_ONCE.has(wantClip), speed: spd })) {
       S.panda.rotation.x = 0; S.panda.rotation.z = 0; S.panda.position.y = (S.ai.state === "sleep" ? (S.sleepY || 0) : 0);   // klipi vendos vetë pozën; mbi krevat qëndron lart
       rig.mixer.update(dt); rigOverlays(dt, em, name); return;
     }
@@ -10143,6 +10164,8 @@ async function init(container, api) {
     S.controls = controls;
     resize(); window.addEventListener("resize", resize);
     setupPointer();
+    S.growthScale = 1;
+    setGrowth(api.getGrowth ? api.getGrowth() : 1);
     restorePanda();
     await syncFurniture();
     requestAnimationFrame(loop);
@@ -10160,9 +10183,10 @@ function resize() {
 function restorePanda() {
   if (!S) return;
   const st = S.api.getState();
-  const px = clamp(+((st.pos||{}).x) || 0, -HALF_W + 0.5, HALF_W - 0.5), pz = clamp(+((st.pos||{}).z) || 0.5, -HALF_D + 0.5, HALF_D - 0.5);
+  const px = clamp(+((st.pos||{}).x) || 0, -BX(), BX()), pz = clamp(+((st.pos||{}).z) || 0.5, -BZ(), BZ());
   S.panda.position.set(px, 0, pz); S.panda.rotation.y = +st.rotY || 0;
-  if (st.anim === "sleep" || st._forceSleep) { S.ai.state = "sleep"; setAnim("sleep"); } else { S.ai.state = "idle"; S.ai.timer = 1; setAnim("idle"); }
+  // Pas rifreskimit: nëse është natë/gjumë, kthehet vetë te krevati përmes AI-së (jo teleportim)
+  S.ai.state = "idle"; S.ai.timer = 0.5; setAnim("idle"); S.sleepY = 0;
 }
 function flush() {
   if (!S) return;
@@ -10195,7 +10219,7 @@ function findSpotNearPanda(item) {
   const placed = S ? (S.api.getState().placed || []) : []; const px = S ? S.panda.position.x : 0, pz = S ? S.panda.position.z : 0;
   for (let t = 0; t < 30; t++) {
     const ang = Math.random() * Math.PI * 2, r = 0.9 + Math.random() * 0.8;
-    const x = clamp(px + Math.cos(ang) * r, -HALF_W + 0.5, HALF_W - 0.5), z = clamp(pz + Math.sin(ang) * r, -HALF_D + 0.5, HALF_D - 0.5);
+    const x = clamp(px + Math.cos(ang) * r, -BX(), BX()), z = clamp(pz + Math.sin(ang) * r, -BZ(), BZ());
     if (!collides(x, z, (item.size || 0.3) / 2 + 0.2, placed, null)) return { x, z };
   }
   return findFreeSpot(item);
@@ -10219,6 +10243,11 @@ function collides(x, z, r, placed, ignoreId) {
   return false;
 }
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+// Distanca minimale nga muri: gjysma e gjerësisë së trupit (≈0.55 × skalim) + hapësirë. Pandaja nuk prek kurrë murin.
+const wallMargin = () => 0.3 + 0.6 * ((S && S.growthScale) || 1);
+const BX = () => HALF_W - wallMargin(), BZ = () => HALF_D - wallMargin();
+// Shpejtësitë e klipeve (të matura): sa lëviz trupi për sekondë në skalim 1 — që këmbët të mos rrëshqasin
+const CLIP_GROUND_SPEED = { walk: 1.24, run: 3.62 };
 
 /* ---------- POINTER: drag & drop mobiliesh, klik mbi pandën ---------- */
 function setupPointer() {
@@ -10290,13 +10319,13 @@ function getSelected() { return S ? S.sel : null; }
 /* ---------- PANDA AI (state machine) ---------- */
 function decide(st, em) {
   const has = (t) => (st.placed || []).some(f => f.type === t);
-  if (st._forceSleep) return has("bed") ? { state: "seek", use: "sleep" } : { state: "sleep" };
+  // Gjumi: natën (23–09) ose kur është i rraskapitur — GJITHMONË te krevati nëse ka, përndryshe në dysheme
+  if (S.api.shouldSleep && S.api.shouldSleep()) return has("bed") ? { state: "seek", use: "sleep" } : { state: "sleep" };
   if (st.toilet > 80 && has("toilet"))  return { state: "seek", use: "toilet" };
   const placedFood = (st.placed || []).find(f => { const it = S.api.items.find(i => i.id === f.type); return it && it.consumable && it.cat === "food"; });
   const placedDrink = (st.placed || []).find(f => { const it = S.api.items.find(i => i.id === f.type); return it && it.consumable && it.cat === "drink"; });
   if (placedFood && st.hunger < 92)  return { state: "seek", use: "eat" };     // ushqimi në dhomë → shko dhe haje
   if (placedDrink && st.thirst < 92) return { state: "seek", use: "drink" };
-  if (st.energy < 18)                   return has("bed") ? { state: "seek", use: "sleep" } : { state: "sleep" };
   if (st.hygiene < 18 && has("bathtub")) return { state: "seek", use: "bath" };
   if (st.mood < 30 && (has("ball") || has("teddy"))) return { state: "seek", use: "toy" };
   if (st.energy > 55 && Math.random() < 0.15 && (has("ball") || has("teddy"))) return { state: "seek", use: "toy" };
@@ -10309,23 +10338,26 @@ function targetFor(use, st) {
   if (use === "eat" || use === "drink") {
     const cat = use === "eat" ? "food" : "drink";
     const f = placed.find(x => { const it = S.api.items.find(i => i.id === x.type); return it && it.consumable && it.cat === cat; }); if (!f) return null;
-    return { x: clamp(f.position.x, -HALF_W + 0.4, HALF_W - 0.4), z: clamp(f.position.z + 0.35, -HALF_D + 0.4, HALF_D - 0.4), id: f.id };
+    return { x: clamp(f.position.x, -BX(), BX()), z: clamp(f.position.z + 0.35, -BZ(), BZ()), id: f.id };
   }
   const map = { sleep: "bed", toilet: "toilet", bath: "bathtub", rest: "sofa", desk: "desk", toy: has("ball") ? "ball" : "teddy" };
   const f = placed.find(x => x.type === map[use]); if (!f) return null;
   const it = S.api.items.find(i => i.id === f.type); const off = (it.size || 0.8) / 2 + 0.35;
-  return { x: clamp(f.position.x, -HALF_W + 0.5, HALF_W - 0.5), z: clamp(f.position.z + off, -HALF_D + 0.5, HALF_D - 0.5), id: f.id };
+  return { x: clamp(f.position.x, -BX(), BX()), z: clamp(f.position.z + off, -BZ(), BZ()), id: f.id };
 }
 function randomSpot(st) {
   for (let t = 0; t < 25; t++) {
-    const x = -HALF_W + 0.7 + Math.random() * (ROOM.w - 1.4), z = -HALF_D + 0.9 + Math.random() * (ROOM.d - 1.6);
+    const x = -BX() + Math.random() * 2 * BX(), z = -BZ() + Math.random() * 2 * BZ();
     if (!collides(x, z, 0.45, st.placed || [], null)) return { x, z };
   }
   return { x: 0, z: 0 };
 }
 function aiStep(dt) {
   const st = S.api.getState(), ai = S.ai, em = S.api.getEmotion();
-  ai.speed = st.energy < 30 || st.weight > 75 ? 0.38 : 0.55;
+  // Ritmi (0.7 = i lodhur/i rëndë, 1 = normal) zbatohet NJËSOJ te lëvizja dhe te klipi → këmbët nuk rrëshqasin
+  S.moveTempo = (st.energy < 30 || st.weight > 75) ? 0.7 : 1.0;
+  const gs = S.growthScale || 1;
+  ai.speed = CLIP_GROUND_SPEED[S.anim.name === "run" ? "run" : "walk"] * gs * S.moveTempo * 0.9;
   if (ai.state === "seek" || ai.state === "wander") {
     if (!ai.target) { ai.state = "idle"; ai.timer = 1; return; }
     const dx = ai.target.x - S.panda.position.x, dz = ai.target.z - S.panda.position.z, d = Math.hypot(dx, dz);
@@ -10345,15 +10377,21 @@ function aiStep(dt) {
       if (ok) { nx = (nx + ok[0] * 1.5); nz = (nz + ok[1] * 1.5); const l = Math.hypot(nx, nz); nx /= l; nz /= l; }
       else { ai.state = "idle"; ai.timer = 1; ai.target = null; setAnim("idle"); return; }
     }
-    S.panda.position.x = clamp(S.panda.position.x + nx * step, -HALF_W + 0.45, HALF_W - 0.45);
-    S.panda.position.z = clamp(S.panda.position.z + nz * step, -HALF_D + 0.45, HALF_D - 0.45);
+    S.panda.position.x = clamp(S.panda.position.x + nx * step, -BX(), BX());
+    S.panda.position.z = clamp(S.panda.position.z + nz * step, -BZ(), BZ());
     S.panda.rotation.y = Math.atan2(nx, nz);
     setAnim(ai.state === "seek" && (ai.use === "toy" || ai.use === "rest") && S.panda.userData.rig && S.panda.userData.rig.clips.run ? "run" : "walk");
-    if (S.panda.userData.rig) ai.speed *= (S.anim.name === "run" ? 1.6 : 1);
     return;
   }
   if (ai.state === "busy") { ai.timer -= dt; if (ai.timer <= 0) { ai.state = "idle"; ai.timer = 1; st._sleeping = false; setAnim("idle"); if (ai.onDone) { const f = ai.onDone; ai.onDone = null; f(); } } return; }
-  if (ai.state === "sleep") { st._sleeping = true; setAnim("sleep"); if (st.energy >= 95 && !st._forceSleep) { st._sleeping = false; ai.state = "idle"; ai.timer = 1; S.sleepY = 0; S.panda.position.y = 0; } return; }
+  if (ai.state === "sleep") {
+    st._sleeping = true; setAnim("sleep");
+    // Zgjohet: kur lojtari e zgjon (shouldSleep→false), ose ditën kur ka fjetur mjaftueshëm
+    const keep = S.api.shouldSleep ? S.api.shouldSleep() : st.energy < 95;
+    const dayNapDone = !(S.api.isNight && S.api.isNight()) && st.energy >= 60;
+    if (!keep || (dayNapDone && !(S.api.isNight && S.api.isNight()))) { st._sleeping = false; ai.state = "idle"; ai.timer = 1; S.sleepY = 0; S.panda.position.y = 0; }
+    return;
+  }
   // idle
   ai.timer -= dt;
   if (ai.timer > 0) { setAnim(st.energy < 25 ? "tired" : "idle"); return; }
@@ -10403,7 +10441,7 @@ function setAnim(name) {
 // 10 shkallë rritjeje (prestige 1..10): nga 0.5 (foshnjë) deri 1.15 (i rritur). Pesha është e ndarë (trupi vetëm).
 // 10 madhësi, një për çdo prestige (1..10): lartësia 0.6 → 1.5 njësi (dhoma 8×7, krevati 1.6×1.9, tavani 3.2)
 const GROWTH_HEIGHTS = [0.60, 0.70, 0.80, 0.90, 1.00, 1.10, 1.20, 1.30, 1.40, 1.50];
-function setGrowth(stage) { if (!S) return; S.growth = stage; const s = GROWTH_HEIGHTS[clamp(stage, 1, 10) - 1] / 2.2;
+function setGrowth(stage) { if (!S) return; S.growth = stage; const s = GROWTH_HEIGHTS[clamp(stage, 1, 10) - 1] / 2.2; S.growthScale = s;
   if (S.controls) { S.controls.target.set(0, 0.95 * s, 0); S.controls.minDistance = 1.2; } S.panda.scale.setScalar(s); S.panda.userData.baseScale = s; }
 
 /* ---------- FX: zemra ---------- */
