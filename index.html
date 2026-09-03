@@ -944,6 +944,16 @@
     box-shadow: 0 6px 20px rgba(0,0,0,.28); transition: transform .12s ease, border-color .2s ease;
   }
   .exam-level-card:active { transform: scale(.98); }
+  .write-part { margin-bottom: 14px; } .write-part-time { font-weight: 600; font-size: .74rem; color: var(--muted); margin-left: 8px; }
+  .wf-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px; margin-top: 12px; }
+  .wf-head { font-weight: 800; margin-bottom: 10px; } .wf-note { font-size: .72rem; color: var(--gold); margin-left: 8px; font-weight: 700; }
+  .wf-row { display: flex; align-items: center; gap: 10px; font-size: .8rem; margin: 5px 0; } .wf-row span { width: 84px; color: var(--muted); font-weight: 700; }
+  .wf-track { flex: 1; height: 7px; background: rgba(255,255,255,.08); border-radius: var(--radius-pill); overflow: hidden; } .wf-fill { height: 100%; background: linear-gradient(90deg, var(--blue), #7aa2ff); }
+  .wf-comment { margin: 10px 0; font-size: .86rem; line-height: 1.5; padding: 10px; background: rgba(91,140,255,.08); border-radius: 10px; }
+  .wf-errors { margin-top: 8px; } .wf-err { font-size: .82rem; padding: 7px 0; border-top: 1px solid var(--line); }
+  .wf-tag { display: inline-block; font-size: .66rem; font-weight: 800; padding: 2px 8px; border-radius: var(--radius-pill); background: rgba(255,95,109,.15); color: var(--red); margin-right: 6px; }
+  .wf-expl { font-size: .76rem; color: var(--muted); margin-top: 3px; } .wf-corr { margin-top: 10px; font-size: .84rem; line-height: 1.55; } .wf-corr summary { cursor: pointer; font-weight: 700; }
+  .exam-level-card.locked { opacity: .5; cursor: not-allowed; filter: grayscale(.4); }
   .exam-level-card.recommended { border-color: rgba(255,200,87,.5); box-shadow: 0 6px 22px rgba(0,0,0,.3), 0 0 20px rgba(255,200,87,.14); }
   .elc-badge {
     width: 52px; height: 52px; flex-shrink: 0; border-radius: var(--radius-md);
@@ -4321,6 +4331,7 @@ const UI_STRINGS = {
   "panda.use":    { sq: "Përdor", de: "Benutzen", en: "Use" },
   "exam.choose_level": { sq: "Zgjidh nivelin e provimit", de: "Wähle das Prüfungsniveau", en: "Choose the exam level" },
   "exam.or_single":    { sq: "Ose ushtro një modul B1 veç e veç", de: "Oder übe ein einzelnes B1-Modul", en: "Or practice a single B1 module" },
+  "exam.locked":       { sq: "Në përgatitje — tekstet e këtij niveli s'janë gati ende", de: "In Vorbereitung – niveaugerechte Aufgaben folgen", en: "Coming soon – level-specific tasks in preparation" },
   "exam.modules_meta": { sq: "module", de: "Module", en: "modules" },
   "exam.min":          { sq: "min", de: "Min.", en: "min" },
   "exam.points":       { sq: "pikë", de: "Punkte", en: "points" },
@@ -4331,7 +4342,7 @@ const UI_STRINGS = {
                          en: "Three texts with questions: email, newspaper article, and notices." },
   "exam.lesen.meta":  { sq: "11 pyetje · 25 minuta", de: "11 Fragen · 25 Minuten", en: "11 questions · 25 minutes" },
 
-  "exam.gram.title": { sq: "🧩 Sprachbausteine (Gramatikë)", de: "🧩 Sprachbausteine (Grammatik)", en: "🧩 Sprachbausteine (Grammar)" },
+  "exam.gram.title": { sq: "🧩 Sprachbausteine (telc B1 — jo pjesë e Goethe)", de: "🧩 Sprachbausteine (telc B1 – nicht Teil von Goethe)", en: "🧩 Sprachbausteine (telc B1 – not part of Goethe)" },
   "exam.gram.desc":  { sq: "Tekst gramatikor me boshllëqe: fjali të nënrenditura, parafjalë, Konjunktiv II.",
                         de: "Grammatiktext mit Lücken: Nebensätze, Präpositionen, Konjunktiv II.",
                         en: "Grammar text with gaps: subordinate clauses, prepositions, Konjunktiv II." },
@@ -5610,17 +5621,21 @@ function renderExamMenu() {
   stopTimer();
   runnerEl.classList.add("hidden");
   menuEl.classList.remove("hidden");
+  // Vetëm nivelet me përmbajtje TË VËRTETË të nivelit janë të hapura. Të tjerat tregohen si "në përgatitje",
+  // që askush të mos besojë se ka kaluar një provim C1 me tekste B1.
+  const EXAM_READY = { B1: true };
   const levelCards = Object.keys(EXAM_LEVELS).map(key => {
     const L = EXAM_LEVELS[key];
     const totalMin = L.modules.reduce((a, m) => a + m.minutes, 0);
     const info = CEFR_INFO[key] || {};
-    const recommended = (cefrLevel === key || selectedLevel === key);
-    return `<button class="exam-level-card ${recommended ? "recommended" : ""}" data-exam="full" data-level="${key}">
+    const recommended = (cefrLevel === key || selectedLevel === key) && EXAM_READY[key];
+    const locked = !EXAM_READY[key];
+    return `<button class="exam-level-card ${recommended ? "recommended" : ""} ${locked ? "locked" : ""}" data-exam="full" data-level="${key}" ${locked ? "disabled" : ""}>
       <div class="elc-badge" style="color:${info.color || "var(--gold)"};border-color:${(info.color || "#ffc857")}55;background:${(info.color || "#ffc857")}18;">${key}</div>
       <div class="elc-body">
         <div class="elc-name">${esc(L.name)}</div>
         <div class="elc-desc">${esc(L.desc)}</div>
-        <div class="elc-meta">4 ${uiText("exam.modules_meta")} · ${totalMin} ${uiText("exam.min")} · 400 ${uiText("exam.points")}</div>
+        <div class="elc-meta">${locked ? "🔒 " + uiText("exam.locked") : `4 ${uiText("exam.modules_meta")} · ${totalMin} ${uiText("exam.min")} · 400 ${uiText("exam.points")}`}</div>
       </div>
       ${recommended ? '<div class="elc-star">★</div>' : ""}
     </button>`;
@@ -5658,7 +5673,7 @@ function renderExamMenu() {
   `;
   menuEl.querySelectorAll(".exam-tile").forEach(t =>
     t.addEventListener("click", () => startExam(t.dataset.exam)));
-  menuEl.querySelectorAll(".exam-level-card").forEach(t =>
+  menuEl.querySelectorAll(".exam-level-card:not([disabled])").forEach(t =>
     t.addEventListener("click", () => startFullExam(t.dataset.level)));
 }
 
@@ -5999,6 +6014,19 @@ const SPEAKING_PRESENT_POOL = [
 // asnjë provim të mos jetë i njëjtë me tjetrin.
 const EXAM_SET_COUNT = 20;
 
+// Llojet e detyrave të shkrimit sipas formatit Goethe B1 (jo i verifikuar live):
+//  t1 = e-mail jozyrtare (~80 fjalë), t2 = postim/mendim në forum (~80 fjalë), t3 = e-mail zyrtare e shkurtër (~40 fjalë)
+const WRITING_KIND = { 0:"t1", 3:"t1", 5:"t1", 9:"t1", 10:"t1",
+                       2:"t2", 7:"t2", 11:"t2", 14:"t2", 17:"t2", 19:"t2",
+                       1:"t3", 4:"t3", 6:"t3", 8:"t3", 12:"t3", 13:"t3", 15:"t3", 16:"t3", 18:"t3" };
+WRITING_POOL.forEach((w, i) => { w.kind = WRITING_KIND[i] || "t1"; });
+const WRITING_PARTS = {
+  t1: { label: "Teil 1", words: 80, minutes: 20, weight: 0.40, desc: { sq: "E-mail jozyrtare — ~80 fjalë", de: "Informelle E-Mail – ca. 80 Wörter", en: "Informal e-mail – approx. 80 words" } },
+  t2: { label: "Teil 2", words: 80, minutes: 25, weight: 0.40, desc: { sq: "Mendimi yt në forum — ~80 fjalë", de: "Meinungsäußerung im Forum – ca. 80 Wörter", en: "Forum post with your opinion – approx. 80 words" } },
+  t3: { label: "Teil 3", words: 40, minutes: 15, weight: 0.20, desc: { sq: "E-mail zyrtare e shkurtër — ~40 fjalë", de: "Kurze formelle E-Mail – ca. 40 Wörter", en: "Short formal e-mail – approx. 40 words" } }
+};
+function pickWriting(kind, i) { const arr = WRITING_POOL.filter(w => w.kind === kind); return arr[i % arr.length]; }
+
 function examSetFor(n) {
   const i = ((n % EXAM_SET_COUNT) + EXAM_SET_COUNT) % EXAM_SET_COUNT;
   const R = READING_POOL.length, L = LISTENING_POOL.length;
@@ -6006,7 +6034,7 @@ function examSetFor(n) {
     index: i,
     reading:  [ READING_POOL[i % R], READING_POOL[(i + 4) % R], READING_POOL[(i + 8) % R] ],
     listening:[ LISTENING_POOL[(i + 1) % L], LISTENING_POOL[(i + 5) % L], LISTENING_POOL[(i + 9) % L] ],
-    writing:  WRITING_POOL[i % WRITING_POOL.length],
+    writing:  { t1: pickWriting("t1", i), t2: pickWriting("t2", i + 1), t3: pickWriting("t3", i + 2) },
     plan:     SPEAKING_PLAN_POOL[i % SPEAKING_PLAN_POOL.length],
     present:  SPEAKING_PRESENT_POOL[(i + 2) % SPEAKING_PRESENT_POOL.length]
   };
@@ -6693,45 +6721,105 @@ function wireModuleQuestions(container, allQ) {
 
 /* --- Moduli 3: Schreiben (60 min) --- */
 function runFullSchreiben(mod) {
-  const task = currentExamSet.writing;
+  const set = currentExamSet.writing;                 // { t1, t2, t3 }
+  const parts = ["t1","t2","t3"];
   window.__currentModuleProgress = () => ({ correct: 0, total: 0 });
-  examShell(`${mod.icon} ${currentExamLevel} · Moduli ${fullModuleIndex+1}/4 — ${mod.name}`, mod.minutes, `
-    ${fullProgressBar()}
-    <div class="speak-card">
-      <h4>${esc(task.title)}</h4>
+  const partHtml = (k) => { const task = set[k], P = WRITING_PARTS[k]; return `
+    <div class="speak-card write-part" data-part="${k}">
+      <h4>${P.label} · ${P.desc[menuLang] || P.desc.sq} <span class="write-part-time">⏱ ~${P.minutes} min</span></h4>
+      <div style="font-weight:700;margin:6px 0 4px;">${esc(task.title)}</div>
       <div style="font-size:.92rem;line-height:1.55;">${esc(task.prompt)}</div>
       <ul>${task.points.map(p => "<li>" + esc(p) + "</li>").join("")}</ul>
       <div class="phrase-box"><strong>Shprehje ndihmëse:</strong><br>${esc(task.phrases)}</div>
-    </div>
-    <textarea class="writing-area" id="fullWriteArea" placeholder="Shkruaj tekstin tënd këtu..."></textarea>
-    <div class="word-counter" id="fullWordCount">0 fjalë (min. ${EXAM_LEVELS[currentExamLevel].writeMin})</div>
-    <div class="checklist">
-      <div style="font-weight:600;margin-bottom:10px;font-size:.9rem;">Vetëkontroll — shëno çfarë ke bërë</div>
-      ${WRITING_CHECKLIST.map((c, i) => `<label><input type="checkbox" class="fchk" data-i="${i}"><span>${esc(c)}</span></label>`).join("")}
-    </div>
-    <button class="btn btn-primary" id="btnFinishFullWrite" style="width:100%;padding:15px;margin-top:14px;">Dorëzo tekstin →</button>
+      <textarea class="writing-area" data-area="${k}" placeholder="${P.label} — shkruaj këtu..."></textarea>
+      <div class="word-counter" data-count="${k}">0 fjalë (rreth ${P.words})</div>
+    </div>`; };
+  examShell(`${mod.icon} ${currentExamLevel} · Moduli ${fullModuleIndex+1}/4 — ${mod.name}`, mod.minutes, `
+    ${fullProgressBar()}
+    <div class="note" style="margin-bottom:12px;">Si në provimin e vërtetë: <strong>3 detyra në ${mod.minutes} minuta</strong>. Ndaje kohën vetë (afërsisht 20 + 25 + 15 min). Të tria dorëzohen bashkë.</div>
+    ${parts.map(partHtml).join("")}
+    <button class="btn btn-primary" id="btnFinishFullWrite" style="width:100%;padding:15px;margin-top:14px;">Dorëzo të tri tekstet →</button>
+    <div id="writeFeedback"></div>
   `);
-  const area = document.getElementById("fullWriteArea");
-  const counter = document.getElementById("fullWordCount");
-  const countWords = () => area.value.trim().split(/\s+/).filter(Boolean).length;
-  const minW = EXAM_LEVELS[currentExamLevel].writeMin;
-  const scoreNow = () => {
-    const w = countWords();
-    const checked = document.querySelectorAll(".fchk:checked").length;
-    const lengthScore = w >= minW ? 50 : Math.round((w / minW) * 50);
-    const checkScore = Math.round((checked / WRITING_CHECKLIST.length) * 50);
-    return lengthScore + checkScore;
-  };
-  window.__currentModuleProgress = () => ({ correct: scoreNow(), total: 100 });
-  area.addEventListener("input", () => {
-    const w = countWords();
-    counter.textContent = w + " fjalë" + (w >= minW ? " ✓" : " (min. " + minW + ")");
-    counter.style.color = w >= minW ? "var(--green)" : "var(--muted)";
+  const areas = {}; parts.forEach(k => { areas[k] = document.querySelector(`[data-area="${k}"]`); });
+  const countWords = (k) => areas[k].value.trim().split(/\s+/).filter(Boolean).length;
+  parts.forEach(k => { areas[k].addEventListener("input", () => { const w = countWords(k), P = WRITING_PARTS[k]; const c = document.querySelector(`[data-count="${k}"]`); c.textContent = w + " fjalë" + (w >= P.words * 0.9 ? " ✓" : " (rreth " + P.words + ")"); c.style.color = w >= P.words * 0.9 ? "var(--green)" : "var(--muted)"; }); });
+  // Rezultati i përkohshëm (nëse mbaron koha): vetëm gjatësia
+  window.__currentModuleProgress = () => ({ correct: Math.round(parts.reduce((a, k) => a + WRITING_PARTS[k].weight * 100 * Math.min(1, countWords(k) / WRITING_PARTS[k].words), 0) * 0.5), total: 100 });
+  let submitting = false;
+  document.getElementById("btnFinishFullWrite").addEventListener("click", async () => {
+    if (submitting) return;
+    if (parts.every(k => countWords(k) < 10)) { alert("Ke shkruar shumë pak. Shkruaj të paktën disa fjali në secilën detyrë."); return; }
+    submitting = true; stopTimer();
+    const btn = document.getElementById("btnFinishFullWrite"); btn.disabled = true; btn.textContent = "Po vlerësohet… (mund të zgjasë ~20 s)";
+    const fb = document.getElementById("writeFeedback"); fb.innerHTML = "";
+    let total = 0;
+    for (const k of parts) {
+      const text = areas[k].value; const P = WRITING_PARTS[k];
+      const r = text.trim().split(/\s+/).filter(Boolean).length < 10 ? { total: 0, scores: { erfuellung: 0, kohaerenz: 0, wortschatz: 0, strukturen: 0 }, fehler: [], korrigiert: "", kommentar: "Nuk u shkrua tekst.", ai: true } : await evaluateWriting(set[k], text, P);
+      recordWritingErrors(r); total += r.total * P.weight;
+      fb.insertAdjacentHTML("beforeend", renderWritingFeedback(r, P));
+    }
+    fb.insertAdjacentHTML("beforeend", `<button class="btn btn-primary" id="btnWriteContinue" style="width:100%;padding:15px;margin-top:12px;">Vazhdo te moduli tjetër → (${Math.round(total)}/100)</button>`);
+    document.getElementById("btnWriteContinue").addEventListener("click", () => finishModule(Math.round(total)));
+    btn.classList.add("hidden");
   });
-  document.getElementById("btnFinishFullWrite").addEventListener("click", () => {
-    if (countWords() < 20) { alert("Teksti është shumë i shkurtër. Shkruaj të paktën disa fjali."); return; }
-    finishModule(scoreNow());
-  });
+}
+
+/* ============ VLERËSIMI I SHKRIMIT (kriteret Goethe B1: Erfüllung, Kohärenz, Wortschatz, Strukturen) ============
+   Vlerësohet nga AI (api.anthropic.com) me përgjigje JSON të strukturuar. Nëse API nuk arrihet
+   (offline / jashtë mjedisit të lejuar), përdoret vlerësimi i thjeshtë heuristik dhe kjo shënohet qartë. */
+const ERROR_CATEGORIES = ["Kasus","Artikel","Verbstellung","Konjugation","Präposition","Rechtschreibung","Wortwahl","Register","Kohärenz","Aufgabenerfüllung"];
+async function evaluateWritingAI(task, text, part) {
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  const sys = `Du bist Prüfer für das Goethe-Zertifikat B1, Modul Schreiben. Bewerte den Lernertext streng nach den vier Kriterien Erfüllung der Aufgabe, Kohärenz, Wortschatz, Strukturen – jeweils 0 bis 25 Punkte (25 = vollständig angemessen, 0 = nicht bewertbar). Antworte AUSSCHLIESSLICH mit einem JSON-Objekt, ohne Markdown, ohne Text davor oder danach:
+{"erfuellung":0-25,"kohaerenz":0-25,"wortschatz":0-25,"strukturen":0-25,"fehler":[{"typ":"<eine von: ${ERROR_CATEGORIES.join(", ")}>","original":"<fehlerhafte Stelle>","korrektur":"<korrigiert>","erklaerung":"<kurz, auf Deutsch>"}],"korrigiert":"<der komplette Text, korrigiert>","kommentar":"<2-3 Sätze Feedback auf Deutsch, was gut war und was der Lernende üben sollte>"}
+Regeln: Fehlende Leitpunkte senken "erfuellung" deutlich. Zu kurze Texte (unter 70 % der Vorgabe) senken "erfuellung". Falsches Register (du statt Sie in formeller E-Mail) ist ein Fehler vom Typ "Register". Bewerte fair, aber nicht großzügig: Ein B1-Text mit vielen Kasus- oder Verbstellungsfehlern bekommt bei "strukturen" höchstens 12.`;
+  const user = `AUFGABE (${part.label}, Vorgabe ca. ${part.words} Wörter):\n${task.prompt}\nLeitpunkte: ${task.points.join(" | ")}\n\nLERNERTEXT (${words} Wörter):\n${text}`;
+  const res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1500, system: sys, messages: [{ role: "user", content: user }] }) });
+  if (!res.ok) throw new Error("API " + res.status);
+  const data = await res.json();
+  const raw = (data.content || []).map(c => c.text || "").join("").replace(/```json|```/g, "").trim();
+  const j = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1));
+  const c = (v) => Math.max(0, Math.min(25, Math.round(+v || 0)));
+  const scores = { erfuellung: c(j.erfuellung), kohaerenz: c(j.kohaerenz), wortschatz: c(j.wortschatz), strukturen: c(j.strukturen) };
+  return { total: scores.erfuellung + scores.kohaerenz + scores.wortschatz + scores.strukturen, scores, fehler: Array.isArray(j.fehler) ? j.fehler.slice(0, 25) : [], korrigiert: j.korrigiert || "", kommentar: j.kommentar || "", ai: true };
+}
+// Heuristik (vetëm kur AI nuk arrihet): gjatësi + lidhëza + përshëndetje + Sie/du sipas llojit
+function evaluateWritingHeuristic(task, text, part) {
+  const t = text.trim(); const words = t.split(/\s+/).filter(Boolean).length;
+  const lenRatio = Math.min(1, words / part.words);
+  const conn = /\b(weil|deshalb|obwohl|trotzdem|dass|wenn|aber|denn|damit|nachdem|bevor)\b/i.test(t) ? 1 : 0;
+  const greet = /(liebe|lieber|hallo|sehr geehrte)/i.test(t) && /(grüße|gruß|bis bald|liebe grüße|mit freundlichen)/i.test(t) ? 1 : 0;
+  const formal = task.kind === "t3"; const hasSie = /\bSie\b|\bIhnen\b|\bIhr(e|en|em)?\b/.test(t); const hasDu = /\bdu\b|\bdich\b|\bdir\b|\bdein/i.test(t);
+  const register = formal ? (hasSie && !hasDu ? 1 : 0.4) : (hasDu ? 1 : 0.6);
+  const points = task.points.length; const covered = Math.min(points, Math.round(lenRatio * points));
+  const scores = { erfuellung: Math.round(25 * (0.6 * lenRatio + 0.4 * covered / points)), kohaerenz: Math.round(25 * (0.5 * conn + 0.5 * greet)), wortschatz: Math.round(18 * lenRatio), strukturen: Math.round(16 * register) };
+  return { total: scores.erfuellung + scores.kohaerenz + scores.wortschatz + scores.strukturen, scores, fehler: [], korrigiert: "", kommentar: "", ai: false };
+}
+async function evaluateWriting(task, text, part) {
+  try { return await evaluateWritingAI(task, text, part); }
+  catch (e) { console.warn("AI-Bewertung nicht verfügbar → Heuristik:", e.message); return evaluateWritingHeuristic(task, text, part); }
+}
+// Gabimet personale mblidhen sipas kategorive → bazë për analizën e dobësive (Fehleranalyse)
+function recordWritingErrors(result) {
+  if (!result || !result.fehler || !result.fehler.length) return;
+  ensureStats();
+  stats.errorCats = stats.errorCats || {};
+  stats.errorLog = stats.errorLog || [];
+  result.fehler.forEach(f => { const k = ERROR_CATEGORIES.includes(f.typ) ? f.typ : "Wortwahl"; stats.errorCats[k] = (stats.errorCats[k] || 0) + 1; stats.errorLog.push({ t: Date.now(), typ: k, o: String(f.original || "").slice(0, 80), k: String(f.korrektur || "").slice(0, 80) }); });
+  if (stats.errorLog.length > 200) stats.errorLog = stats.errorLog.slice(-200);
+  queueSave();
+}
+function renderWritingFeedback(result, part) {
+  const s = result.scores;
+  const bar = (label, v) => `<div class="wf-row"><span>${label}</span><div class="wf-track"><div class="wf-fill" style="width:${v * 4}%"></div></div><strong>${v}/25</strong></div>`;
+  const errs = result.fehler.length ? `<div class="wf-errors">${result.fehler.map(f => `<div class="wf-err"><span class="wf-tag">${esc(f.typ)}</span> <s>${esc(f.original)}</s> → <strong>${esc(f.korrektur)}</strong><div class="wf-expl">${esc(f.erklaerung || "")}</div></div>`).join("")}</div>` : "";
+  return `<div class="wf-card"><div class="wf-head">${part.label} · <strong>${result.total}/100</strong> ${result.ai ? "" : '<span class="wf-note">⚠ vlerësim i thjeshtë (AI jo e arritshme)</span>'}</div>
+    ${bar("Erfüllung", s.erfuellung)}${bar("Kohärenz", s.kohaerenz)}${bar("Wortschatz", s.wortschatz)}${bar("Strukturen", s.strukturen)}
+    ${result.kommentar ? `<div class="wf-comment">${esc(result.kommentar)}</div>` : ""}${errs}
+    ${result.korrigiert ? `<details class="wf-corr"><summary>Teksti i korrigjuar</summary><div>${esc(result.korrigiert)}</div></details>` : ""}</div>`;
 }
 
 /* --- Moduli 4: Sprechen (15 min përgatitje + bisedë) --- */
@@ -7077,17 +7165,20 @@ function runSchreiben() {
     counter.style.color = words >= 80 ? "var(--green)" : "var(--gray)";
   });
   document.getElementById("btnNewTask").addEventListener("click", runSchreiben);
-  document.getElementById("btnFinishWrite").addEventListener("click", () => {
-    stopTimer();
+  document.getElementById("btnFinishWrite").addEventListener("click", async () => {
     const words = area.value.trim().split(/\s+/).filter(Boolean).length;
-    const checked = document.querySelectorAll(".chk:checked").length;
-    let pts = 0;
-    if (words >= 80) pts += 40;
-    else if (words >= 50) pts += 20;
-    pts += checked * 5;
-    addPoints(pts);
-    hwTick("writing", 1);
-    alert("Teksti: " + words + " fjalë\nVetëkontrolli: " + checked + " nga " + e.checklist.length + "\n\n+" + pts + " pikë!\n\nKëshillë: Lexoje tekstin me zë të lartë — kështu i gjen gabimet më lehtë.");
+    if (words < 10) { alert("Shkruaj të paktën disa fjali para se të vlerësohet."); return; }
+    stopTimer();
+    const btn = document.getElementById("btnFinishWrite"); btn.disabled = true; btn.textContent = "Po vlerësohet…";
+    const kind = task.kind || (/zyrtar|formell|formal/i.test(task.title) ? "t3" : /forum/i.test(task.title) ? "t2" : "t1");
+    const part = WRITING_PARTS[kind]; task.kind = kind;
+    const r = await evaluateWriting(task, area.value, part);
+    recordWritingErrors(r);
+    const pts = Math.round(r.total * 0.5);   // deri në 50 pikë loje për një tekst
+    addPoints(pts); hwTick("writing", 1);
+    btn.classList.add("hidden");
+    const box = document.createElement("div"); box.innerHTML = renderWritingFeedback(r, part) + `<div class="note" style="margin-top:8px;">+${pts} pikë</div>`;
+    btn.parentNode.appendChild(box);
   });
 }
 
@@ -8406,7 +8497,7 @@ const GRAMMAR_EN = [
 {en:"The man whose car is broken is waiting outside.", ex:"Masculine Genitive → dessen."},
 {en:"I have a small dog.", ex:"ein + masculine Accusative → -en."},
 {en:"That's a good idea.", ex:"eine + feminine Nominative → -e."},
-{en:"He drinks hot coffee.", ex:"Without an article, masculine Accusative… here Nominative-as-substance → heißer Kaffee."},
+{en:"He drinks hot coffee.", ex:"Without an article the adjective takes the article ending. Masculine accusative (den) → -en: heißen Kaffee."},
 {en:"Berlin is bigger than Munich.", ex:"Comparison with \"als\" → comparative."},
 {en:"This is the best restaurant in the city.", ex:"Superlative with article: das beste."},
 {en:"Tomorrow I'm visiting my grandma.", ex:"When the sentence starts with a time expression, the verb stays second."},
@@ -8417,7 +8508,7 @@ const GRAMMAR_EN = [
 {en:"I forgot to call you.", ex:"Separable verb: an|rufen → anzurufen."},
 {en:"It's important to exercise every day.", ex:"Infinitive with \"zu\" after expressions like \"es ist wichtig\"."},
 {en:"I'm learning German (in order) to find a job.", ex:"Purpose with the same subject → um … zu."},
-{en:"I'm tired, nevertheless I keep working.", ex:"\"trotzdem\" doesn't change the word order: the verb stays second."},
+{en:"I'm tired, nevertheless I keep working.", ex:"\"trotzdem\" is an adverb in position 1 → the verb comes right after it (inversion): trotzdem arbeite ich."},
 {en:"It's raining, that's why I'm taking the umbrella.", ex:"Consequence → deshalb (verb comes right after it)."},
 {en:"I like tea, whereas my brother prefers coffee.", ex:"Simple contrast → aber (word order doesn't change)."},
 {en:"The more I practice, the better I get.", ex:"Fixed expression: je … desto."}
@@ -8484,7 +8575,7 @@ const GRAMMAR_EXERCISES = [
   // --- Mbiemrat ---
   { cat:"Mbiemrat", q:"Ich habe einen ___ Hund.", sq:"Kam një qen të vogël.", opts:["kleinen","kleiner","kleines"], a:0, ex:"ein + Akkusativ mashkullore → -en." },
   { cat:"Mbiemrat", q:"Das ist eine ___ Idee.", sq:"Kjo është një ide e mirë.", opts:["gute","guten","gutes"], a:0, ex:"eine + femërore Nominativ → -e." },
-  { cat:"Mbiemrat", q:"Er trinkt ___ Kaffee.", sq:"Ai pi kafe të nxehtë.", opts:["heißen","heißer","heiße"], a:1, ex:"Pa nyjë, mashkullore Akkusativ… këtu Nominativ-si-lëndë → heißer Kaffee." },
+  { cat:"Mbiemrat", q:"Er trinkt ___ Kaffee.", sq:"Ai pi kafe të nxehtë.", opts:["heißen","heißer","heiße"], a:0, ex:"Pa nyjë: mbiemri merr mbaresën e nyjës. Akkusativ mashkullore (den) → -en: heißen Kaffee." },
   { cat:"Mbiemrat", q:"Berlin ist ___ als München.", sq:"Berlini është më i madh se Mynihu.", opts:["größer","am größten","groß"], a:0, ex:"Krahasim me „als“ → Komparativ." },
   { cat:"Mbiemrat", q:"Das ist ___ Restaurant in der Stadt.", sq:"Ky është restoranti më i mirë në qytet.", opts:["das beste","besser","am besten"], a:0, ex:"Superlativ me nyjë: das beste." },
 
@@ -8499,7 +8590,7 @@ const GRAMMAR_EXERCISES = [
   { cat:"Infinitiv me zu", q:"Ich habe vergessen, dich ___.", sq:"Kam harruar të të marr në telefon.", opts:["anzurufen","anrufen","zu anrufen"], a:0, ex:"Folje e ndashme: an|rufen → anzurufen." },
   { cat:"Infinitiv me zu", q:"Es ist wichtig, jeden Tag ___.", sq:"Është e rëndësishme të ushtrosh çdo ditë.", opts:["zu üben","üben","geübt"], a:0, ex:"Infinitiv me „zu“ pas shprehjeve si „es ist wichtig“." },
   { cat:"Infinitiv me zu", q:"Ich lerne Deutsch, ___ eine Arbeit zu finden.", sq:"Mësoj gjermanisht, për të gjetur një punë.", opts:["um","damit","dass"], a:0, ex:"Qëllim me të njëjtën kryefjalë → um … zu." },
-  { cat:"Lidhëzat", q:"Ich bin müde, ___ ich arbeite weiter.", sq:"Jam i lodhur, megjithatë vazhdoj të punoj.", opts:["trotzdem","weil","damit"], a:0, ex:"„trotzdem“ nuk e ndryshon rendin: folja mbetet e dyta." },
+  { cat:"Lidhëzat", q:"Ich bin müde, ___ arbeite ich weiter.", sq:"Jam i lodhur, megjithatë vazhdoj të punoj.", opts:["trotzdem","weil","damit"], a:0, ex:"„trotzdem“ është ndajfolje në pozicionin 1 → folja vjen menjëherë pas saj (inversion): trotzdem arbeite ich." },
   { cat:"Lidhëzat", q:"Es regnet, ___ nehme ich den Schirm mit.", sq:"Po bie shi, prandaj marr çadrën.", opts:["deshalb","weil","obwohl"], a:0, ex:"Pasojë → deshalb (folja pas tij)." },
   { cat:"Lidhëzat", q:"Ich mag Tee, ___ mein Bruder trinkt lieber Kaffee.", sq:"Më pëlqen çaji, ndërsa vëllai im pi më shumë kafe.", opts:["aber","weil","dass"], a:0, ex:"Kundërvënie e thjeshtë → aber (rendi nuk ndryshon)." },
   { cat:"Lidhëzat", q:"Je mehr ich übe, ___ besser werde ich.", sq:"Sa më shumë ushtroj, aq më i mirë bëhem.", opts:["desto","als","wie"], a:0, ex:"Shprehje fikse: je … desto." }
