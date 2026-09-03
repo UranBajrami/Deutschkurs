@@ -1660,6 +1660,7 @@
 
 <!-- GRAMATIKË -->
 <div class="view hidden" id="view-grammar">
+  <button class="srs-due-btn hidden" id="btnSrsGrammarReview">🔁 <span id="srsGrammarDueLabel">0 ushtrime për t'u përsëritur sot</span></button>
   <select class="filter-select" id="grammarCatFilter"></select>
   <div class="stats-bar">
     <span id="grammarProgress">Fjalia 0 / 0</span>
@@ -4165,9 +4166,9 @@ function ensureStats() {
    Fjalë e re: due = tani (menjëherë e "fallshme" për t'u mësuar).
    Përgjigje e saktë: intervali rritet (×ease); Përgjigje e gabuar: kthehet në < 1 ditë. */
 const SRS_DAY = 86400000;
-function srsUpdate(wordKey, correct) {
-  ensureStats();
-  const w = stats.words[wordKey] || (stats.words[wordKey] = { c: 0, w: 0 });
+// I pergjithshem: perditeson cdo rekord SRS (fjale OSE gramatike) brenda nje "store"-i te dhene.
+function srsBump(store, key, correct) {
+  const w = store[key] || (store[key] = { c: 0, w: 0 });
   if (correct) w.c++; else w.w++;
   if (w.ease === undefined) w.ease = 2.3;
   if (correct) {
@@ -4179,7 +4180,9 @@ function srsUpdate(wordKey, correct) {
   }
   w.due = Date.now() + w.interval * SRS_DAY;
   w.last = Date.now();
+  return w;
 }
+function srsUpdate(wordKey, correct) { ensureStats(); srsBump(stats.words, wordKey, correct); }
 // Fjalët e "fallshme" sot: ose s'janë prekur kurrë, ose data e tyre "due" ka kaluar.
 function srsDueWords(pool) {
   ensureStats();
@@ -4187,6 +4190,15 @@ function srsDueWords(pool) {
   return (pool || vocab).filter(v => { const k = v.al + "|" + v.de; const rec = stats.words[k]; return !rec || !rec.due || rec.due <= now; });
 }
 function srsDueCount() { return srsDueWords().length; }
+// E njejta gje per ushtrimet e Gramatikes (indeksuar sipas pozicionit ne GRAMMAR_EXERCISES)
+function srsUpdateGrammar(idx, correct) { ensureStats(); if (!stats.grammarItems) stats.grammarItems = {}; srsBump(stats.grammarItems, String(idx), correct); }
+function srsDueGrammar(pool) {
+  ensureStats();
+  const now = Date.now();
+  const source = pool || GRAMMAR_EXERCISES.map((g, i) => ({ g, i }));
+  return source.filter(({ i }) => { const rec = stats.grammarItems && stats.grammarItems[String(i)]; return !rec || !rec.due || rec.due <= now; }).map(({ g }) => g);
+}
+function srsDueGrammarCount() { return srsDueGrammar().length; }
 
 function recordStat(source, isCorrect, wordKey) {
   ensureStats();
@@ -4200,10 +4212,7 @@ function recordStat(source, isCorrect, wordKey) {
 }
 
 function recordGrammarItem(idx, correct) {
-  ensureStats();
-  if (!stats.grammarItems) stats.grammarItems = {};
-  const r = stats.grammarItems[idx] || (stats.grammarItems[idx] = { c: 0, w: 0 });
-  if (correct) r.c++; else r.w++;
+  srsUpdateGrammar(idx, correct);
   queueSave();
 }
 function recordCard(known) {
@@ -4635,6 +4644,7 @@ const UI_STRINGS = {
   "panda.rename_prompt": { sq: "Emri i ri i pandës:", de: "Neuer Name für den Panda:", en: "New name for your panda:" },
   "panda.rotate": { sq: "Rrotullo", de: "Drehen", en: "Rotate" },
   "srs.due": { sq: "{n} fjalë për t'u përsëritur sot", de: "{n} Wörter heute zu wiederholen", en: "{n} words due for review today" },
+  "srs.due.grammar": { sq: "{n} ushtrime gramatike për t'u përsëritur sot", de: "{n} Grammatikübungen heute zu wiederholen", en: "{n} grammar exercises due for review today" },
   "account.weak.title": { sq: "🎯 Dobësitë e tua kryesore", de: "🎯 Deine größten Schwächen", en: "🎯 Your main weaknesses" },
   "account.weak.sub": { sq: "Bazuar te gabimet e fundit në Shkrim dhe Të folurit.", de: "Basierend auf den letzten Fehlern in Schreiben und Sprechen.", en: "Based on your recent errors in Writing and Speaking." },
   "account.weak.practice": { sq: "Ushtro këtë temë", de: "Dieses Thema üben", en: "Practice this topic" },
@@ -9647,12 +9657,21 @@ function fillGrammarCats() {
   if (cur) sel.value = cur;
 }
 
+let grammarSrsMode = false;
 function startGrammar() {
   const cat = document.getElementById("grammarCatFilter").value;
-  const source = cat ? GRAMMAR_EXERCISES.filter(e => e.cat === cat) : GRAMMAR_EXERCISES;
+  let source = cat ? GRAMMAR_EXERCISES.filter(e => e.cat === cat) : GRAMMAR_EXERCISES;
+  if (grammarSrsMode) source = srsDueGrammar(source.map((g) => ({ g, i: GRAMMAR_EXERCISES.indexOf(g) })));
   grammarPool = shuffle(source).slice(0, 20);
   grammarIndex = 0; grammarScore = 0;
   renderGrammar();
+  renderSrsGrammarButton();
+}
+function renderSrsGrammarButton() {
+  const btn = document.getElementById("btnSrsGrammarReview"); if (!btn) return;
+  const n = srsDueGrammarCount();
+  btn.classList.toggle("hidden", n === 0 || grammarSrsMode);
+  document.getElementById("srsGrammarDueLabel").textContent = uiText("srs.due.grammar").replace("{n}", n);
 }
 
 function renderGrammar() {
@@ -9726,6 +9745,7 @@ function renderGrammar() {
         document.getElementById("grammarFlash").textContent = "Saktë: " + ex.opts[ex.a];
       }
       document.getElementById("grammarScore").textContent = "Saktë: " + grammarScore;
+      renderSrsGrammarButton();
       nextBtn.classList.remove("hidden");
     });
     box.appendChild(el);
@@ -9735,7 +9755,8 @@ function renderGrammar() {
 
 document.getElementById("btnNextGrammar").addEventListener("click", () => { grammarIndex++; renderGrammar(); });
 document.getElementById("btnRestartGrammar").addEventListener("click", startGrammar);
-document.getElementById("grammarCatFilter").addEventListener("change", startGrammar);
+document.getElementById("grammarCatFilter").addEventListener("change", () => { grammarSrsMode = false; startGrammar(); });
+document.getElementById("btnSrsGrammarReview").addEventListener("click", () => { grammarSrsMode = true; startGrammar(); });
 
 /* ============ TABI DETYRAT E DITËS ============ */
 function renderHomework() {
