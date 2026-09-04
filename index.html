@@ -6208,31 +6208,7 @@ function renderExamMenu() {
   menuEl.innerHTML = `
     <div class="exam-section-label">${uiText("exam.choose_level")}</div>
     ${levelCards}
-
-    <div class="provider-label goethe">🏛️ Goethe-Institut — ${uiText("exam.or_single")}</div>
-    <button class="exam-tile" data-exam="lesen">
-      <h3>${uiText("exam.lesen.title")}</h3>
-      <p>${uiText("exam.lesen.desc")}</p>
-      <div class="meta">${uiText("exam.lesen.meta")}</div>
-    </button>
-    <button class="exam-tile" data-exam="hoeren">
-      <h3>${uiText("exam.hoeren.title")}</h3>
-      <p>${uiText("exam.hoeren.desc")}</p>
-      <div class="meta">${uiText("exam.hoeren.meta")}</div>
-    </button>
-    <button class="exam-tile" data-exam="schreiben">
-      <h3>${uiText("exam.schreiben.title")}</h3>
-      <p>${uiText("exam.schreiben.desc")}</p>
-      <div class="meta">${uiText("exam.schreiben.meta")}</div>
-    </button>
-    <button class="exam-tile" data-exam="sprechen">
-      <h3>${uiText("exam.sprechen.title")}</h3>
-      <p>${uiText("exam.sprechen.desc")}</p>
-      <div class="meta">${uiText("exam.sprechen.meta")}</div>
-    </button>
   `;
-  menuEl.querySelectorAll(".exam-tile").forEach(t =>
-    t.addEventListener("click", () => startExam(t.dataset.exam)));
   menuEl.querySelectorAll(".exam-level-card:not([disabled])").forEach(t =>
     t.addEventListener("click", () => startFullExam(t.dataset.level)));
 }
