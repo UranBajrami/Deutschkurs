@@ -11111,19 +11111,27 @@ async function buildRoom(scene) {
     // sipërfaqet horizontale më të mëdha. E ulim saktë në y=0 që pandaja të ecë mbi dysheme, jo mbi bar.
     root.position.set(-c.x, -(-11 * HOUSE_SCALE), -c.z);
     root.traverse(o => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = true; if (o.material) o.material.side = THREE.DoubleSide; } });
-    root.name = "HOUSE"; scene.add(root); S._house = root;
-    buildHouseColliders(root);
+    root.name = "HOUSE"; scene.add(root);
     const sun = new THREE.DirectionalLight(0xfff6e8, 1.4); sun.position.set(6, 12, 6); scene.add(sun);
     scene.add(new THREE.HemisphereLight(0xdff0ff, 0xe8dcc8, 1.05));
+    // KUJDES: këtu S ende NUK ekziston (krijohet më poshtë në init), prandaj e kthejmë rezultatin
+    // dhe e vendosim te S pasi ai të jetë krijuar. Përndryshe hidhet gabim dhe skena mbetet BOSH.
+    return { house: root, grid: computeHouseColliders(root) };
   } catch (e) {
     console.error("Modeli i shtëpisë nuk u ngarkua:", e);
+    // Rrjetë sigurie: një dysheme e thjeshtë, që skena të mos mbetet KURRË krejt bosh
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.d), new THREE.MeshStandardMaterial({ color: 0xe9d8c4, roughness: 0.8 }));
+    floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; floor.name = "FALLBACK_FLOOR"; scene.add(floor);
+    scene.add(new THREE.HemisphereLight(0xdff0ff, 0xe8dcc8, 1.2));
+    const s2 = new THREE.DirectionalLight(0xfff6e8, 1.2); s2.position.set(6, 12, 6); scene.add(s2);
+    return null;
   }
 }
 
 // Hartë përplasjeje nga GJEOMETRIA REALE: rrjet 56×56, çdo qelizë kontrollohet me rreze
 // në lartësinë e gjunjëve → pandaja ndalet te muret, por kalon nëpër dyert e vërteta.
 const HOUSE_GRID_N = 100;   // rezolucion i imët: qelizë ≈0.2 njësi, që dyert (≈0.9) të kenë 4–5 qeliza
-function buildHouseColliders(root) {
+function computeHouseColliders(root) {
   const bb = new THREE.Box3().setFromObject(root);
   const minX = bb.min.x, maxX = bb.max.x, minZ = bb.min.z, maxZ = bb.max.z;
   const cell = Math.max(maxX - minX, maxZ - minZ) / HOUSE_GRID_N;
@@ -11147,7 +11155,7 @@ function buildHouseColliders(root) {
     }
     grid.push(row);
   }
-  S._houseGrid = { grid, minX, minZ, cell, n: HOUSE_GRID_N };
+  return { grid, minX, minZ, cell, n: HOUSE_GRID_N };
 }
 // GJETJA E RRUGËS (BFS mbi rrjetën e përplasjes): kthen listën e pikave nga A në B duke kaluar
 // nëpër DYERT e vërteta. Pa këtë, pandaja ngec te muri i parë dhe s'del kurrë nga dhoma e vet.
@@ -11270,7 +11278,7 @@ async function init(container, api) {
     const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(3, 6, 4); sun.castShadow = true;
     sun.shadow.mapSize.set(1024, 1024); sun.shadow.camera.left = -6; sun.shadow.camera.right = 6; sun.shadow.camera.top = 6; sun.shadow.camera.bottom = -6;
     scene.add(sun);
-    await buildRoom(scene);
+    const houseResult = await buildRoom(scene);
 
     const furnGroup = new THREE.Group(); scene.add(furnGroup);
     const fx = new THREE.Group(); scene.add(fx);
@@ -11285,6 +11293,8 @@ async function init(container, api) {
     S = { scene, camera, renderer, container, api, panda, mixer, clips, morphMeshes, furnGroup, fx, furn: {}, sel: null,
           ai: { state: "idle", target: null, timer: 1.5, use: null, speed: 0.55 },
           anim: { name: "idle", t: 0 }, growth: 1, dragging: null, lastT: performance.now(), lastFlush: 0 };
+    // Tani që S ekziston, i vendosim shtëpinë dhe hartën e përplasjes që i llogaritëm më sipër.
+    if (houseResult) { S._house = houseResult.house; S._houseGrid = houseResult.grid; }
 
     // KAMERA në stil "Sims": diagonale nga lart (≈42° mbi horizont, 45° anash), e përqendruar te DHOMA
     // (jo te pandaja), 360° rrotullim i lirë + zoom. Muret e pasme janë njëanëshe → nga pas bëhen të padukshme

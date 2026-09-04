@@ -1,4 +1,4 @@
-const CACHE_NAME = "b1-trainer-v49";
+const CACHE_NAME = "b1-trainer-v50";
 const CORE_FILES = [
   "./",
   "./index.html",
