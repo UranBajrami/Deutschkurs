@@ -9956,7 +9956,7 @@ function renderHomework() {
 const PANDA_ITEMS = [
   // 🍎 Ushqim
   // Ushqimi dhe pijet VENDOSEN në dhomë (placed + consumable): pandaja shkon vetë dhe i ha/pi.
-  { id:"apple",   cat:"food",  emoji:"🍎", cost:6,  placed:true, consumable:true, size:0.3,  effect:{hunger:+25, mood:+3}, weight:+1.0 },
+  { id:"apple",   cat:"food",  emoji:"🍕", cost:6,  placed:true, consumable:true, size:0.45, effect:{hunger:+25, mood:+3}, weight:+1.0 },
   { id:"bamboo",  cat:"food",  emoji:"🎋", cost:10, placed:true, consumable:true, size:0.35, effect:{hunger:+45, mood:+6}, weight:+1.5 },
   { id:"cake",    cat:"food",  emoji:"🍰", cost:14, placed:true, consumable:true, size:0.35, effect:{hunger:+30, mood:+12}, weight:+4.0 },
   { id:"salad",   cat:"food",  emoji:"🥗", cost:8,  placed:true, consumable:true, size:0.35, effect:{hunger:+30, mood:+2, health:+3}, weight:+0.3 },
@@ -10969,7 +10969,9 @@ const ASSETS = {
   // clips: klipe shtesë për gjendje, të njëjtin skelet (GLB ose FBX): p.sh. { happy: "models/panda/anim_happy.glb", dance: "..." }
   panda:    { glb: "models/panda/panda_rig.glb", clips: {} },   // VETËM modeli i vërtetë (rig + 10 klipe + tekstura)
   // Ushqim/pije: modelet e përdoruesit vendosen këtu si .glb; përndryshe placeholder procedural
-  apple: { glb: null }, bamboo: { glb: null }, cake: { glb: null }, salad: { glb: null }, water: { glb: null }, juice: { glb: null }, milk: { glb: null },
+  // "apple" perdor modelin real te dorezuar nga perdoruesi (pica) — perpjestim real ndaj pandes/dhomes.
+  apple: { glb: "models/food/pizza.glb", textures: { map: "models/food/pizza_basecolor.jpg" } },
+  bamboo: { glb: null }, cake: { glb: null }, salad: { glb: null }, water: { glb: null }, juice: { glb: null }, milk: { glb: null },
   bed:      { glb: "models/bed/bed.glb", textures: { map: "models/bed/bed_basecolor.jpg", normalMap: "models/bed/bed_normal.jpg", roughnessMap: "models/bed/bed_roughness.jpg" }, sleepTop: 0.42 },   // modeli i përdoruesit
   sofa:     { glb: null, placeholder: "PLACEHOLDER_SOFA" },
   toilet:   { glb: null, placeholder: "PLACEHOLDER_TOILET" },
@@ -11609,7 +11611,7 @@ function aiStep(dt) {
     // Zgjohet: kur lojtari e zgjon (shouldSleep→false), ose ditën kur ka fjetur mjaftueshëm
     const keep = S.api.shouldSleep ? S.api.shouldSleep() : st.energy < 95;
     const dayNapDone = !(S.api.isNight && S.api.isNight()) && st.energy >= 60;
-    if (!keep || (dayNapDone && !(S.api.isNight && S.api.isNight()))) { st._sleeping = false; ai.state = "idle"; ai.timer = 1; S.sleepY = 0; S.panda.position.y = 0; }
+    if (!keep || (dayNapDone && !(S.api.isNight && S.api.isNight()))) { st._sleeping = false; ai.state = "idle"; ai.timer = 1; S.sleepY = 0; wakeUpMove(); }
     return;
   }
   // idle
@@ -11625,10 +11627,12 @@ function arrive(use) {
   const ai = S.ai; const targetId = ai.target && ai.target.id; ai.use = null;
   if (use === "sleep") {
     const bed = targetId && S.furn[targetId];
-    if (bed) {   // ngjitu në dyshek: qendra e krevatit, lartësia e sipërme e modelit
-      const a = ASSETS.bed || {}; S.sleepY = (a.sleepTop !== undefined ? a.sleepTop : (bed.userData.topY || 0.4)) * 0.9;
+    if (bed) {   // ngjitu në dyshek: pika më e ulët e trupit gjatë klipit "sleep" të bjerë saktë mbi shtrat
+      const a = ASSETS.bed || {}; const bedTop = a.sleepTop !== undefined ? a.sleepTop : (bed.userData.topY || 0.4) * 0.9;
+      S.sleepY = bedTop - SLEEP_REST_LOW_Y * (S.growthScale || 1);
       S.panda.position.set(bed.position.x, S.sleepY, bed.position.z); S.panda.rotation.y = bed.rotation.y;
-    } else S.sleepY = 0;
+      S.wakeAwayPos = { x: bed.position.x, z: bed.position.z, ry: bed.rotation.y };   // per t'u larguar prej shtratit kur zgjohet
+    } else { S.sleepY = 0; S.wakeAwayPos = null; }
     ai.state = "sleep"; setAnim("sleep"); return;
   }
   if (use === "eat" || use === "drink") {
@@ -11644,7 +11648,7 @@ function goUse(use) { const st = S.api.getState(); const t = targetFor(use, st);
 function doAction(name) {
   const ai = S.ai;
   if (name === "sleep") { ai.state = "sleep"; setAnim("sleep"); return; }
-  if (name === "wake") { const st = S.api.getState(); st._sleeping = false; ai.state = "idle"; ai.timer = 1; S.sleepY = 0; S.panda.position.y = 0; setAnim("idle"); return; }
+  if (name === "wake") { const st = S.api.getState(); st._sleeping = false; ai.state = "idle"; ai.timer = 1; S.sleepY = 0; wakeUpMove(); setAnim("idle"); return; }
   const dur = { play: 6, greeting: 4, cheer: 3.6, happy: 3, help: 3.3, surprised: 2, sit: 8 }[name] || 2.5;
   ai.state = "busy"; ai.timer = dur; ai.target = null; setAnim(name);
 }
@@ -11661,6 +11665,22 @@ function setAnim(name) {
 // 10 shkallë rritjeje (prestige 1..10): nga 0.5 (foshnjë) deri 1.15 (i rritur). Pesha është e ndarë (trupi vetëm).
 // 10 madhësi, një për çdo prestige (1..10): lartësia 0.6 → 1.5 njësi (dhoma 8×7, krevati 1.6×1.9, tavani 3.2)
 const GROWTH_HEIGHTS = [0.60, 0.70, 0.80, 0.90, 1.00, 1.10, 1.20, 1.30, 1.40, 1.50];
+// Pika më e ulët e trupit gjatë klipit "sleep", matur në shkallën bazë (pa growthScale) — shih analizën:
+// pa këtë korrigjim, kafsha "fluturon" mbi shtrat sepse klipi nuk e ul vërtet trupin në Y=0.
+const SLEEP_REST_LOW_Y = 0.257;
+// Ngrihu nga shtrati: largohu në drejtimin që shtrati "shikon", larg mjaftueshëm që të mos bjerë
+// brenda zonës së përplasjes së tij (përndryshe pandaja mbetet e bllokuar mbi shtrat përgjithmonë).
+function wakeUpMove() {
+  const wp = S.wakeAwayPos;
+  if (wp) {
+    const dx = Math.sin(wp.ry), dz = Math.cos(wp.ry);
+    S.panda.position.set(clamp(wp.x + dx * 1.1, -BX(), BX()), 0, clamp(wp.z + dz * 1.1, -BZ(), BZ()));
+    S.panda.rotation.y = wp.ry + Math.PI;
+  } else {
+    S.panda.position.y = 0;
+  }
+  S.wakeAwayPos = null;
+}
 function setGrowth(stage) { if (!S) return; S.growth = stage; const s = GROWTH_HEIGHTS[clamp(stage, 1, 10) - 1] / 2.2; S.growthScale = s;
   if (S.controls) { S.controls.target.set(0, 0.95 * s, 0); S.controls.minDistance = 1.2; } S.panda.scale.setScalar(s); S.panda.userData.baseScale = s; }
 
