@@ -11026,6 +11026,7 @@ const ASSETS = {
   milk: { glb: "models/food/milkshake.glb", textures: { map: "models/food/milkshake_basecolor.jpg", normalMap: "models/food/milkshake_normal.jpg", roughnessMap: "models/food/milkshake_roughness.jpg" } },
   icecoffee: { glb: "models/food/icecoffee.glb", textures: { map: "models/food/icecoffee_basecolor.jpg", normalMap: "models/food/icecoffee_normal.jpg", roughnessMap: "models/food/icecoffee_roughness.jpg" } },
   bamboo: { glb: null }, cake: { glb: null }, salad: { glb: null }, water: { glb: null }, juice: { glb: null }, milk: { glb: null },
+  house:    { glb: "models/house/house.glb", textures: { map: "models/house/house_basecolor.jpg", normalMap: "models/house/house_normal.jpg", roughnessMap: "models/house/house_roughness.jpg" } },   // shtëpia e përdoruesit
   bed:      { glb: "models/bed/bed.glb", textures: { map: "models/bed/bed_basecolor.jpg", normalMap: "models/bed/bed_normal.jpg", roughnessMap: "models/bed/bed_roughness.jpg" }, sleepTop: 0.42 },   // modeli i përdoruesit
   sofa:     { glb: null, placeholder: "PLACEHOLDER_SOFA" },
   toilet:   { glb: null, placeholder: "PLACEHOLDER_TOILET" },
@@ -11044,7 +11045,12 @@ const ASSETS = {
   teddy:    { glb: null, placeholder: "PLACEHOLDER_TEDDY" }
 };
 
-const ROOM = { w: 8, d: 7, h: 3.2 };        // gjerësia (x), thellësia (z), lartësia
+const ROOM = { w: 19.5, d: 19.3, h: 3.1 };   // përmasat e SHTËPISË reale (modeli i përdoruesit), jo dhoma e vjetër
+const HOUSE_SCALE = 0.1023;                  // 190.3 njësi modeli → 19.5 njësi loje (lartësia e murit ≈ 2.8)
+// Kufijtë e murit të jashtëm brenda modelit (matur nga rrjeta e skanimit të grundrissit):
+// muret e jashtme bien rreth 5%–95% të gjerësisë; brenda kësaj pandaja lëviz lirshëm.
+// Kufijtë e VËRTETË të dyshemesë së banimit, matur me rreze nga lart (jo lëndina përreth):
+const HOUSE_INNER = { minX: -8.6, maxX: 8.4, minZ: -7.1, maxZ: 9.1 };
 const HALF_W = ROOM.w / 2, HALF_D = ROOM.d / 2;
 const PASTEL = { wall: 0xf3e6ee, wall2: 0xe6eef6, floor: 0xe9d8c4, base: 0xd9c3a8 };
 
@@ -11090,7 +11096,7 @@ function plasterTexture(color) {
     for (let i = 0; i < 4000; i++) { ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.08})`; ctx.fillRect(Math.random() * w, Math.random() * h, 1.5, 1.5); }
   }, 4, 2);
 }
-function buildRoom(scene) {
+function buildProceduralRoom(scene) {   // rezervë: vetëm nëse modeli i shtëpisë s'ngarkohet
   const wood = woodTexture(); const plasterA = plasterTexture("#f1e4e9"), plasterB = plasterTexture("#e4ebf3");
   const floorMat = wood ? new THREE.MeshStandardMaterial({ map: wood, roughness: 0.55, metalness: 0 }) : mat(PASTEL.floor, { roughness: 0.6 });
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.d), floorMat);
@@ -11337,6 +11343,57 @@ function rigMaybeStomp() {
   }
 }
 
+// Ngarkon SHTËPINË reale (modeli i përdoruesit) në vend të dhomës së ndërtuar me kod.
+async function buildRoom(scene) {
+  const a = ASSETS.house;
+  if (!a || !a.glb) { buildProceduralRoom(scene); return; }
+  try {
+    const g = await new Promise((res, rej) => loader.load(a.glb, res, undefined, rej));
+    await applyAssetTextures(g.scene, "house");
+    const root = g.scene;
+    root.scale.setScalar(HOUSE_SCALE);
+    const bb2 = new THREE.Box3().setFromObject(root); const c = bb2.getCenter(new THREE.Vector3());
+    // Dyshemeja e BANIMIT (jo lëndina përreth) ndodhet te y=-11 në modelin origjinal — matur nga
+    // sipërfaqet horizontale më të mëdha. E ulim saktë në y=0 që pandaja të ecë mbi dysheme, jo mbi bar.
+    root.position.set(-c.x, -(-11 * HOUSE_SCALE), -c.z);
+    root.traverse(o => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = true; if (o.material) o.material.side = THREE.DoubleSide; } });
+    root.name = "HOUSE"; scene.add(root); S._house = root;
+    buildHouseColliders(root);
+    const sun = new THREE.DirectionalLight(0xfff6e8, 1.4); sun.position.set(6, 12, 6); scene.add(sun);
+    scene.add(new THREE.HemisphereLight(0xdff0ff, 0xe8dcc8, 1.05));
+  } catch (e) {
+    console.error("Modeli i shtëpisë nuk u ngarkua, po përdor dhomën rezervë:", e);
+    buildProceduralRoom(scene);
+  }
+}
+
+// Hartë përplasjeje nga GJEOMETRIA REALE: rrjet 56×56, çdo qelizë kontrollohet me rreze
+// në lartësinë e gjunjëve → pandaja ndalet te muret, por kalon nëpër dyert e vërteta.
+const HOUSE_GRID_N = 56;
+function buildHouseColliders(root) {
+  const bb = new THREE.Box3().setFromObject(root);
+  const minX = bb.min.x, maxX = bb.max.x, minZ = bb.min.z, maxZ = bb.max.z;
+  const cell = Math.max(maxX - minX, maxZ - minZ) / HOUSE_GRID_N;
+  const ray = new THREE.Raycaster(); const grid = []; const kneeY = 0.35;
+  for (let iz = 0; iz < HOUSE_GRID_N; iz++) {
+    const row = [];
+    for (let ix = 0; ix < HOUSE_GRID_N; ix++) {
+      const x = minX + ix * cell + cell / 2, z = minZ + iz * cell + cell / 2;
+      ray.set(new THREE.Vector3(x, kneeY, z), new THREE.Vector3(1, 0, 0));
+      const hits = ray.intersectObject(root, true);
+      row.push(hits.length > 0 && hits[0].distance < cell * 0.85);
+    }
+    grid.push(row);
+  }
+  S._houseGrid = { grid, minX, minZ, cell, n: HOUSE_GRID_N };
+}
+function houseBlocked(x, z) {
+  const hg = S && S._houseGrid; if (!hg) return false;
+  const ix = Math.floor((x - hg.minX) / hg.cell), iz = Math.floor((z - hg.minZ) / hg.cell);
+  if (ix < 0 || iz < 0 || ix >= hg.n || iz >= hg.n) return true;
+  return hg.grid[iz][ix];
+}
+
 /* ---------- FURNITURE (PLACEHOLDER procedural) ---------- */
 function buildPlaceholderFurniture(id) {
   const g = new THREE.Group(); g.name = (ASSETS[id] && ASSETS[id].placeholder) || ("PLACEHOLDER_" + id.toUpperCase());
@@ -11411,7 +11468,7 @@ async function init(container, api) {
     const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(3, 6, 4); sun.castShadow = true;
     sun.shadow.mapSize.set(1024, 1024); sun.shadow.camera.left = -6; sun.shadow.camera.right = 6; sun.shadow.camera.top = 6; sun.shadow.camera.bottom = -6;
     scene.add(sun);
-    buildRoom(scene);
+    await buildRoom(scene);
 
     const furnGroup = new THREE.Group(); scene.add(furnGroup);
     const fx = new THREE.Group(); scene.add(fx);
@@ -11430,7 +11487,7 @@ async function init(container, api) {
     // KAMERA në stil "Sims": diagonale nga lart (≈42° mbi horizont, 45° anash), e përqendruar te DHOMA
     // (jo te pandaja), 360° rrotullim i lirë + zoom. Muret e pasme janë njëanëshe → nga pas bëhen të padukshme
     // vetvetiu (efekti "cutaway" i Sims), kështu s'bllokojnë kurrë pamjen.
-    const CAM_HOME = { dist: 11, polar: 0.84, azim: Math.PI / 4, target: new THREE.Vector3(0, 0.45, 0) };
+    const CAM_HOME = { dist: 24, polar: 0.84, azim: Math.PI / 4, target: new THREE.Vector3(0, 0.45, 0) };
     const placeCam = (dist, polar, azim) => {
       camera.position.set(CAM_HOME.target.x + dist * Math.sin(polar) * Math.sin(azim), CAM_HOME.target.y + dist * Math.cos(polar), CAM_HOME.target.z + dist * Math.sin(polar) * Math.cos(azim));
     };
@@ -11438,7 +11495,7 @@ async function init(container, api) {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.copy(CAM_HOME.target);
     controls.enableDamping = true; controls.dampingFactor = 0.08;
-    controls.minDistance = 2.5; controls.maxDistance = 16;
+    controls.minDistance = 2.5; controls.maxDistance = 34;
     controls.minPolarAngle = 0.25; controls.maxPolarAngle = 1.25;   // nga pothuaj-lart deri ~18° mbi dysheme, kurrë nën të
     controls.screenSpacePanning = false; controls.panSpeed = 0.6; controls.rotateSpeed = 0.7;
     S._camHome = CAM_HOME; S._placeCam = placeCam;
@@ -11466,7 +11523,7 @@ function resize() {
 function restorePanda() {
   if (!S) return;
   const st = S.api.getState();
-  const px = clamp(+((st.pos||{}).x) || 0, -BX(), BX()), pz = clamp(+((st.pos||{}).z) || 0.5, -BZ(), BZ());
+  const px = clampX(+((st.pos||{}).x) || 0), pz = clampZ(+((st.pos||{}).z) || 0.5);
   S.panda.position.set(px, 0, pz); S.panda.rotation.y = +st.rotY || 0;
   // Pas rifreskimit: nëse është natë/gjumë, kthehet vetë te krevati përmes AI-së (jo teleportim)
   S.ai.state = "idle"; S.ai.timer = 0.5; setAnim("idle"); S.sleepY = 0;
@@ -11502,7 +11559,7 @@ function findSpotNearPanda(item) {
   const placed = S ? (S.api.getState().placed || []) : []; const px = S ? S.panda.position.x : 0, pz = S ? S.panda.position.z : 0;
   for (let t = 0; t < 30; t++) {
     const ang = Math.random() * Math.PI * 2, r = 0.9 + Math.random() * 0.8;
-    const x = clamp(px + Math.cos(ang) * r, -BX(), BX()), z = clamp(pz + Math.sin(ang) * r, -BZ(), BZ());
+    const x = clampX(px + Math.cos(ang) * r), z = clampZ(pz + Math.sin(ang) * r);
     if (!collides(x, z, (item.size || 0.3) / 2 + 0.2, placed, null)) return { x, z };
   }
   return findFreeSpot(item);
@@ -11520,6 +11577,20 @@ function findFreeSpot(item) {
 // nëse po, e shtyn gradualisht jashtë saj (drejtimi larg qendrës së objektit që e bllokon).
 function unstickFromFurniture(dt) {
   const st = S.api.getState(); const placed = st.placed || []; const px = S.panda.position.x, pz = S.panda.position.z;
+  // Nëse pandaja ka mbetur brenda një muri të shtëpisë, kërko qelizën e lirë më të afërt dhe zhvendose atje.
+  if (houseBlocked(px, pz)) {
+    const hg = S._houseGrid;
+    let best = null, bestD = 1e9;
+    for (let r = 1; r <= 6 && !best; r++) {
+      for (let dz = -r; dz <= r; dz++) for (let dx = -r; dx <= r; dx++) {
+        if (Math.abs(dx) !== r && Math.abs(dz) !== r) continue;
+        const nx = px + dx * hg.cell, nz = pz + dz * hg.cell;
+        if (!houseBlocked(nx, nz)) { const d = dx * dx + dz * dz; if (d < bestD) { bestD = d; best = { nx, nz }; } }
+      }
+      if (best) break;
+    }
+    if (best) { S.panda.position.x = best.nx; S.panda.position.z = best.nz; return; }
+  }
   for (const f of placed) {
     const it = S.api.items.find(i => i.id === f.type); if (!it || it.flat || it.wall || it.consumable) continue;
     const rr = (it.size || 0.8) / 2 + 0.35;
@@ -11527,13 +11598,14 @@ function unstickFromFurniture(dt) {
     if (dist < rr) {
       const push = (rr - dist) + 0.02;
       const dirx = dist > 0.001 ? ddx / dist : Math.sin(S.panda.rotation.y), dirz = dist > 0.001 ? ddz / dist : Math.cos(S.panda.rotation.y);
-      S.panda.position.x = clamp(px + dirx * push, -BX(), BX());
-      S.panda.position.z = clamp(pz + dirz * push, -BZ(), BZ());
+      S.panda.position.x = clampX(px + dirx * push);
+      S.panda.position.z = clampZ(pz + dirz * push);
       return;   // një objekt në herë mjafton; kuadrot e ardhshëm rikontrollojnë
     }
   }
 }
 function collides(x, z, r, placed, ignoreId) {
+  if (houseBlocked(x, z)) return true;   // muret e vërteta të shtëpisë (nga gjeometria e modelit)
   for (const f of placed) {
     if (f.id === ignoreId) continue;
     const it = S.api.items.find(i => i.id === f.type); if (!it || it.flat || it.wall || it.consumable) continue;
@@ -11545,7 +11617,12 @@ function collides(x, z, r, placed, ignoreId) {
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // Distanca minimale nga muri: gjysma e gjerësisë së trupit (≈0.55 × skalim) + hapësirë. Pandaja nuk prek kurrë murin.
 const wallMargin = () => 0.3 + 0.6 * ((S && S.growthScale) || 1);
-const BX = () => HALF_W - wallMargin(), BZ = () => HALF_D - wallMargin();
+// Kufijtë e lëvizjes: brenda shtëpisë reale (nëse është ngarkuar), përndryshe dhoma rezervë.
+const BX = () => (S && S._houseGrid) ? HOUSE_INNER.maxX : HALF_W - wallMargin();
+const BZ = () => (S && S._houseGrid) ? HOUSE_INNER.maxZ : HALF_D - wallMargin();
+// Klemb pozicionin brenda dyshemesë reale (kufij asimetrikë te shtëpia)
+const clampX = (v) => (S && S._houseGrid) ? clamp(v, HOUSE_INNER.minX, HOUSE_INNER.maxX) : clamp(v, -BX(), BX());
+const clampZ = (v) => (S && S._houseGrid) ? clamp(v, HOUSE_INNER.minZ, HOUSE_INNER.maxZ) : clamp(v, -BZ(), BZ());
 // Shpejtësitë e klipeve (të matura): sa lëviz trupi për sekondë në skalim 1 — që këmbët të mos rrëshqasin
 const CLIP_GROUND_SPEED = { walk: 1.24, run: 3.62 };
 
@@ -11639,12 +11716,12 @@ function targetFor(use, st) {
     const cat = use === "eat" ? "food" : "drink";
     const f = placed.find(x => { const it = S.api.items.find(i => i.id === x.type); return it && it.consumable && it.cat === cat; }); if (!f) return null;
     const it = S.api.items.find(i => i.id === f.type); const off = Math.max(0.35, (it.size || 0.4) / 2 + 0.15);
-    return { x: clamp(f.position.x, -BX(), BX()), z: clamp(f.position.z + off, -BZ(), BZ()), id: f.id };
+    return { x: clampX(f.position.x), z: clampZ(f.position.z + off), id: f.id };
   }
   const map = { sleep: "bed", toilet: "toilet", bath: "bathtub", rest: "sofa", desk: "desk", toy: has("ball") ? "ball" : "teddy" };
   const f = placed.find(x => x.type === map[use]); if (!f) return null;
   const it = S.api.items.find(i => i.id === f.type); const off = (it.size || 0.8) / 2 + 0.35;
-  return { x: clamp(f.position.x, -BX(), BX()), z: clamp(f.position.z + off, -BZ(), BZ()), id: f.id };
+  return { x: clampX(f.position.x), z: clampZ(f.position.z + off), id: f.id };
 }
 function randomSpot(st) {
   for (let t = 0; t < 25; t++) {
@@ -11694,8 +11771,8 @@ function aiStep(dt) {
       // Asnjë drejtim i lirë (rast shumë i rrallë): provo një cak të ri të rastësishëm, mos ngri pandaly
       ai.state = "idle"; ai.timer = 0.4; ai.target = null; setAnim("idle"); return;
     }
-    S.panda.position.x = clamp(S.panda.position.x + nx * step, -BX(), BX());
-    S.panda.position.z = clamp(S.panda.position.z + nz * step, -BZ(), BZ());
+    S.panda.position.x = clampX(S.panda.position.x + nx * step);
+    S.panda.position.z = clampZ(S.panda.position.z + nz * step);
     S.panda.rotation.y = Math.atan2(nx, nz);
     setAnim(ai.state === "seek" && (ai.use === "toy" || ai.use === "rest") && S.panda.userData.rig && S.panda.userData.rig.clips.run ? "run" : "walk");
     return;
@@ -11779,7 +11856,7 @@ function wakeUpMove() {
   const wp = S.wakeAwayPos;
   if (wp) {
     const dx = Math.sin(wp.ry), dz = Math.cos(wp.ry);
-    S.panda.position.set(clamp(wp.x + dx * 1.1, -BX(), BX()), 0, clamp(wp.z + dz * 1.1, -BZ(), BZ()));
+    S.panda.position.set(clampX(wp.x + dx * 1.1), 0, clampZ(wp.z + dz * 1.1));
     S.panda.rotation.y = wp.ry + Math.PI;
   } else {
     S.panda.position.y = 0;
