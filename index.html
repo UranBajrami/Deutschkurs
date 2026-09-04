@@ -725,6 +725,7 @@
 
   /* ---- Stufenauswahl ---- */
   .level-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .level-chip.locked { opacity: .45; cursor: not-allowed; filter: grayscale(.5); }
   .level-chip {
     position: relative; overflow: hidden;
     padding: 12px 6px; border-radius: var(--radius-md); border: 1px solid var(--line);
@@ -962,6 +963,9 @@
   .wf-errors { margin-top: 8px; } .wf-err { font-size: .82rem; padding: 7px 0; border-top: 1px solid var(--line); }
   .wf-tag { display: inline-block; font-size: .66rem; font-weight: 800; padding: 2px 8px; border-radius: var(--radius-pill); background: rgba(255,95,109,.15); color: var(--red); margin-right: 6px; }
   .wf-expl { font-size: .76rem; color: var(--muted); margin-top: 3px; } .wf-corr { margin-top: 10px; font-size: .84rem; line-height: 1.55; } .wf-corr summary { cursor: pointer; font-weight: 700; }
+  .card-verbforms { font-size: .74rem; color: var(--muted); margin-top: 6px; text-align: center; }
+  .card-example { font-size: .8rem; color: var(--ink); margin-top: 10px; text-align: center; line-height: 1.5; padding: 8px 10px; background: rgba(255,255,255,.04); border-radius: 10px; }
+  .card-example span { color: var(--muted); font-size: .76rem; }
   .srs-due-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 16px; margin-bottom: 10px;
     background: linear-gradient(135deg, rgba(255,200,87,.16), rgba(255,200,87,.06)); border: 1px solid rgba(255,200,87,.35);
     border-radius: var(--radius-md); color: var(--gold); font-family: var(--font); font-weight: 800; font-size: .86rem; cursor: pointer; }
@@ -982,6 +986,7 @@
   .exam-tile.telc { border-color: rgba(255,184,77,.3); }
   .provider-hint { font-size: .72rem; color: var(--muted); margin-top: 6px; line-height: 1.5; }
   .elc-noprep { grid-column: 1 / -1; font-size: .68rem; color: var(--gold); margin-top: 4px; line-height: 1.4; text-align: left; }
+  .verdict-unlock { margin-top: 10px; padding: 10px 14px; border-radius: 12px; background: rgba(53,220,156,.12); color: var(--green); font-weight: 800; font-size: .9rem; text-align: center; }
   .exam-level-card.locked { opacity: .5; cursor: not-allowed; filter: grayscale(.4); }
   .exam-level-card.recommended { border-color: rgba(255,200,87,.5); box-shadow: 0 6px 22px rgba(0,0,0,.3), 0 0 20px rgba(255,200,87,.14); }
   .elc-badge {
@@ -1598,6 +1603,8 @@
         <div class="card-flip-badge">⟳</div>
         <div class="card-lang" id="cardLangBack">Gjermanisht</div>
         <div class="card-word" id="backWord">—</div>
+        <div class="card-verbforms hidden" id="cardVerbForms"></div>
+        <div class="card-example hidden" id="cardExample"></div>
         <button class="btn btn-secondary" id="btnSpeak" style="margin-top:12px;font-size:.8rem;padding:6px 12px;"><span data-i18n="card.listen">🔊 Dëgjo</span></button>
       </div>
     </div>
@@ -3137,6 +3144,127 @@ for (const cat in RAW) {
 // listave zyrtare Goethe/telc/ÖSD — shih raportin e auditit). Bazuar te kategoria tematike.
 const CAT_LEVEL = {"Begrüßung & Höflichkeit": "A1", "Person & Familie": "A1", "Zahlen": "A1", "Farben & Formen": "A1", "Zeit & Kalender": "A1", "Kleidung": "A1", "Essen & Trinken": "A1", "Wohnen": "A1", "Körper & Gesundheit": "A1", "Wetter & Natur": "A1", "Einkaufen & Geld": "A2", "Arbeit & Beruf": "A2", "Reisen & Verkehr": "A2", "Stadt & Ämter": "A2", "Freizeit & Medien": "A2", "Gefühle & Charakter": "A2", "Alltag & Haushalt": "A2", "Sport & Bewegung": "A2", "Kochen & Küche": "A2", "Reisen (erweitert)": "A2", "Tiere (erweitert)": "A2", "Pflanzen & Garten": "A2", "Möbel & Einrichtung (erweitert)": "A2", "Small Talk & Höflichkeitsfloskeln": "A2", "Mengen & Maße": "A2", "Feiertage & Bräuche": "A2", "Charakter & Verhalten (erweitert)": "A2", "Berufe (Übersicht)": "A2", "Kleidung & Accessoires (erweitert)": "A2", "Haushaltsgeräte (erweitert)": "A2", "Ausdrücke im Alltag (erweitert)": "A2", "Körper & Krankheiten (erweitert)": "A2", "Verkehr & Mobilität (erweitert)": "A2", "Zeitausdrücke (erweitert)": "A2", "Bildung": "A2", "Schulfächer & Lernen": "A2", "Präpositionen & Richtungswörter": "A2", "Geographie & Länder": "A2", "Verben": "A2", "Adjektive": "A2", "Konnektoren & B1-Redemittel": "B1", "Redewendungen B1": "B1", "Meinung äußern": "B1", "Notfälle & Sicherheit": "B1", "Kunst, Musik & Literatur": "B1", "Bank & Versicherung": "B1", "Politik & Verwaltung": "B1", "Ernährung": "B1", "Gefühle & Psychologie (erweitert)": "B1", "Digitalisierung & Internet (erweitert)": "B1", "Reisedokumente & Formalitäten (erweitert)": "B1", "Medien & Presse (erweitert)": "B1", "Naturphänomene (erweitert)": "B1", "Bildung & Beruf (erweitert)": "B1", "Technik & Kommunikation": "B1", "Umwelt & Gesellschaft": "B1", "Beziehungen & Charakter": "B1", "Verben (erweitert, reflexiv & trennbar)": "B1", "Adjektive (erweitert 2)": "B1", "Wissenschaft & Forschung": "B2", "Wirtschaft (Detail)": "B2", "Shprehje me folje funksionale (B2)": "B2", "Shprehje abstrakte & shoqëri (B2)": "B2", "Kolokacione (B2)": "B2", "Emra abstrakte shtesë (B2)": "B2", "Fjalor akademik & abstrakt (C1)": "C1", "Folje akademike (C1)": "C1", "Shprehje idiomatike (C1)": "C1", "Mbiemra të saktë (C1)": "C1", "Fjalor filozofik & shkencor (C1)": "C1", "Shprehje idiomatike shtesë (C1)": "C1", "Folje të sakta (C1)": "C1", "Mjedisi & Klima (B2)": "B2", "Shëndetësi & Mjekësi (B2)": "B2", "Lidhëza & shprehje diskursi (C1)": "C1"};
 vocab.forEach(w => { w.lvl = CAT_LEVEL[w.cat] || "B1"; });
+// VERBFORMAT (Präteritum 3.Sg, Perfekt 3.Sg me ndihmës) — vetëm për foljet ekzistuese, shtesë e pastër.
+const VERB_FORMS = {
+"gehen": ["ging", "ist gegangen"],
+"kommen": ["kam", "ist gekommen"],
+"essen": ["aß", "hat gegessen"],
+"trinken": ["trank", "hat getrunken"],
+"sprechen": ["sprach", "hat gesprochen"],
+"hören": ["hörte", "hat gehört"],
+"sehen": ["sah", "hat gesehen"],
+"lesen": ["las", "hat gelesen"],
+"schreiben": ["schrieb", "hat geschrieben"],
+"denken": ["dachte", "hat gedacht"],
+"wissen": ["wusste", "hat gewusst"],
+"kennen": ["kannte", "hat gekannt"],
+"wollen": ["wollte", "hat gewollt"],
+"können": ["konnte", "hat gekonnt"],
+"müssen": ["musste", "hat gemusst"],
+"dürfen": ["durfte", "hat gedurft"],
+"schlafen": ["schlief", "hat geschlafen"],
+"arbeiten": ["arbeitete", "hat gearbeitet"],
+"spielen": ["spielte", "hat gespielt"],
+"leben": ["lebte", "hat gelebt"],
+"helfen": ["half", "hat geholfen"],
+"warten": ["wartete", "hat gewartet"],
+"anfangen": ["fing an", "hat angefangen"],
+"beenden": ["beendete", "hat beendet"],
+"verstehen": ["verstand", "hat verstanden"],
+"vergessen": ["vergaß", "hat vergessen"],
+"sich erinnern": ["erinnerte sich", "hat sich erinnert"],
+"sagen": ["sagte", "hat gesagt"],
+"fragen": ["fragte", "hat gefragt"],
+"antworten": ["antwortete", "hat geantwortet"],
+"reisen": ["reiste", "ist gereist"],
+"fahren": ["fuhr", "ist gefahren"],
+"laufen": ["lief", "ist gelaufen"],
+"kochen": ["kochte", "hat gekocht"],
+"putzen": ["putzte", "hat geputzt"],
+"waschen": ["wusch", "hat gewaschen"],
+"öffnen": ["öffnete", "hat geöffnet"],
+"schließen": ["schloss", "hat geschlossen"],
+"ändern": ["änderte", "hat geändert"],
+"entscheiden": ["entschied", "hat entschieden"],
+"glauben": ["glaubte", "hat geglaubt"],
+"hoffen": ["hoffte", "hat gehofft"],
+"lachen": ["lachte", "hat gelacht"],
+"weinen": ["weinte", "hat geweint"],
+"treffen": ["traf", "hat getroffen"],
+"einladen": ["lud ein", "hat eingeladen"],
+"danken": ["dankte", "hat gedankt"],
+"versprechen": ["versprach", "hat versprochen"],
+"vorschlagen": ["schlug vor", "hat vorgeschlagen"],
+"vergleichen": ["verglich", "hat verglichen"],
+"wählen": ["wählte", "hat gewählt"],
+"versuchen": ["versuchte", "hat versucht"],
+"erreichen": ["erreichte", "hat erreicht"],
+"verlieren": ["verlor", "hat verloren"],
+"finden": ["fand", "hat gefunden"],
+"bringen": ["brachte", "hat gebracht"],
+"nehmen": ["nahm", "hat genommen"],
+"geben": ["gab", "hat gegeben"],
+"schicken": ["schickte", "hat geschickt"],
+"teilnehmen": ["nahm teil", "hat teilgenommen"],
+"suchen": ["suchte", "hat gesucht"],
+"benutzen": ["benutzte", "hat benutzt"],
+"sich kümmern": ["kümmerte sich", "hat sich gekümmert"],
+"sich sorgen": ["sorgte sich", "hat sich gesorgt"],
+"sich beschweren": ["beschwerte sich", "hat sich beschwert"],
+"erklären": ["erklärte", "hat erklärt"],
+"wiederholen": ["wiederholte", "hat wiederholt"],
+"behalten": ["behielt", "hat behalten"],
+"sich entwickeln": ["entwickelte sich", "hat sich entwickelt"],
+"verbessern": ["verbesserte", "hat verbessert"],
+"planen": ["plante", "hat geplant"],
+"organisieren": ["organisierte", "hat organisiert"],
+"sich langweilen": ["langweilte sich", "hat sich gelangweilt"],
+"sich interessieren": ["interessierte sich", "hat sich interessiert"],
+"sich beteiligen": ["beteiligte sich", "hat sich beteiligt"],
+"sich engagieren": ["engagierte sich", "hat sich engagiert"],
+"sich konzentrieren": ["konzentrierte sich", "hat sich konzentriert"],
+"sich orientieren": ["orientierte sich", "hat sich orientiert"],
+"sich anpassen": ["passte sich an", "hat sich angepasst"],
+"sich verhalten": ["verhielt sich", "hat sich verhalten"],
+"reagieren": ["reagierte", "hat reagiert"],
+"beeinflussen": ["beeinflusste", "hat beeinflusst"],
+"zusammenarbeiten": ["arbeitete zusammen", "hat zusammengearbeitet"],
+"kommunizieren": ["kommunizierte", "hat kommuniziert"],
+"verhandeln": ["verhandelte", "hat verhandelt"],
+"beitragen": ["trug bei", "hat beigetragen"],
+"garantieren": ["garantierte", "hat garantiert"],
+"sichern": ["sicherte", "hat gesichert"],
+"verhindern": ["verhinderte", "hat verhindert"],
+"sich auseinandersetzen mit": ["setzte sich auseinander mit", "hat sich auseinandergesetzt mit"]
+};
+vocab.forEach(w => { const vf = VERB_FORMS[w.de]; if (vf) { w.praeteritum = vf[0]; w.perfekt = vf[1]; } });
+// FJALI SHEMBULL (gjermanisht + përkthimi shqip). Strukturë shtesë e pastër, si VERB_FORMS —
+// zgjerohet me kohën, kategori pas kategorie, pa prekur RAW/RAW_EN.
+const WORD_EXAMPLES = {
+"guten Tag": ["Guten Tag, wie geht es Ihnen?", "Mirëdita, si jeni?"],
+"guten Morgen": ["Guten Morgen! Hast du gut geschlafen?", "Mirëmëngjes! A fjete mirë?"],
+"guten Abend": ["Guten Abend, kommen Sie bitte herein.", "Mirëmbrëma, ju lutem hyni."],
+"gute Nacht": ["Gute Nacht, schlaf gut!", "Natën e mirë, gjumë të ëmbël!"],
+"hallo": ["Hallo, wie heißt du?", "Përshëndetje, si quhesh?"],
+"auf Wiedersehen": ["Auf Wiedersehen, bis morgen!", "Mirupafshim, shihemi nesër!"],
+"danke": ["Danke für deine Hilfe.", "Faleminderit për ndihmën tënde."],
+"bitte": ["Kannst du mir bitte helfen?", "A mund të më ndihmosh, të lutem?"],
+"gern geschehen": ["Gern geschehen, kein Problem!", "S'ka përse, s'ka problem!"],
+"es tut mir leid": ["Es tut mir leid, ich habe einen Fehler gemacht.", "Më vjen keq, kam bërë një gabim."],
+"entschuldigen Sie": ["Entschuldigen Sie, wo ist der Bahnhof?", "Më falni, ku është stacioni i trenit?"],
+"ja": ["Ja, das ist eine gute Idee.", "Po, kjo është një ide e mirë."],
+"nein": ["Nein, das möchte ich nicht.", "Jo, nuk dua këtë."],
+"wie geht es Ihnen?": ["Guten Tag, wie geht es Ihnen heute?", "Mirëdita, si jeni sot?"],
+"freut mich": ["Freut mich, Sie kennenzulernen.", "Gëzohem që ju njoh."],
+"herzlichen Glückwunsch": ["Herzlichen Glückwunsch zum Geburtstag!", "Urime për ditëlindjen!"],
+"willkommen": ["Willkommen in Deutschland!", "Mirë se erdhe në Gjermani!"],
+"bis bald": ["Bis bald, ich melde mich morgen.", "Shihemi së shpejti, do të lajmërohem nesër."],
+"vielleicht": ["Vielleicht komme ich später.", "Ndoshta do të vij më vonë."],
+"natürlich": ["Natürlich helfe ich dir.", "Sigurisht që do të të ndihmoj."]
+};
+vocab.forEach(w => { const ex = WORD_EXAMPLES[w.de]; if (ex) { w.exampleDe = ex[0]; w.exampleAl = ex[1]; } });
+
+
 
 
 
@@ -3443,6 +3571,26 @@ const CEFR_INFO = {
   C2: { friendly: "Kompetencë e plotë", color: "#ff8a5c" }
 };
 const CEFR_ORDER = ["A1","A2","B1","B2","C1","C2"];
+// Rendi i vërtetë i përparimit: A1 hapet gjithmonë; çdo nivel tjetër hapet vetëm pasi
+// të kalohet PROVIMI I PLOTË i nivelit paraardhës. C2 s'ka provim ende, mbetet jashtë.
+const PROGRESSION_ORDER = ["A1","A2","B1","B2","C1"];
+function isLevelUnlocked(level) {
+  const idx = PROGRESSION_ORDER.indexOf(level);
+  if (idx <= 0) return true;   // A1, ose nivel jashtë progresionit (p.sh. C2)
+  ensureStats();
+  const prev = PROGRESSION_ORDER[idx - 1];
+  return !!(stats.examsPassedLevels && stats.examsPassedLevels[prev]);
+}
+function markLevelPassed(level) {
+  ensureStats();
+  if (!stats.examsPassedLevels) stats.examsPassedLevels = {};
+  stats.examsPassedLevels[level] = true;
+  // Ngrit nivelin "zyrtar" në hapin tjetër të progresionit, nëse ka
+  const idx = PROGRESSION_ORDER.indexOf(level);
+  const next = PROGRESSION_ORDER[idx + 1];
+  if (next) { cefrLevel = next; selectedLevel = next; }
+  queueSave();
+}
 
 const PLACEMENT_TEST = [
   // ---------- A1 ----------
@@ -4030,11 +4178,12 @@ function renderLevelPicker() {
     const info = CEFR_INFO[lvl];
     const isSelected = selectedLevel === lvl;
     const isRecommended = cefrLevel === lvl;
-    return `<button class="level-chip ${isSelected ? "selected" : ""} ${isRecommended ? "recommended" : ""}" data-level="${lvl}">
-      ${lvl}<small>${esc(info.friendly.split(" ")[0])}</small>
+    const locked = !isLevelUnlocked(lvl);
+    return `<button class="level-chip ${isSelected ? "selected" : ""} ${isRecommended ? "recommended" : ""} ${locked ? "locked" : ""}" data-level="${lvl}" ${locked ? "disabled" : ""}>
+      ${locked ? "🔒 " : ""}${lvl}<small>${esc(info.friendly.split(" ")[0])}</small>
     </button>`;
   }).join("");
-  picker.querySelectorAll(".level-chip").forEach(chip => {
+  picker.querySelectorAll(".level-chip:not([disabled])").forEach(chip => {
     chip.addEventListener("click", () => {
       selectedLevel = chip.dataset.level;
       renderLevelPicker();
@@ -4144,6 +4293,7 @@ const DEFAULT_STATS = {
   exams:     { taken: 0, passed: 0, best: 0, bestModules: {} },
   words:     {},   // "al|de": { c: saktë, w: gabim }
   grammarItems: {},  // indeksi i GRAMMAR_EXERCISES: { c: saktë, w: gabim } — për Level-Up
+  examsPassedLevels: {},  // "A1": true, "A2": true, ... — për sistemin e hapjes progresive
   bestStreak: 0,
   stageLog:  {},    // "idx": { at: ISO-datë, totalAnswers, correctAnswers }
   homework:  { doneDays: {}, totalDone: 0, streak: 0, bestStreak: 0 },
@@ -4663,6 +4813,7 @@ const UI_STRINGS = {
   "exam.choose_level": { sq: "Zgjidh nivelin e provimit", de: "Wähle das Prüfungsniveau", en: "Choose the exam level" },
   "exam.or_single":    { sq: "Ose ushtro një modul B1 veç e veç", de: "Oder übe ein einzelnes B1-Modul", en: "Or practice a single B1 module" },
   "exam.locked":       { sq: "Në përgatitje — tekstet e këtij niveli s'janë gati ende", de: "In Vorbereitung – niveaugerechte Aufgaben folgen", en: "Coming soon – level-specific tasks in preparation" },
+  "exam.locked_progress": { sq: "Kalo provimin {lvl} për ta hapur", de: "Bestehe zuerst die {lvl}-Prüfung, um dies freizuschalten", en: "Pass the {lvl} exam first to unlock this" },
   "exam.telc_note":    { sq: "provim tjetër, format tjetër", de: "andere Prüfung, anderes Format", en: "different exam, different format" },
   "exam.telc_hint":    { sq: "Format i telc, jo pjesë e provimit modular Goethe më sipër — mos i ngatërro nëse përgatitesh për Goethe.", de: "telc-Format, nicht Teil der modularen Goethe-Prüfung oben — nicht verwechseln, wenn du dich auf Goethe vorbereitest.", en: "telc format, not part of the modular Goethe exam above — don't mix them up if you're preparing for Goethe." },
   "exam.noprep": { sq: "Gramatika dhe fjalori i këtij niveli ende s'janë në aplikacion — provimi ekziston, por përgatitja jo ende.", de: "Grammatik und Wortschatz für dieses Niveau sind noch nicht in der App — die Prüfung existiert, die Vorbereitung dazu noch nicht.", en: "Grammar and vocabulary for this level aren't in the app yet — the exam exists, but the preparation for it doesn't yet." },
@@ -5146,6 +5297,16 @@ function renderCard() {
   flashcard.classList.remove("flipped");
   document.getElementById("cardProgress").textContent = (cardIndex+1)+" / "+currentDeck.length;
   document.getElementById("cardKnown").textContent = "Ditur: "+knownCount;
+  const vf = document.getElementById("cardVerbForms");
+  if (vf) {
+    if (w.perfekt) { vf.textContent = "Präteritum: " + w.praeteritum + " · Perfekt: " + w.perfekt; vf.classList.remove("hidden"); }
+    else vf.classList.add("hidden");
+  }
+  const exEl = document.getElementById("cardExample");
+  if (exEl) {
+    if (w.exampleDe) { exEl.innerHTML = "„" + esc(w.exampleDe) + "“<br><span>" + esc(w.exampleAl) + "</span>"; exEl.classList.remove("hidden"); }
+    else exEl.classList.add("hidden");
+  }
   renderSrsButton();
 }
 flashcard.addEventListener("click", e => {
@@ -6025,15 +6186,20 @@ function renderExamMenu() {
     const L = EXAM_LEVELS[key];
     const totalMin = L.modules.reduce((a, m) => a + m.minutes, 0);
     const info = CEFR_INFO[key] || {};
-    const recommended = (cefrLevel === key || selectedLevel === key) && EXAM_READY[key];
-    const locked = !EXAM_READY[key];
+    const progressLocked = !isLevelUnlocked(key);       // ende s'e ke kaluar nivelin paraardhës
+    const contentLocked = !EXAM_READY[key];             // përmbajtja e nivelit ende s'ekziston
+    const locked = progressLocked || contentLocked;
+    const recommended = (cefrLevel === key || selectedLevel === key) && !locked;
+    const lockMsg = progressLocked
+      ? uiText("exam.locked_progress").replace("{lvl}", PROGRESSION_ORDER[PROGRESSION_ORDER.indexOf(key) - 1] || "")
+      : uiText("exam.locked");
     return `<button class="exam-level-card ${recommended ? "recommended" : ""} ${locked ? "locked" : ""}" data-exam="full" data-level="${key}" ${locked ? "disabled" : ""}>
       <div class="elc-badge" style="color:${info.color || "var(--gold)"};border-color:${(info.color || "#ffc857")}55;background:${(info.color || "#ffc857")}18;">${key}</div>
       <div class="elc-body">
         <div class="elc-name">${esc(L.name)}</div>
         <div class="elc-desc">${esc(L.desc)}</div>
-        <div class="elc-meta">${locked ? "🔒 " + uiText("exam.locked") : `4 ${uiText("exam.modules_meta")} · ${totalMin} ${uiText("exam.min")} · 400 ${uiText("exam.points")}`}</div>
-      ${NO_PREP_YET[key] ? `<div class="elc-noprep">⚠️ ${uiText("exam.noprep")}</div>` : ""}
+        <div class="elc-meta">${locked ? "🔒 " + lockMsg : `4 ${uiText("exam.modules_meta")} · ${totalMin} ${uiText("exam.min")} · 400 ${uiText("exam.points")}`}</div>
+      ${(NO_PREP_YET[key] && !locked) ? `<div class="elc-noprep">⚠️ ${uiText("exam.noprep")}</div>` : ""}
       </div>
       ${recommended ? '<div class="elc-star">★</div>' : ""}
     </button>`;
@@ -6064,14 +6230,6 @@ function renderExamMenu() {
       <p>${uiText("exam.sprechen.desc")}</p>
       <div class="meta">${uiText("exam.sprechen.meta")}</div>
     </button>
-
-    <div class="provider-label telc">🎯 telc — ${uiText("exam.telc_note")}</div>
-    <button class="exam-tile telc" data-exam="grammatik">
-      <h3>${uiText("exam.gram.title")}</h3>
-      <p>${uiText("exam.gram.desc")}</p>
-      <div class="meta">${uiText("exam.gram.meta")}</div>
-    </button>
-    <div class="provider-hint">${uiText("exam.telc_hint")}</div>
   `;
   menuEl.querySelectorAll(".exam-tile").forEach(t =>
     t.addEventListener("click", () => startExam(t.dataset.exam)));
@@ -7103,7 +7261,13 @@ function levelContent(levelKey) {
 }
 
 function startFullExam(levelKey) {
-  currentExamLevel = levelKey || currentExamLevel || "B1";
+  const wanted = levelKey || currentExamLevel || "B1";
+  if (!isLevelUnlocked(wanted)) {
+    const prev = PROGRESSION_ORDER[PROGRESSION_ORDER.indexOf(wanted) - 1];
+    alert(uiText("exam.locked_progress").replace("{lvl}", prev || ""));
+    return;
+  }
+  currentExamLevel = wanted;
   const L = EXAM_LEVELS[currentExamLevel];
   activeModules = L.modules;
   fullExamActive = true;
@@ -7631,6 +7795,8 @@ function showFullExamResult() {
   const totalEnough = total >= 240;
   const passed = allModulesPassed && totalEnough;
   recordExam(total, passed, fullScores);
+  const justUnlockedNext = passed && !isLevelUnlocked(PROGRESSION_ORDER[PROGRESSION_ORDER.indexOf(currentExamLevel) + 1] || "");
+  if (passed) markLevelPassed(currentExamLevel);
 
   const rows = mods.map(m => {
     const s = fullScores[m.id] || 0;
@@ -7646,8 +7812,10 @@ function showFullExamResult() {
   const failedMods = mods.filter(m => (fullScores[m.id] || 0) < PASS_MARK);
   let verdict;
   if (passed) {
+    const nextLvl = PROGRESSION_ORDER[PROGRESSION_ORDER.indexOf(currentExamLevel) + 1];
     verdict = `<div class="verdict verdict-pass">✅ URIME — PROVIMI U KALUA!</div>
-      <div class="verdict-note">Ke arritur të paktën 60 pikë në çdo modul dhe ${total} pikë gjithsej.</div>`;
+      <div class="verdict-note">Ke arritur të paktën 60 pikë në çdo modul dhe ${total} pikë gjithsej.</div>
+      ${nextLvl ? `<div class="verdict-unlock">🔓 Niveli <strong>${nextLvl}</strong> tani është i hapur!</div>` : `<div class="verdict-unlock">🏆 Ke kaluar të gjitha nivelet deri në C1!</div>`}`;
   } else if (!allModulesPassed) {
     const names = failedMods.map(m => m.name).join(", ");
     verdict = `<div class="verdict verdict-fail">❌ Provimi nuk u kalua</div>
