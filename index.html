@@ -1079,6 +1079,9 @@
     pointer-events: none; white-space: normal; line-height: 1.3;
   }
   .panda-bubble::after { content: ""; position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #fff; border-bottom: 0; }
+  .panda-cam { position: absolute; right: 8px; top: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 4; }
+  .cam-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18); background: rgba(20,22,40,.55); color: #fff; font-size: 1.05rem; font-weight: 800; cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; }
+  .cam-btn:active { transform: scale(.94); background: rgba(255,200,87,.35); }
   .panda-editbar { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; gap: 6px; }
   .panda-editbar .btn { padding: 8px 12px; font-size: .78rem; }
   .pinv-act { font-size: .62rem; font-weight: 800; color: var(--blue); }
@@ -1943,6 +1946,13 @@
 
     <div class="panda-scene-wrap">
       <div class="panda-scene" id="pandaScene"></div>
+      <div class="panda-cam" id="pandaCam">
+        <button class="cam-btn" id="camRotL" title="Rrotullo majtas">↺</button>
+        <button class="cam-btn" id="camRotR" title="Rrotullo djathtas">↻</button>
+        <button class="cam-btn" id="camZoomIn" title="Afro">＋</button>
+        <button class="cam-btn" id="camZoomOut" title="Largo">－</button>
+        <button class="cam-btn" id="camReset" title="Kthe pamjen">⌂</button>
+      </div>
       <div class="panda-bubble hidden" id="pandaBubble"></div>
       <div class="panda-editbar hidden" id="pandaEditBar">
         <button class="btn btn-secondary" id="btnPandaRotate">⟳ <span data-i18n="panda.rotate">Rrotullo</span></button>
@@ -9956,36 +9966,39 @@ function renderHomework() {
 const PANDA_ITEMS = [
   // 🍎 Ushqim
   // Ushqimi dhe pijet VENDOSEN në dhomë (placed + consumable): pandaja shkon vetë dhe i ha/pi.
-  { id:"apple",   cat:"food",  emoji:"🍕", cost:6,  placed:true, consumable:true, size:0.45, effect:{hunger:+25, mood:+3}, weight:+1.0 },
-  { id:"bamboo",  cat:"food",  emoji:"🎋", cost:10, placed:true, consumable:true, size:0.35, effect:{hunger:+45, mood:+6}, weight:+1.5 },
-  { id:"cake",    cat:"food",  emoji:"🍰", cost:14, placed:true, consumable:true, size:0.35, effect:{hunger:+30, mood:+12}, weight:+4.0 },
-  { id:"salad",   cat:"food",  emoji:"🥗", cost:8,  placed:true, consumable:true, size:0.35, effect:{hunger:+30, mood:+2, health:+3}, weight:+0.3 },
+  // USHQIMI: 5 shkallë çmimi TË VËRTETA (10/20/40/60/80 efekt sipas çmimit) — që ushqimi i mirë
+  // të kërkojë përpjekje reale mësimi, jo vetëm disa minuta.
+  { id:"salad",   cat:"food",  emoji:"🥗", cost:180,  placed:true, consumable:true, size:0.35, effect:{hunger:+40, mood:+2, health:+3}, weight:+0.5 },
+  { id:"bamboo",  cat:"food",  emoji:"🎋", cost:180,  placed:true, consumable:true, size:0.35, effect:{hunger:+40, mood:+6}, weight:+1.0 },
+  { id:"cake",    cat:"food",  emoji:"🍰", cost:400,  placed:true, consumable:true, size:0.35, effect:{hunger:+60, mood:+16}, weight:+3.0 },
+  { id:"apple",   cat:"food",  emoji:"🍕", cost:800,  placed:true, consumable:true, size:0.45, effect:{hunger:+80, mood:+20}, weight:+4.0 },
   // 🥤 Pije
-  { id:"water",   cat:"drink", emoji:"💧", cost:3,  placed:true, consumable:true, size:0.3,  effect:{thirst:+40} },
-  { id:"juice",   cat:"drink", emoji:"🧃", cost:7,  placed:true, consumable:true, size:0.3,  effect:{thirst:+35, mood:+6}, weight:+1.0 },
-  { id:"milk",    cat:"drink", emoji:"🥛", cost:6,  placed:true, consumable:true, size:0.3,  effect:{thirst:+30, energy:+5} },
+  { id:"water",   cat:"drink", emoji:"💧", cost:20,   placed:true, consumable:true, size:0.3,  effect:{thirst:+10} },
+  { id:"milk",    cat:"drink", emoji:"🥛", cost:60,   placed:true, consumable:true, size:0.3,  effect:{thirst:+20, energy:+4} },
+  { id:"juice",   cat:"drink", emoji:"🧃", cost:180,  placed:true, consumable:true, size:0.3,  effect:{thirst:+40, mood:+8}, weight:+0.5 },
   // 🧼 Kujdes
-  { id:"soap",    cat:"care",  emoji:"🧼", cost:8,  effect:{hygiene:+50, mood:+4} },
-  { id:"medicine",cat:"care",  emoji:"💊", cost:20, effect:{health:+40} },
+  { id:"soap",    cat:"care",  emoji:"🧼", cost:40,  effect:{hygiene:+50, mood:+4} },
+  { id:"medicine",cat:"care",  emoji:"💊", cost:120, effect:{health:+40} },
   // 🧸 Lodra (të vendosshme)
-  { id:"ball",    cat:"toy",   emoji:"🎾", cost:50,  placed:true, size:0.5 },
-  { id:"teddy",   cat:"toy",   emoji:"🧸", cost:70,  placed:true, size:0.6 },
+  { id:"ball",    cat:"toy",   emoji:"🎾", cost:500,  placed:true, size:0.5 },
+  { id:"teddy",   cat:"toy",   emoji:"🧸", cost:900,  placed:true, size:0.6 },
   // 🛋️ Mobilie (të vendosshme) — secila me funksion për pandën
-  { id:"bowl",    cat:"furniture", emoji:"🥣", cost:40,  placed:true, size:0.6, use:"food" },
-  { id:"wbowl",   cat:"furniture", emoji:"🫗", cost:40,  placed:true, size:0.6, use:"water" },
-  { id:"bed",     cat:"furniture", emoji:"🛏️", cost:100, placed:true, size:1.6, use:"sleep" },
-  { id:"sofa",    cat:"furniture", emoji:"🛋️", cost:80,  placed:true, size:1.5, use:"rest" },
-  { id:"toilet",  cat:"furniture", emoji:"🚽", cost:120, placed:true, size:0.7, use:"toilet" },
-  { id:"bathtub", cat:"furniture", emoji:"🛁", cost:150, placed:true, size:1.5, use:"bath" },
-  { id:"table",   cat:"furniture", emoji:"🪑", cost:60,  placed:true, size:1.1 },
-  { id:"desk",    cat:"furniture", emoji:"🖥️", cost:110, placed:true, size:1.3, bonus:"learn" },
-  { id:"shelf",   cat:"furniture", emoji:"📚", cost:90,  placed:true, size:1.0, bonus:"learn" },
-  { id:"wardrobe",cat:"furniture", emoji:"🚪", cost:95,  placed:true, size:1.1 },
+  // MOBILJET: çmime VËRTET të larta — disa ditë mësimi për secilën, e sidomos për shtratin.
+  { id:"bowl",    cat:"furniture", emoji:"🥣", cost:300,  placed:true, size:0.6, use:"food" },
+  { id:"wbowl",   cat:"furniture", emoji:"🫗", cost:300,  placed:true, size:0.6, use:"water" },
+  { id:"table",   cat:"furniture", emoji:"🪑", cost:700,  placed:true, size:1.1 },
+  { id:"wardrobe",cat:"furniture", emoji:"🚪", cost:1200, placed:true, size:1.1 },
+  { id:"sofa",    cat:"furniture", emoji:"🛋️", cost:1500, placed:true, size:1.5, use:"rest" },
+  { id:"shelf",   cat:"furniture", emoji:"📚", cost:1800, placed:true, size:1.0, bonus:"learn" },
+  { id:"desk",    cat:"furniture", emoji:"🖥️", cost:2200, placed:true, size:1.3, bonus:"learn" },
+  { id:"toilet",  cat:"furniture", emoji:"🚽", cost:2500, placed:true, size:0.7, use:"toilet" },
+  { id:"bathtub", cat:"furniture", emoji:"🛁", cost:3200, placed:true, size:1.5, use:"bath" },
+  { id:"bed",     cat:"furniture", emoji:"🛏️", cost:4000, placed:true, size:1.6, use:"sleep" },
   // 🌱 Dekor (të vendosshme)
-  { id:"plant",   cat:"deco",  emoji:"🌱", cost:40,  placed:true, size:0.5, comfort:2 },
-  { id:"lamp",    cat:"deco",  emoji:"💡", cost:45,  placed:true, size:0.4, comfort:2 },
-  { id:"rug",     cat:"deco",  emoji:"🟫", cost:55,  placed:true, size:1.8, comfort:3, flat:true },
-  { id:"picture", cat:"deco",  emoji:"🖼️", cost:35,  placed:true, size:0.6, comfort:2, wall:true }
+  { id:"plant",   cat:"deco",  emoji:"🌱", cost:250,  placed:true, size:0.5, comfort:2 },
+  { id:"lamp",    cat:"deco",  emoji:"💡", cost:280,  placed:true, size:0.4, comfort:2 },
+  { id:"rug",     cat:"deco",  emoji:"🟫", cost:450,  placed:true, size:1.8, comfort:3, flat:true },
+  { id:"picture", cat:"deco",  emoji:"🖼️", cost:220,  placed:true, size:0.6, comfort:2, wall:true }
 ];
 const PANDA_CATS = ["food","drink","furniture","toy","deco","care"];
 
@@ -10486,6 +10499,8 @@ function renderPandaView() {
       onPandaTransform: (t) => updatePandaTransform(t),
       onSelect: (instId) => { const b = document.getElementById("pandaEditBar"); if (b) b.classList.toggle("hidden", !instId); },
       onArrive: (use, instId) => pandaOnArrive(use, instId),
+      getConsumeDuration: (instId) => pandaConsumeDuration(instId),
+      onConsumeTick: (use, instId, dt, total) => pandaConsumeTick(instId, dt, total),
       onPet: () => pandaPet(),
       say: (k) => pandaSay(pt(k), 3500)
     }).then(ok => { if (!ok) panda3DStarted = false; else window.Panda3D.setGrowth(pandaGrowthStage()); });
@@ -10603,13 +10618,37 @@ function pandaAutoTalk() {
 }
 
 // Kur pandaja arrin te një mobilie (AI autonom), plotëso nevojën përkatëse
+// Kohëzgjatja e ngrënies/pirjes rritet me çmimin e artikullit — sa më i shtrenjtë, aq më gjatë.
+// Shkalla llogaritet DINAMIKISHT nga çmimet e artikujve aktualë (min→20s, max→60s), që artikujt
+// e rinj (të shtuar më vonë) të përshtaten automatikisht pa pasur nevojë për rregullim manual.
+const CONSUME_MIN_SEC = 20, CONSUME_MAX_SEC = 60;
+function consumeDurationForCost(cost) {
+  const costs = PANDA_ITEMS.filter(i => i.consumable).map(i => i.cost);
+  const minC = Math.min(...costs), maxC = Math.max(...costs);
+  const t = maxC > minC ? (cost - minC) / (maxC - minC) : 0.5;
+  return CONSUME_MIN_SEC + clamp(t, 0, 1) * (CONSUME_MAX_SEC - CONSUME_MIN_SEC);
+}
+function pandaConsumeDuration(instId) {
+  const p = ensurePanda(); const f = p.placed.find(x => x.id === instId); if (!f) return CONSUME_MIN_SEC;
+  const it = PANDA_ITEMS.find(i => i.id === f.type); if (!it) return CONSUME_MIN_SEC;
+  return consumeDurationForCost(it.cost || 0);
+}
+// Thirret ÇDO KUADER ndërsa pandaja po ha/pi: shton NJË PJESË (proporcionale me kohën) të efektit,
+// që shiriti (uria/etja) të mbushet dukshëm gradualisht, jo menjëherë në fund.
+let consumeTickAccum = 0;
+function pandaConsumeTick(instId, dt, total) {
+  const p = ensurePanda(); const f = p.placed.find(x => x.id === instId); if (!f) return;
+  const it = PANDA_ITEMS.find(i => i.id === f.type); if (!it || !it.effect) return;
+  const frac = dt / total;
+  for (const k in it.effect) p[k] = clamp(p[k] + it.effect[k] * frac, 0, 100);
+  consumeTickAccum += dt;
+  if (consumeTickAccum >= 0.2) { consumeTickAccum = 0; renderPandaView(); }   // rifreskim i shiritit disa herë në sekondë, jo çdo kuadër
+}
 function pandaConsume(instId) {
   const p = ensurePanda();
   const idx = p.placed.findIndex(f => f.id === instId); if (idx < 0) return;
   const it = PANDA_ITEMS.find(i => i.id === p.placed[idx].type); if (!it || !it.consumable) return;
   p.placed.splice(idx, 1);
-  const e = it.effect || {};
-  for (const k in e) p[k] = clamp(p[k] + e[k], 0, 100);
   if (it.weight) p.weight = clamp(p.weight + it.weight, 15, 100);
   p.affection = clamp(p.affection + 3, 0, 100);
   pandaSay(it.cat === "drink" ? pt("drank") : pt("ate"), 3500);
@@ -10667,6 +10706,12 @@ function renderPandaDebugInfo() {
   document.querySelectorAll("[data-learn]").forEach(b => b.addEventListener("click", () => startLearnSession(parseInt(b.dataset.learn))));
   on("btnPandaLearnCancel", cancelLearnSession);
   on("btnPandaRotate", () => { if (window.Panda3D) window.Panda3D.rotateSelected(); });
+  // Kamera në stil Sims: rrotullim 360°, zoom, kthim në pamjen fillestare
+  on("camRotL",   () => { if (window.Panda3D) window.Panda3D.camRotate(+Math.PI / 8); });
+  on("camRotR",   () => { if (window.Panda3D) window.Panda3D.camRotate(-Math.PI / 8); });
+  on("camZoomIn", () => { if (window.Panda3D) window.Panda3D.camZoom(0.8); });
+  on("camZoomOut",() => { if (window.Panda3D) window.Panda3D.camZoom(1.25); });
+  on("camReset",  () => { if (window.Panda3D) window.Panda3D.camReset(); });
   on("btnPandaDelete", () => { if (window.Panda3D) { const id = window.Panda3D.getSelected(); if (id) { window.Panda3D.selectInstance(null); pandaRemove(id); } } });
   on("btnPandaDone", () => { if (window.Panda3D) window.Panda3D.selectInstance(null); });
   on("pandaName", () => {
@@ -11347,7 +11392,7 @@ async function init(container, api) {
   if (S) return true;
   try {
     const scene = new THREE.Scene(); scene.background = new THREE.Color(0xfdf2f8);
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 60);
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 60);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -11373,14 +11418,21 @@ async function init(container, api) {
           ai: { state: "idle", target: null, timer: 1.5, use: null, speed: 0.55 },
           anim: { name: "idle", t: 0 }, growth: 1, dragging: null, lastT: performance.now(), lastFlush: 0 };
 
-    // KAMERA: OrbitControls (mouse + touch), me kufij që të mos dalë nga dhoma
-    camera.position.set(2.0, 2.2, 3.6);
+    // KAMERA në stil "Sims": diagonale nga lart (≈42° mbi horizont, 45° anash), e përqendruar te DHOMA
+    // (jo te pandaja), 360° rrotullim i lirë + zoom. Muret e pasme janë njëanëshe → nga pas bëhen të padukshme
+    // vetvetiu (efekti "cutaway" i Sims), kështu s'bllokojnë kurrë pamjen.
+    const CAM_HOME = { dist: 11, polar: 0.84, azim: Math.PI / 4, target: new THREE.Vector3(0, 0.45, 0) };
+    const placeCam = (dist, polar, azim) => {
+      camera.position.set(CAM_HOME.target.x + dist * Math.sin(polar) * Math.sin(azim), CAM_HOME.target.y + dist * Math.cos(polar), CAM_HOME.target.z + dist * Math.sin(polar) * Math.cos(azim));
+    };
+    placeCam(CAM_HOME.dist, CAM_HOME.polar, CAM_HOME.azim);
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, 1.0, 0);
+    controls.target.copy(CAM_HOME.target);
     controls.enableDamping = true; controls.dampingFactor = 0.08;
-    controls.minDistance = 1.2; controls.maxDistance = 11;
-    controls.minPolarAngle = 0.35; controls.maxPolarAngle = 1.35;   // as nga poshtë dyshemesë, as nga lart-plotësisht
+    controls.minDistance = 2.5; controls.maxDistance = 16;
+    controls.minPolarAngle = 0.25; controls.maxPolarAngle = 1.25;   // nga pothuaj-lart deri ~18° mbi dysheme, kurrë nën të
     controls.screenSpacePanning = false; controls.panSpeed = 0.6; controls.rotateSpeed = 0.7;
+    S._camHome = CAM_HOME; S._placeCam = placeCam;
     controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
     controls.addEventListener("change", () => { S._camDirty = true; });
     S.controls = controls;
@@ -11454,6 +11506,23 @@ function findFreeSpot(item) {
     if (!collides(x, z, (item.size || 0.8) / 2 + 0.3, placed, null)) return { x, z };
   }
   return { x: 0, z: 0 };
+}
+// Kontrollon nëse pandaja AKTUALISHT ndodhet brenda zonës së përplasjes së ndonjë moblje dhe,
+// nëse po, e shtyn gradualisht jashtë saj (drejtimi larg qendrës së objektit që e bllokon).
+function unstickFromFurniture(dt) {
+  const st = S.api.getState(); const placed = st.placed || []; const px = S.panda.position.x, pz = S.panda.position.z;
+  for (const f of placed) {
+    const it = S.api.items.find(i => i.id === f.type); if (!it || it.flat || it.wall || it.consumable) continue;
+    const rr = (it.size || 0.8) / 2 + 0.35;
+    const ddx = px - f.position.x, ddz = pz - f.position.z, dist = Math.hypot(ddx, ddz);
+    if (dist < rr) {
+      const push = (rr - dist) + 0.02;
+      const dirx = dist > 0.001 ? ddx / dist : Math.sin(S.panda.rotation.y), dirz = dist > 0.001 ? ddz / dist : Math.cos(S.panda.rotation.y);
+      S.panda.position.x = clamp(px + dirx * push, -BX(), BX());
+      S.panda.position.z = clamp(pz + dirz * push, -BZ(), BZ());
+      return;   // një objekt në herë mjafton; kuadrot e ardhshëm rikontrollojnë
+    }
+  }
 }
 function collides(x, z, r, placed, ignoreId) {
   for (const f of placed) {
@@ -11560,7 +11629,8 @@ function targetFor(use, st) {
   if (use === "eat" || use === "drink") {
     const cat = use === "eat" ? "food" : "drink";
     const f = placed.find(x => { const it = S.api.items.find(i => i.id === x.type); return it && it.consumable && it.cat === cat; }); if (!f) return null;
-    return { x: clamp(f.position.x, -BX(), BX()), z: clamp(f.position.z + 0.35, -BZ(), BZ()), id: f.id };
+    const it = S.api.items.find(i => i.id === f.type); const off = Math.max(0.35, (it.size || 0.4) / 2 + 0.15);
+    return { x: clamp(f.position.x, -BX(), BX()), z: clamp(f.position.z + off, -BZ(), BZ()), id: f.id };
   }
   const map = { sleep: "bed", toilet: "toilet", bath: "bathtub", rest: "sofa", desk: "desk", toy: has("ball") ? "ball" : "teddy" };
   const f = placed.find(x => x.type === map[use]); if (!f) return null;
@@ -11580,24 +11650,40 @@ function aiStep(dt) {
   S.moveTempo = (st.energy < 30 || st.weight > 75) ? 0.7 : 1.0;
   const gs = S.growthScale || 1;
   ai.speed = CLIP_GROUND_SPEED[S.anim.name === "run" ? "run" : "walk"] * gs * S.moveTempo * 0.9;
+  // Vetëçlirim: nëse pozicioni AKTUAL i pandës bie brenda zonës së përplasjes së ndonjë mobilje
+  // (p.sh. mbeti "brenda" një objekti nga një gabim i mëparshëm), e nxjerrim jashtë ÇDO KADER,
+  // pavarësisht gjendjes së AI-së — kështu pandaja s'mbetet KURRË e bllokuar brenda një objekti.
+  unstickFromFurniture(dt);
   if (ai.state === "seek" || ai.state === "wander") {
     if (!ai.target) { ai.state = "idle"; ai.timer = 1; return; }
     const dx = ai.target.x - S.panda.position.x, dz = ai.target.z - S.panda.position.z, d = Math.hypot(dx, dz);
-    if (d < 0.12) {
+    if (d < 0.15) {
       if (ai.state === "seek" && ai.use) { arrive(ai.use); } else { ai.state = "idle"; ai.timer = 1.5 + Math.random() * 3; setAnim("idle"); }
       ai.target = null; flush(); return;
     }
-    // Shmangie e thjeshtë: nëse hapi tjetër bie mbi një mobilie, devijo anash (majtas/djathtas)
-    let nx = dx / d, nz = dz / d;
+    const desiredX = dx / d, desiredZ = dz / d;
     const step = ai.speed * dt;
     const placed = st.placed || [];
     const targetId = ai.target.id || null;
     const blocked = (x, z) => collides(x, z, 0.35, placed, targetId);
-    if (blocked(S.panda.position.x + nx * step * 4, S.panda.position.z + nz * step * 4)) {
-      const cands = [[nz, -nx], [-nz, nx]];  // pingul majtas/djathtas
-      const ok = cands.find(([cx, cz]) => !blocked(S.panda.position.x + cx * step * 6, S.panda.position.z + cz * step * 6));
-      if (ok) { nx = (nx + ok[0] * 1.5); nz = (nz + ok[1] * 1.5); const l = Math.hypot(nx, nz); nx /= l; nz /= l; }
-      else { ai.state = "idle"; ai.timer = 1; ai.target = null; setAnim("idle"); return; }
+    // Shmangie fanor: provo drejtimin e dëshiruar, pastaj gjithnjë e më larg prej tij në të dyja anët
+    // (±20°, ±40°, ... deri ±160°) — jo vetëm 2 kandidatë fiks, që pandaja të gjejë gjithmonë një rrugë
+    // të lirë nëse ekziston, në vend që të "dorëzohet" tek pengesat e para.
+    const lookAhead = Math.max(step * 1.6, 0.18);
+    let nx = desiredX, nz = desiredZ, found = !blocked(S.panda.position.x + nx * lookAhead, S.panda.position.z + nz * lookAhead);
+    if (!found) {
+      const baseAngle = Math.atan2(desiredX, desiredZ);
+      for (let deg = 20; deg <= 160 && !found; deg += 20) {
+        for (const sign of [1, -1]) {
+          const a = baseAngle + sign * deg * Math.PI / 180;
+          const cx = Math.sin(a), cz = Math.cos(a);
+          if (!blocked(S.panda.position.x + cx * lookAhead, S.panda.position.z + cz * lookAhead)) { nx = cx; nz = cz; found = true; break; }
+        }
+      }
+    }
+    if (!found) {
+      // Asnjë drejtim i lirë (rast shumë i rrallë): provo një cak të ri të rastësishëm, mos ngri pandaly
+      ai.state = "idle"; ai.timer = 0.4; ai.target = null; setAnim("idle"); return;
     }
     S.panda.position.x = clamp(S.panda.position.x + nx * step, -BX(), BX());
     S.panda.position.z = clamp(S.panda.position.z + nz * step, -BZ(), BZ());
@@ -11605,7 +11691,12 @@ function aiStep(dt) {
     setAnim(ai.state === "seek" && (ai.use === "toy" || ai.use === "rest") && S.panda.userData.rig && S.panda.userData.rig.clips.run ? "run" : "walk");
     return;
   }
-  if (ai.state === "busy") { ai.timer -= dt; if (ai.timer <= 0) { ai.state = "idle"; ai.timer = 1; st._sleeping = false; setAnim("idle"); if (ai.onDone) { const f = ai.onDone; ai.onDone = null; f(); } } return; }
+  if (ai.state === "busy") {
+    ai.timer -= dt;
+    if (ai.onTick) ai.onTick(dt);
+    if (ai.timer <= 0) { ai.state = "idle"; ai.timer = 1; st._sleeping = false; setAnim("idle"); ai.onTick = null; if (ai.onDone) { const f = ai.onDone; ai.onDone = null; f(); } }
+    return;
+  }
   if (ai.state === "sleep") {
     st._sleeping = true; setAnim("sleep");
     // Zgjohet: kur lojtari e zgjon (shouldSleep→false), ose ditën kur ka fjetur mjaftueshëm
@@ -11636,12 +11727,17 @@ function arrive(use) {
     ai.state = "sleep"; setAnim("sleep"); return;
   }
   if (use === "eat" || use === "drink") {
-    // Kthehu drejt ushqimit, ha 3 s, pastaj ushqimi zhduket dhe nevoja plotësohet
+    // Kthehu drejt ushqimit; kohëzgjatja varet nga çmimi i artikullit (më i shtrenjtë → më gjatë).
+    // Gjatë GJITHË kohës thirret onConsumeTick, që shiriti i urisë/etjes të mbushet gradualisht.
     const o = targetId && S.furn[targetId]; if (o) S.panda.rotation.y = Math.atan2(o.position.x - S.panda.position.x, o.position.z - S.panda.position.z);
-    setAnim(use); ai.state = "busy"; ai.timer = 3; ai.onDone = () => S.api.onArrive(use, targetId); return;
+    const total = (S.api.getConsumeDuration && targetId) ? S.api.getConsumeDuration(targetId) : 3;
+    setAnim(use); ai.state = "busy"; ai.timer = total;
+    ai.onTick = (dt) => { if (S.api.onConsumeTick) S.api.onConsumeTick(use, targetId, dt, total); };
+    ai.onDone = () => S.api.onArrive(use, targetId);
+    return;
   }
   const anims = { toilet: "sit", bath: "bath", rest: "sit", desk: "sit", toy: "play" };
-  setAnim(anims[use] || "idle"); ai.state = "busy"; ai.timer = use === "rest" ? 8 : use === "desk" ? 8 : use === "toy" ? 6 : 3;
+  setAnim(anims[use] || "idle"); ai.state = "busy"; ai.timer = use === "rest" ? 8 : use === "desk" ? 8 : use === "toy" ? 20 : use === "bath" ? 18 : 3;
   if (["toilet", "food", "water", "bath"].includes(use)) S.api.onArrive(use);
 }
 function goUse(use) { const st = S.api.getState(); const t = targetFor(use, st); if (t) { S.ai.state = "seek"; S.ai.use = use; S.ai.target = t; } else doAction(use === "bath" ? "bath" : "sit"); }
@@ -11682,7 +11778,7 @@ function wakeUpMove() {
   S.wakeAwayPos = null;
 }
 function setGrowth(stage) { if (!S) return; S.growth = stage; const s = GROWTH_HEIGHTS[clamp(stage, 1, 10) - 1] / 2.2; S.growthScale = s;
-  if (S.controls) { S.controls.target.set(0, 0.95 * s, 0); S.controls.minDistance = 1.2; } S.panda.scale.setScalar(s); S.panda.userData.baseScale = s; }
+  S.panda.scale.setScalar(s); S.panda.userData.baseScale = s; }
 
 /* ---------- FX: zemra ---------- */
 function hearts() {
@@ -11720,7 +11816,24 @@ function loop() {
 }
 function syncState() { flush(); }
 
-window.Panda3D = { init, syncFurniture, findFreeSpot, findSpotNearPanda, doAction, goUse, hearts, setGrowth, rotateSelected, syncState, flush, restorePanda, selectInstance, getSelected };
+// Kamera (butonat në ekran): rrotullim me hap, zoom me hap, kthim në pamjen fillestare — të gjitha me damping.
+function camRotate(deltaAzim) {
+  if (!S || !S.controls) return;
+  const c = S.controls, off = S.camera.position.clone().sub(c.target);
+  const sph = new THREE.Spherical().setFromVector3(off); sph.theta += deltaAzim;
+  S.camera.position.copy(c.target).add(new THREE.Vector3().setFromSpherical(sph)); c.update(); S._camDirty = true;
+}
+function camZoom(factor) {
+  if (!S || !S.controls) return;
+  const c = S.controls, off = S.camera.position.clone().sub(c.target);
+  const d = clamp(off.length() * factor, c.minDistance, c.maxDistance);
+  S.camera.position.copy(c.target).add(off.setLength(d)); c.update(); S._camDirty = true;
+}
+function camReset() {
+  if (!S || !S.controls || !S._camHome) return;
+  S.controls.target.copy(S._camHome.target); S._placeCam(S._camHome.dist, S._camHome.polar, S._camHome.azim); S.controls.update(); S._camDirty = true;
+}
+window.Panda3D = { init, syncFurniture, findFreeSpot, findSpotNearPanda, doAction, goUse, hearts, setGrowth, rotateSelected, syncState, flush, restorePanda, selectInstance, getSelected, camRotate, camZoom, camReset };
 </script>
 
 </body>
