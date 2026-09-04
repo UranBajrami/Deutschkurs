@@ -9972,10 +9972,14 @@ const PANDA_ITEMS = [
   { id:"bamboo",  cat:"food",  emoji:"🎋", cost:180,  placed:true, consumable:true, size:0.35, effect:{hunger:+40, mood:+6}, weight:+1.0 },
   { id:"cake",    cat:"food",  emoji:"🍰", cost:400,  placed:true, consumable:true, size:0.35, effect:{hunger:+60, mood:+16}, weight:+3.0 },
   { id:"apple",   cat:"food",  emoji:"🍕", cost:800,  placed:true, consumable:true, size:0.45, effect:{hunger:+80, mood:+20}, weight:+4.0 },
+  { id:"burger",  cat:"food",  emoji:"🍔", cost:800,  placed:true, consumable:true, size:0.42, effect:{hunger:+80, mood:+20}, weight:+4.0 },
+  { id:"wings",   cat:"food",  emoji:"🍗", cost:400,  placed:true, consumable:true, size:0.45, effect:{hunger:+60, mood:+16}, weight:+3.0 },
+  { id:"taco",    cat:"food",  emoji:"🌮", cost:180,  placed:true, consumable:true, size:0.40, effect:{hunger:+40, mood:+8},  weight:+1.5 },
   // 🥤 Pije
-  { id:"water",   cat:"drink", emoji:"💧", cost:20,   placed:true, consumable:true, size:0.3,  effect:{thirst:+10} },
-  { id:"milk",    cat:"drink", emoji:"🥛", cost:60,   placed:true, consumable:true, size:0.3,  effect:{thirst:+20, energy:+4} },
-  { id:"juice",   cat:"drink", emoji:"🧃", cost:180,  placed:true, consumable:true, size:0.3,  effect:{thirst:+40, mood:+8}, weight:+0.5 },
+  { id:"water",   cat:"drink", emoji:"💧", cost:20,   placed:true, consumable:true, size:0.30, effect:{thirst:+10} },
+  { id:"juice",   cat:"drink", emoji:"🧃", cost:180,  placed:true, consumable:true, size:0.30, effect:{thirst:+40, mood:+8}, weight:+0.5 },
+  { id:"milk",    cat:"drink", emoji:"🥤", cost:400,  placed:true, consumable:true, size:0.30, effect:{thirst:+60, mood:+14}, weight:+2.0 },
+  { id:"icecoffee",cat:"drink",emoji:"🧋", cost:800,  placed:true, consumable:true, size:0.32, effect:{thirst:+80, mood:+18, energy:+10}, weight:+2.5 },
   // 🧼 Kujdes
   { id:"soap",    cat:"care",  emoji:"🧼", cost:40,  effect:{hygiene:+50, mood:+4} },
   { id:"medicine",cat:"care",  emoji:"💊", cost:120, effect:{health:+40} },
@@ -10450,13 +10454,13 @@ const PANDA_TEXT = {
 function pt(key) { const L = PANDA_TEXT[menuLang] || PANDA_TEXT.sq; return L[key] !== undefined ? L[key] : (PANDA_TEXT.sq[key] || key); }
 
 const PANDA_ITEM_NAMES = {
-  sq: { apple:"Mollë", bamboo:"Bambu", cake:"Tortë", salad:"Sallatë", water:"Ujë", juice:"Lëng", milk:"Qumësht", soap:"Sapun", medicine:"Ilaç",
+  sq: { apple:"Pica", burger:"Hamburger", wings:"Krahë pule", taco:"Tako", bamboo:"Bambu", cake:"Tortë", salad:"Sallatë", water:"Ujë", juice:"Lëng", milk:"Milkshake", icecoffee:"Kafe e ftohtë", soap:"Sapun", medicine:"Ilaç",
         ball:"Top", teddy:"Arush pelushi", bowl:"Enë ushqimi", wbowl:"Enë uji", bed:"Krevat", sofa:"Divan", toilet:"Tualet", bathtub:"Vaskë",
         table:"Tavolinë", desk:"Tryezë pune", shelf:"Raft librash", wardrobe:"Dollap", plant:"Bimë", lamp:"Llambë", rug:"Qilim", picture:"Pikturë" },
-  de: { apple:"Apfel", bamboo:"Bambus", cake:"Kuchen", salad:"Salat", water:"Wasser", juice:"Saft", milk:"Milch", soap:"Seife", medicine:"Medizin",
+  de: { apple:"Pizza", burger:"Burger", wings:"Chicken Wings", taco:"Taco", bamboo:"Bambus", cake:"Kuchen", salad:"Salat", water:"Wasser", juice:"Saft", milk:"Milchshake", icecoffee:"Eiskaffee", soap:"Seife", medicine:"Medizin",
         ball:"Ball", teddy:"Teddy", bowl:"Futternapf", wbowl:"Wassernapf", bed:"Bett", sofa:"Sofa", toilet:"Toilette", bathtub:"Badewanne",
         table:"Tisch", desk:"Schreibtisch", shelf:"Bücherregal", wardrobe:"Schrank", plant:"Pflanze", lamp:"Lampe", rug:"Teppich", picture:"Bild" },
-  en: { apple:"Apple", bamboo:"Bamboo", cake:"Cake", salad:"Salad", water:"Water", juice:"Juice", milk:"Milk", soap:"Soap", medicine:"Medicine",
+  en: { apple:"Pizza", burger:"Burger", wings:"Chicken wings", taco:"Taco", bamboo:"Bamboo", cake:"Cake", salad:"Salad", water:"Water", juice:"Juice", milk:"Milkshake", icecoffee:"Iced coffee", soap:"Soap", medicine:"Medicine",
         ball:"Ball", teddy:"Teddy bear", bowl:"Food bowl", wbowl:"Water bowl", bed:"Bed", sofa:"Sofa", toilet:"Toilet", bathtub:"Bathtub",
         table:"Table", desk:"Desk", shelf:"Bookshelf", wardrobe:"Wardrobe", plant:"Plant", lamp:"Lamp", rug:"Rug", picture:"Picture" }
 };
@@ -11016,6 +11020,11 @@ const ASSETS = {
   // Ushqim/pije: modelet e përdoruesit vendosen këtu si .glb; përndryshe placeholder procedural
   // "apple" perdor modelin real te dorezuar nga perdoruesi (pica) — perpjestim real ndaj pandes/dhomes.
   apple: { glb: "models/food/pizza.glb", textures: { map: "models/food/pizza_basecolor.jpg" } },
+  burger: { glb: "models/food/burger.glb", textures: { map: "models/food/burger_basecolor.jpg" } },
+  wings: { glb: "models/food/wings.glb", textures: { map: "models/food/wings_basecolor.jpg", normalMap: "models/food/wings_normal.jpg", roughnessMap: "models/food/wings_roughness.jpg" } },
+  taco: { glb: "models/food/taco.glb", textures: { map: "models/food/taco_basecolor.jpg", normalMap: "models/food/taco_normal.jpg", roughnessMap: "models/food/taco_roughness.jpg" } },
+  milk: { glb: "models/food/milkshake.glb", textures: { map: "models/food/milkshake_basecolor.jpg", normalMap: "models/food/milkshake_normal.jpg", roughnessMap: "models/food/milkshake_roughness.jpg" } },
+  icecoffee: { glb: "models/food/icecoffee.glb", textures: { map: "models/food/icecoffee_basecolor.jpg", normalMap: "models/food/icecoffee_normal.jpg", roughnessMap: "models/food/icecoffee_roughness.jpg" } },
   bamboo: { glb: null }, cake: { glb: null }, salad: { glb: null }, water: { glb: null }, juice: { glb: null }, milk: { glb: null },
   bed:      { glb: "models/bed/bed.glb", textures: { map: "models/bed/bed_basecolor.jpg", normalMap: "models/bed/bed_normal.jpg", roughnessMap: "models/bed/bed_roughness.jpg" }, sleepTop: 0.42 },   // modeli i përdoruesit
   sofa:     { glb: null, placeholder: "PLACEHOLDER_SOFA" },
