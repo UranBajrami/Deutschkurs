@@ -11096,257 +11096,11 @@ function plasterTexture(color) {
     for (let i = 0; i < 4000; i++) { ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.08})`; ctx.fillRect(Math.random() * w, Math.random() * h, 1.5, 1.5); }
   }, 4, 2);
 }
-function buildProceduralRoom(scene) {   // rezervë: vetëm nëse modeli i shtëpisë s'ngarkohet
-  const wood = woodTexture(); const plasterA = plasterTexture("#f1e4e9"), plasterB = plasterTexture("#e4ebf3");
-  const floorMat = wood ? new THREE.MeshStandardMaterial({ map: wood, roughness: 0.55, metalness: 0 }) : mat(PASTEL.floor, { roughness: 0.6 });
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.d), floorMat);
-  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; floor.name = "floor"; scene.add(floor);
-  // Muret
-  const wallMatA = plasterA ? new THREE.MeshStandardMaterial({ map: plasterA, roughness: 0.95 }) : mat(PASTEL.wall);
-  const wallMatB = plasterB ? new THREE.MeshStandardMaterial({ map: plasterB, roughness: 0.95 }) : mat(PASTEL.wall2);
-  const back = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.h), wallMatA); back.position.set(0, ROOM.h / 2, -HALF_D); back.receiveShadow = true; scene.add(back);
-  const left = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.d, ROOM.h), wallMatB); left.rotation.y = Math.PI / 2; left.position.set(-HALF_W, ROOM.h / 2, 0); left.receiveShadow = true; scene.add(left);
-  // Tavani (i hollë, vetëm sipër, që kamera nga lart të mos shohë zbrazëti)
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.d), new THREE.MeshStandardMaterial({ color: 0xfaf7f2, roughness: 1, side: THREE.BackSide }));
-  ceil.rotation.x = Math.PI / 2; ceil.position.y = ROOM.h; ceil.rotation.x = -Math.PI / 2; ceil.material.side = THREE.BackSide; scene.add(ceil);
-  // Plintat + kornizat e tavanit
-  const trim = mat(0xffffff, { roughness: 0.5 });
-  const sk1 = new THREE.Mesh(new THREE.BoxGeometry(ROOM.w, 0.14, 0.06), trim); sk1.position.set(0, 0.07, -HALF_D + 0.03); sk1.castShadow = true; scene.add(sk1);
-  const sk2 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.14, ROOM.d), trim); sk2.position.set(-HALF_W + 0.03, 0.07, 0); sk2.castShadow = true; scene.add(sk2);
-  const cr1 = new THREE.Mesh(new THREE.BoxGeometry(ROOM.w, 0.1, 0.08), trim); cr1.position.set(0, ROOM.h - 0.05, -HALF_D + 0.04); scene.add(cr1);
-  const cr2 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.1, ROOM.d), trim); cr2.position.set(-HALF_W + 0.04, ROOM.h - 0.05, 0); scene.add(cr2);
-  // Dritarja (mur i pasmë): kornizë, 4 xhama, parvaz, qiell jashtë
-  const winG = new THREE.Group(); winG.position.set(1.7, 1.95, -HALF_D + 0.02); scene.add(winG);
-  const sky = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 1.3), new THREE.MeshBasicMaterial({ color: 0xbfe3ff })); sky.position.z = -0.03; winG.add(sky);
-  const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xdff2ff, transparent: true, opacity: 0.35, roughness: 0.05, transmission: 0.2 });
-  [[-0.42, 0.32], [0.42, 0.32], [-0.42, -0.32], [0.42, -0.32]].forEach(([x, y]) => { const p = new THREE.Mesh(new THREE.PlaneGeometry(0.78, 0.58), glassMat); p.position.set(x, y, 0); winG.add(p); });
-  const frameMat = trim;
-  [[0, 0.66, 1.84, 0.08], [0, -0.66, 1.84, 0.08], [-0.88, 0, 0.08, 1.4], [0.88, 0, 0.08, 1.4], [0, 0, 0.06, 1.4], [0, 0, 1.84, 0.06]].forEach(([x, y, w, hh]) => { const f = new THREE.Mesh(new THREE.BoxGeometry(w, hh, 0.07), frameMat); f.position.set(x, y, 0.02); winG.add(f); });
-  const sill = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.06, 0.22), frameMat); sill.position.set(0, -0.72, 0.08); sill.castShadow = true; winG.add(sill);
-  // Dera (mur i majtë)
-  const doorG = new THREE.Group(); doorG.position.set(-HALF_W + 0.03, 1.05, 1.6); doorG.rotation.y = Math.PI / 2; scene.add(doorG);
-  const door = new THREE.Mesh(new THREE.BoxGeometry(0.95, 2.1, 0.05), mat(0xf7f3ee, { roughness: 0.6 })); doorG.add(door);
-  [[0, 0.55], [0, -0.35]].forEach(([x, y]) => { const pnl = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.7, 0.02), mat(0xece6df)); pnl.position.set(x, y, 0.03); doorG.add(pnl); });
-  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8, roughness: 0.3 })); knob.position.set(0.38, -0.02, 0.05); doorG.add(knob);
-  const dframe = new THREE.Mesh(new THREE.BoxGeometry(1.08, 2.2, 0.03), trim); dframe.position.z = -0.02; doorG.add(dframe);
-  // Drita e tavanit (llambadar i thjeshtë) + dritë e butë
-  const lampG = new THREE.Group(); lampG.position.set(0, ROOM.h - 0.02, 0); scene.add(lampG);
-  const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.4, 6), mat(0x333333)); cord.position.y = -0.2; lampG.add(cord);
-  const shade = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.22, 24, 1, true), new THREE.MeshStandardMaterial({ color: 0xfff1cc, emissive: 0xffe9b0, emissiveIntensity: 0.5, side: THREE.DoubleSide })); shade.position.y = -0.5; lampG.add(shade);
-  const bulb = new THREE.PointLight(0xfff0d6, 6, 9, 1.6); bulb.position.set(0, ROOM.h - 0.6, 0); bulb.castShadow = false; scene.add(bulb);
-  // Dritë nga dritarja (e butë, e kaltërremë)
-  const winLight = new THREE.RectAreaLight ? null : null;
-  const fill = new THREE.PointLight(0xcfe8ff, 2.5, 7, 1.5); fill.position.set(1.7, 1.9, -HALF_D + 0.4); scene.add(fill);
-}
-
-/* ---------- Normalizim i modeleve GLB të mobilieve/ushqimit: përshtat madhësinë dhe vendos në dysheme ---------- */
-async function applyAssetTextures(root, id) {
-  const tx = ASSETS[id] && ASSETS[id].textures; if (!tx) return;
-  const [map, normalMap, roughnessMap] = await Promise.all([tx.map ? loadTex(tx.map, true) : null, tx.normalMap ? loadTex(tx.normalMap, false) : null, tx.roughnessMap ? loadTex(tx.roughnessMap, false) : null]);
-  root.traverse(o => { if (o.isMesh) o.material = new THREE.MeshStandardMaterial({ map, normalMap, roughnessMap, roughness: 1, metalness: 0, normalScale: new THREE.Vector2(0.7, 0.7) }); });
-}
-function normalizeFurnitureModel(root, id) {
-  const item = (S && S.api.items.find(i => i.id === id)) || ASSETS[id] || {};
-  root.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material && o.material.map) o.material.map.colorSpace = THREE.SRGBColorSpace; } });
-  const bb = new THREE.Box3().setFromObject(root); const size = bb.getSize(new THREE.Vector3()); const center = bb.getCenter(new THREE.Vector3());
-  const target = item.size || 0.8; const footprint = Math.max(size.x, size.z) || 1;
-  const s = target / footprint;
-  const g = new THREE.Group(); g.name = "MODEL_" + id;
-  root.scale.setScalar(s); root.position.set(-center.x * s, -bb.min.y * s, -center.z * s);   // qendër në x/z, këmbët në y=0
-  g.userData.topY = size.y * s; g.add(root); return g;
-}
-
-/* ---------- SHPREHJET (rig pa blendshapes): vetëm lotët dhe Zzz si overlay; pjesa tjetër vjen nga klipet/poza ---------- */
-const EXPR_PRESETS = { sad: { tears: 0.6 }, lonely: { tears: 0.3 }, sick: { tears: 0.2 }, urgent: { tears: 0.2 } };
-
-/* ---------- PANDA ME RIG (GLB me skelet + klipe) — PandaRigController ----------
-   Modeli: models/panda/panda_rig.glb (24 bones, emra standardë Mixamo: Hips, Spine, Head, LeftArm...).
-   KLIPET: çdo gjendje mund të ketë një klip të vërtetë (ASSETS.panda.clips[state] = "skedar.glb/.fbx").
-   Nëse mungon, përdoret animacion PROCEDURAL mbi kockat (rigProc) — pra pandaja lëviz gjithmonë.
-   SHPREHJET: pa morph targets → koka (rrotullim), faqet, lotët, Zzz të bashkëngjitura te Head-bone,
-   dhe klipi "stomp" kur ka uri/është i zemëruar (kërkesë e lojës). */
-const RIG_TEX = { map: "models/panda/panda_basecolor.jpg", normalMap: "models/panda/panda_normal.jpg", roughnessMap: "models/panda/panda_roughness.jpg" };
-const RIG_STATE_CLIPS = { hungry: "stomp", angry: "stomp", lonely: "help", sad: "help" };   // emocion → klip reagimi (herë pas here)
-// gjendje e lojës → emri i klipit (nëse gjendja s'ka klip me të njëjtin emër)
-const RIG_STATE_ALIAS = { play: "dance", rest: "sit", tired: "sit" };
-const RIG_ONCE = new Set(["greeting", "cheer", "sit", "stomp", "help", "surprised"]);   // luhen një herë; të tjerat në lak
-const RIG_SPEED = () => ({ walk: 0.9 * (S.moveTempo || 1), run: 0.9 * (S.moveTempo || 1) });
-const texLoader = new THREE.TextureLoader();
-
-function loadTex(url, srgb) {
-  return new Promise((res) => texLoader.load(url, (t) => { if (!t) return res(null); t.flipY = true; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; res(t); }, undefined, () => res(null)));
-}
-
-async function buildPandaFromRig(gltf) {
-  const root = gltf.scene; let skin = null;
-  root.traverse(o => { if (o.isSkinnedMesh) skin = o; });
-  if (!skin) return null;
-  const [map, normalMap, roughnessMap] = await Promise.all([loadTex(RIG_TEX.map, true), loadTex(RIG_TEX.normalMap, false), loadTex(RIG_TEX.roughnessMap, false)]);
-  skin.material = new THREE.MeshStandardMaterial({ map, normalMap, roughnessMap, roughness: 1, metalness: 0, color: 0xffffff, normalScale: new THREE.Vector2(0.8, 0.8) });
-  skin.castShadow = true; skin.receiveShadow = true; skin.frustumCulled = false;
-
-  const g = new THREE.Group(); g.name = "PANDA_RIG"; g.add(root);
-  const bones = {}; skin.skeleton.bones.forEach(b => { bones[b.name] = b; });
-  const rest = {}; skin.skeleton.bones.forEach(b => { rest[b.name] = { q: b.quaternion.clone(), p: b.position.clone() }; });
-  const mixer = new THREE.AnimationMixer(root);
-  const clips = {}; gltf.animations.forEach(c => { clips[c.name.toLowerCase()] = c; });
-
-  // ---- Overlay-et e shprehjeve te Head-bone (koordinata në cm, sepse rrënja skalohet 0.0132) ----
-  root.updateMatrixWorld(true);
-  const head = bones.Head || bones.head;
-  const worldToHead = (x, y, z) => { const p = new THREE.Vector3(x, y, z); head.worldToLocal(p); return p; };
-  const cmScale = 1 / head.getWorldScale(new THREE.Vector3()).x;    // ~75.7: 1 njësi bote = 75.7 njësi kocke
-  const mkOverlay = (mesh, wx, wy, wz) => { mesh.position.copy(worldToHead(wx, wy, wz)); mesh.scale.multiplyScalar(cmScale); head.add(mesh); return mesh; };
-  const tearMat = new THREE.MeshPhysicalMaterial({ color: 0x8fd3ff, transparent: true, opacity: 0.85, clearcoat: 1 });
-  const tearL = mkOverlay(new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), tearMat), -0.24, 1.72, 0.52); tearL.scale.multiply(new THREE.Vector3(0.8, 1.3, 0.6)); tearL.visible = false;
-  const tearR = mkOverlay(new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), tearMat), 0.24, 1.72, 0.52); tearR.scale.multiply(new THREE.Vector3(0.8, 1.3, 0.6)); tearR.visible = false;
-  const zzz = new THREE.Group(); [0, 0.14, 0.28].forEach((y, i) => { const z = new THREE.Mesh(new THREE.TorusGeometry(0.03 + i * 0.012, 0.01, 6, 10), pbrMat(0x9fb3ff)); z.position.set(i * 0.06, y, 0); zzz.add(z); });
-  mkOverlay(zzz, 0.5, 2.35, 0); zzz.visible = false;
-
-  g.userData.rig = { root, skin, bones, rest, mixer, clips, current: null, currentName: null, overlays: { tearL, tearR, zzz }, t: 0 };
-  g.userData.expr = { tears: 0 };
-  return g;
-}
-
-// Ngarkon klipe shtesë (GLB ose FBX) me të njëjtin skelet dhe i regjistron sipas emrit të gjendjes
-async function loadExtraClips(rig) {
-  const extra = (ASSETS.panda && ASSETS.panda.clips) || {};
-  for (const state in extra) {
-    const url = extra[state];
-    try {
-      let anims = [];
-      if (/\.fbx$/i.test(url)) { const { FBXLoader } = await import("three/addons/loaders/FBXLoader.js"); const o = await new Promise((r, j) => new FBXLoader().load(url, r, undefined, j)); anims = o.animations; }
-      else { const gl = await new Promise((r, j) => loader.load(url, r, undefined, j)); anims = gl.animations; }
-      if (anims[0]) { const c = anims[0].clone(); c.name = state; rig.clips[state] = c; }
-    } catch (e) { console.warn("Klipi nuk u ngarkua:", state, url); }
-  }
-}
-
-/* ---- Animacioni i rig-ut: klip nëse ka, ndryshe procedural mbi kocka ---- */
-function rigPlayClip(rig, name, opts = {}) {
-  const clip = rig.clips[name]; if (!clip) return false;
-  if (rig.currentName === name && rig.current) return true;
-  const action = rig.mixer.clipAction(clip);
-  action.reset().setLoop(opts.once ? THREE.LoopOnce : THREE.LoopRepeat, Infinity).setEffectiveTimeScale(opts.speed || 1).fadeIn(0.2).play();
-  action.clampWhenFinished = !!opts.once;
-  if (rig.current) rig.current.fadeOut(0.2);
-  rig.current = action; rig.currentName = name;
-  return true;
-}
-function rigStopClip(rig) { if (rig.current) { rig.current.fadeOut(0.15); rig.current = null; rig.currentName = null; } }
-function rigResetPose(rig) { for (const n in rig.rest) { const b = rig.bones[n]; if (b) { b.quaternion.copy(rig.rest[n].q); b.position.copy(rig.rest[n].p); } } }
-
-const _e = new THREE.Euler(), _q = new THREE.Quaternion();
-function rotBone(rig, name, x, y, z) {   // rrotullim shtesë mbi pozën e pushimit (radianë)
-  const b = rig.bones[name]; if (!b) return;
-  _q.setFromEuler(_e.set(x, y, z)); b.quaternion.copy(rig.rest[name].q).multiply(_q);
-}
-
-// Drejton një kockë që "fëmija" i saj të tregojë drejt një drejtimi në hapësirën e botës —
-// pavarësisht nga boshtet lokale të rig-ut (Mixamo, Meshy etj.). Përdoret për krahët.
-const _pw = new THREE.Quaternion(), _tp = new THREE.Vector3(), _dl = new THREE.Vector3();
-function pointBone(rig, name, childName, tx, ty, tz) {
-  const b = rig.bones[name], c = rig.bones[childName]; if (!b || !c) return;
-  b.quaternion.copy(rig.rest[name].q); b.updateWorldMatrix(true, false);
-  b.parent.getWorldQuaternion(_pw);
-  _tp.set(tx, ty, tz).normalize().applyQuaternion(_pw.clone().invert());       // objektivi në hapësirën e prindit
-  _dl.copy(c.position).normalize();                                             // drejtimi i fëmijës në hapësirën e kockës
-  const q = new THREE.Quaternion().setFromUnitVectors(_dl.clone().applyQuaternion(b.quaternion), _tp);
-  b.quaternion.premultiply(q);
-}
-function rigProc(dt, name, em) {
-  const rig = S.panda.userData.rig; const g = S.panda; const st = S.api.getState();
-  rig.t += dt; const t = rig.t;
-  rigResetPose(rig);
-  g.rotation.x = 0; g.rotation.z = 0; g.position.y = 0;
-  const breathe = Math.sin(t * 1.8) * 0.02;
-  const w = (st.weight - 50) / 50;
-  // Pesha: vetëm trupi (Spine/Hips) trashet, jo koka
-  ["Hips","Spine","Spine01","Spine02"].forEach(n => { const b = rig.bones[n]; if (b) b.scale.set(1 + w * 0.12, 1, 1 + w * 0.16); });
-  if (rig.bones.Head) rig.bones.Head.scale.set(1 / (1 + w * 0.12), 1, 1 / (1 + w * 0.16)); // kompenso që koka të mos trashet
-  if (name === "walk") {
-    const s = Math.sin(t * 8);
-    rotBone(rig, "LeftUpLeg", s * 0.55, 0, 0); rotBone(rig, "RightUpLeg", -s * 0.55, 0, 0);
-    rotBone(rig, "LeftLeg", Math.max(0, -s) * 0.6, 0, 0); rotBone(rig, "RightLeg", Math.max(0, s) * 0.6, 0, 0);
-    rotBone(rig, "LeftArm", -s * 0.45, 0, 0); rotBone(rig, "RightArm", s * 0.45, 0, 0);
-    rotBone(rig, "Spine", 0.05, 0, -s * 0.05); rotBone(rig, "Head", 0.05, 0, s * 0.05);
-    g.position.y = Math.abs(s) * 0.03;
-  } else if (name === "sleep") {
-    g.rotation.z = 1.3; g.position.y = -0.15 + Math.sin(t * 1.4) * 0.008; rotBone(rig, "Head", 0.2, 0, 0.15);
-    rotBone(rig, "LeftUpLeg", -0.6, 0, 0); rotBone(rig, "RightUpLeg", -0.6, 0, 0); rotBone(rig, "LeftArm", 0.4, 0, 0.6); rotBone(rig, "RightArm", 0.4, 0, -0.6);
-  } else if (name === "eat" || name === "drink") {
-    rotBone(rig, "Head", 0.28 + Math.sin(t * 9) * 0.1, 0, 0);
-    pointBone(rig, "LeftArm", "LeftForeArm", 0.35, -0.3, 1); pointBone(rig, "RightArm", "RightForeArm", -0.35, -0.3, 1);
-    pointBone(rig, "LeftForeArm", "LeftHand", 0.15, 0.9, 0.5); pointBone(rig, "RightForeArm", "RightHand", -0.15, 0.9, 0.5);
-  } else if (name === "happy" || name === "play") {
-    g.position.y = Math.abs(Math.sin(t * 7)) * 0.18;
-    pointBone(rig, "LeftArm", "LeftForeArm", 0.6, 1, 0.2 + Math.sin(t * 10) * 0.3); pointBone(rig, "RightArm", "RightForeArm", -0.6, 1, 0.2 + Math.sin(t * 10) * 0.3);
-    pointBone(rig, "LeftForeArm", "LeftHand", 0.4, 1, 0); pointBone(rig, "RightForeArm", "RightHand", -0.4, 1, 0);
-    rotBone(rig, "Head", -0.1, 0, Math.sin(t * 6) * 0.15); rotBone(rig, "Spine", 0, Math.sin(t * 3) * 0.2, 0);
-  } else if (name === "greeting") {
-    pointBone(rig, "RightArm", "RightForeArm", -0.9, 0.9, 0.3); pointBone(rig, "RightForeArm", "RightHand", -0.3 - Math.sin(t * 9) * 0.5, 1, 0.2);
-    rotBone(rig, "Head", 0, 0.15, -0.1); g.position.y = breathe;
-  } else if (name === "surprised") {
-    rotBone(rig, "Head", -0.2, 0, 0); pointBone(rig, "LeftArm", "LeftForeArm", 1, 0.2, 0.6); pointBone(rig, "RightArm", "RightForeArm", -1, 0.2, 0.6); g.position.y = Math.max(0, 0.12 - t * 0.3);
-  } else if (name === "sit") {
-    g.position.y = -0.36; rotBone(rig, "LeftUpLeg", -1.4, 0, 0.15); rotBone(rig, "RightUpLeg", -1.4, 0, -0.15); rotBone(rig, "LeftLeg", 1.2, 0, 0); rotBone(rig, "RightLeg", 1.2, 0, 0); rotBone(rig, "Head", 0, Math.sin(t * 0.8) * 0.2, 0);
-  } else if (name === "bath") {
-    g.position.y = -0.2; pointBone(rig, "LeftArm", "LeftForeArm", 0.5, 0.2 + Math.sin(t * 5) * 0.4, 0.8); pointBone(rig, "RightArm", "RightForeArm", -0.5, 0.2 - Math.sin(t * 5) * 0.4, 0.8); rotBone(rig, "Head", 0, 0, Math.sin(t * 2) * 0.1);
-  } else if (name === "tired") {
-    rotBone(rig, "Spine", 0.18, 0, 0); rotBone(rig, "Head", 0.3, 0, 0); g.position.y = breathe;
-  } else { // idle
-    g.position.y = breathe; rotBone(rig, "Spine", Math.sin(t * 1.8) * 0.02, 0, 0);
-    rotBone(rig, "Head", 0, Math.sin(t * 0.7) * 0.3, Math.sin(t * 0.45) * 0.06);
-    rotBone(rig, "LeftArm", 0, 0, Math.sin(t * 1.2) * 0.04); rotBone(rig, "RightArm", 0, 0, -Math.sin(t * 1.2) * 0.04);
-    if (em === "sad" || em === "lonely" || em === "sick") { rotBone(rig, "Head", 0.3, 0, 0); rotBone(rig, "Spine", 0.12, 0, 0); }
-    if (em === "hungry" || em === "thirsty") { rotBone(rig, "Head", 0.12, 0.4, 0); pointBone(rig, "LeftArm", "LeftForeArm", 0.4, -0.3, 0.9); pointBone(rig, "RightArm", "RightForeArm", -0.4, -0.3, 0.9); }
-    if (em === "excited" || em === "happy") { g.position.y = Math.abs(Math.sin(t * 4)) * 0.05; rotBone(rig, "Head", 0, 0, Math.sin(t * 4) * 0.1); }
-    if (em === "urgent") { g.position.y = Math.abs(Math.sin(t * 12)) * 0.025; rotBone(rig, "LeftUpLeg", Math.sin(t * 12) * 0.25, 0, 0); rotBone(rig, "RightUpLeg", -Math.sin(t * 12) * 0.25, 0, 0); }
-  }
-}
-
-function rigAnim(dt) {
-  const rig = S.panda.userData.rig; const em = S.api.getEmotion(); const name = S.anim.name;
-  // 1) Klip i vërtetë për gjendjen? (p.sh. "happy" nëse u ngarkua) ose klip emocioni (uria → stomp)
-  const alias = rig.clips[name] ? name : (RIG_STATE_ALIAS[name] && rig.clips[RIG_STATE_ALIAS[name]] ? RIG_STATE_ALIAS[name] : null);
-  const react = (name === "idle" && RIG_STATE_CLIPS[em] && rig.clips[RIG_STATE_CLIPS[em]] && rig.stompUntil > performance.now()) ? RIG_STATE_CLIPS[em] : null;
-  const wantClip = alias || react;
-  if (wantClip) {
-    const spd = RIG_SPEED()[wantClip] || 1;
-    if (rig.currentName === wantClip && rig.current) rig.current.setEffectiveTimeScale(spd);   // ritmi ndryshon live (lodhje)
-    if (rigPlayClip(rig, wantClip, { once: RIG_ONCE.has(wantClip), speed: spd })) {
-      S.panda.rotation.x = 0; S.panda.rotation.z = 0; S.panda.position.y = (S.ai.state === "sleep" ? (S.sleepY || 0) : 0);   // klipi vendos vetë pozën; mbi krevat qëndron lart
-      rig.mixer.update(dt); rigOverlays(dt, em, name); return;
-    }
-  }
-  if (rig.current) { rigStopClip(rig); rig.mixer.update(dt); rig.mixer.stopAllAction(); }
-  rigProc(dt, name, em);
-  rigOverlays(dt, em, name);
-}
-function rigOverlays(dt, em, name) {
-  const rig = S.panda.userData.rig, O = rig.overlays, E = S.panda.userData.expr;
-  const preset = EXPR_PRESETS[em] || { tears: 0 };
-  const k = Math.min(1, dt * 5); E.tears += (preset.tears - E.tears) * k;
-  O.tearL.visible = O.tearR.visible = E.tears > 0.3;
-  if (O.tearL.visible) { const yy = -((rig.t * 0.6) % 0.25) * 60; O.tearL.position.y = O.tearL.userData.y0 !== undefined ? O.tearL.userData.y0 + yy : (O.tearL.userData.y0 = O.tearL.position.y); O.tearR.position.y = O.tearL.position.y; }
-  O.zzz.visible = name === "sleep"; if (O.zzz.visible) O.zzz.rotation.z = Math.sin(rig.t) * 0.1;
-}
-// Uria/zemërimi: nga koha në kohë përplas këmbën (klipi "stomp")
-function rigMaybeStomp() {
-  const rig = S.panda && S.panda.userData.rig; if (!rig || !rig.clips.stomp) return;
-  const em = S.api.getEmotion();
-  const clipName = RIG_STATE_CLIPS[em];
-  if (clipName && rig.clips[clipName] && S.ai.state === "idle" && performance.now() > (rig.nextStomp || 0)) {
-    rig.stompUntil = performance.now() + Math.min(3500, rig.clips[clipName].duration * 1000 + 200);
-    rig.nextStomp = performance.now() + 9000 + Math.random() * 6000;
-    if (S.api.say) S.api.say(em);
-  }
-}
 
 // Ngarkon SHTËPINË reale (modeli i përdoruesit) në vend të dhomës së ndërtuar me kod.
 async function buildRoom(scene) {
   const a = ASSETS.house;
-  if (!a || !a.glb) { buildProceduralRoom(scene); return; }
+  if (!a || !a.glb) { console.error("Modeli i shtëpisë mungon."); return; }
   try {
     const g = await new Promise((res, rej) => loader.load(a.glb, res, undefined, rej));
     await applyAssetTextures(g.scene, "house");
@@ -11362,30 +11116,78 @@ async function buildRoom(scene) {
     const sun = new THREE.DirectionalLight(0xfff6e8, 1.4); sun.position.set(6, 12, 6); scene.add(sun);
     scene.add(new THREE.HemisphereLight(0xdff0ff, 0xe8dcc8, 1.05));
   } catch (e) {
-    console.error("Modeli i shtëpisë nuk u ngarkua, po përdor dhomën rezervë:", e);
-    buildProceduralRoom(scene);
+    console.error("Modeli i shtëpisë nuk u ngarkua:", e);
   }
 }
 
 // Hartë përplasjeje nga GJEOMETRIA REALE: rrjet 56×56, çdo qelizë kontrollohet me rreze
 // në lartësinë e gjunjëve → pandaja ndalet te muret, por kalon nëpër dyert e vërteta.
-const HOUSE_GRID_N = 56;
+const HOUSE_GRID_N = 100;   // rezolucion i imët: qelizë ≈0.2 njësi, që dyert (≈0.9) të kenë 4–5 qeliza
 function buildHouseColliders(root) {
   const bb = new THREE.Box3().setFromObject(root);
   const minX = bb.min.x, maxX = bb.max.x, minZ = bb.min.z, maxZ = bb.max.z;
   const cell = Math.max(maxX - minX, maxZ - minZ) / HOUSE_GRID_N;
-  const ray = new THREE.Raycaster(); const grid = []; const kneeY = 0.35;
+  const ray = new THREE.Raycaster(); const grid = [];
+  // Për çdo qelizë hedhim një rreze VERTIKALE nga lart. Qeliza është e kalueshme vetëm nëse:
+  //  (a) ka DYSHEME banimi poshtë (y≈0), dhe
+  //  (b) NUK ka asgjë në lartësinë e trupit të pandës (0.12–1.2) — pra s'është mur.
+  // Kjo metodë i njeh saktë DYERT: mbi to ka strukturë, por në lartësinë e trupit është e lirë.
   for (let iz = 0; iz < HOUSE_GRID_N; iz++) {
     const row = [];
     for (let ix = 0; ix < HOUSE_GRID_N; ix++) {
       const x = minX + ix * cell + cell / 2, z = minZ + iz * cell + cell / 2;
-      ray.set(new THREE.Vector3(x, kneeY, z), new THREE.Vector3(1, 0, 0));
+      ray.set(new THREE.Vector3(x, 3, z), new THREE.Vector3(0, -1, 0));
       const hits = ray.intersectObject(root, true);
-      row.push(hits.length > 0 && hits[0].distance < cell * 0.85);
+      let hasFloor = false, bodyBlocked = false;
+      for (const hh of hits) {
+        if (Math.abs(hh.point.y) < 0.15) hasFloor = true;
+        if (hh.point.y > 0.12 && hh.point.y < 1.2) bodyBlocked = true;
+      }
+      row.push(!hasFloor || bodyBlocked);   // true = e bllokuar
     }
     grid.push(row);
   }
   S._houseGrid = { grid, minX, minZ, cell, n: HOUSE_GRID_N };
+}
+// GJETJA E RRUGËS (BFS mbi rrjetën e përplasjes): kthen listën e pikave nga A në B duke kaluar
+// nëpër DYERT e vërteta. Pa këtë, pandaja ngec te muri i parë dhe s'del kurrë nga dhoma e vet.
+function findPath(sx, sz, tx, tz) {
+  const hg = S && S._houseGrid; if (!hg) return null;
+  const toI = (x, z) => [Math.floor((x - hg.minX) / hg.cell), Math.floor((z - hg.minZ) / hg.cell)];
+  const [six, siz] = toI(sx, sz), [tix, tiz] = toI(tx, tz);
+  const N = hg.n;
+  const ok = (ix, iz) => ix >= 0 && iz >= 0 && ix < N && iz < N && !hg.grid[iz][ix];
+  if (!ok(six, siz) || !ok(tix, tiz)) return null;
+  const prev = new Int32Array(N * N).fill(-1); const seen = new Uint8Array(N * N);
+  let q = [siz * N + six]; seen[siz * N + six] = 1;
+  const goal = tiz * N + tix; let found = false;
+  while (q.length && !found) {
+    const nq = [];
+    for (const cur of q) {
+      const cx = cur % N, cz = (cur - cx) / N;
+      for (const [dx, dz] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]) {
+        const nx = cx + dx, nz = cz + dz; if (!ok(nx, nz)) continue;
+        if (dx && dz && (!ok(cx + dx, cz) || !ok(cx, cz + dz))) continue;   // mos e pre qoshen e murit
+        const ni = nz * N + nx; if (seen[ni]) continue;
+        seen[ni] = 1; prev[ni] = cur; nq.push(ni);
+        if (ni === goal) { found = true; break; }
+      }
+      if (found) break;
+    }
+    q = nq;
+  }
+  if (!found) return null;
+  const path = []; let cur = goal;
+  while (cur !== -1) { const cx = cur % N, cz = (cur - cx) / N; path.push({ x: hg.minX + cx * hg.cell + hg.cell / 2, z: hg.minZ + cz * hg.cell + hg.cell / 2 }); cur = prev[cur]; }
+  path.reverse();
+  // Hollo rrugën: mbaj vetëm pikat ku ndryshon drejtimi (më pak pika, ecje më e natyrshme)
+  const out = [path[0]];
+  for (let i = 1; i < path.length - 1; i++) {
+    const a = path[i - 1], b = path[i], c2 = path[i + 1];
+    if (Math.abs((b.x - a.x) - (c2.x - b.x)) > 1e-6 || Math.abs((b.z - a.z) - (c2.z - b.z)) > 1e-6) out.push(b);
+  }
+  out.push(path[path.length - 1]);
+  return out;
 }
 function houseBlocked(x, z) {
   const hg = S && S._houseGrid; if (!hg) return false;
@@ -11548,7 +11350,7 @@ async function syncFurniture() {
       S.furnGroup.add(obj); S.furn[f.id] = obj;
     }
     const o = S.furn[f.id]; const item = S.api.items.find(i => i.id === f.type);
-    if (item && item.wall) { o.position.set(clamp(f.position.x, -HALF_W + 0.5, HALF_W - 0.5), 0, -HALF_D + 0.05); o.rotation.set(0, 0, 0); }
+    if (item && item.wall) { o.position.set(clampX(f.position.x), 0, HOUSE_INNER.minZ + 0.15); o.rotation.set(0, 0, 0); }
     else { o.position.set(f.position.x, 0, f.position.z); o.rotation.set(0, f.rotation.y, 0); }
     o.scale.set(f.scale.x || 1, f.scale.y || 1, f.scale.z || 1);
   }
@@ -11566,10 +11368,15 @@ function findSpotNearPanda(item) {
 }
 function findFreeSpot(item) {
   const placed = S ? (S.api.getState().placed || []) : [];
-  if (item.wall) return { x: -1.5 + Math.random() * 3, z: -HALF_D };
-  for (let t = 0; t < 40; t++) {
-    const x = -HALF_W + 0.9 + Math.random() * (ROOM.w - 1.8), z = -HALF_D + 0.9 + Math.random() * (ROOM.d - 1.8);
-    if (!collides(x, z, (item.size || 0.8) / 2 + 0.3, placed, null)) return { x, z };
+  const half = (item.size || 0.8) / 2;
+  // Vendos VETËM mbi dysheme banimi të lirë (jo mbi bar, jo brenda mureve) — kërkojmë brenda kufijve realë.
+  for (let t = 0; t < 120; t++) {
+    const x = HOUSE_INNER.minX + 0.6 + Math.random() * (HOUSE_INNER.maxX - HOUSE_INNER.minX - 1.2);
+    const z = HOUSE_INNER.minZ + 0.6 + Math.random() * (HOUSE_INNER.maxZ - HOUSE_INNER.minZ - 1.2);
+    if (houseBlocked(x, z)) continue;
+    // kontrollo edhe cepat e objektit, që mobilja e madhe të mos hyjë në mur
+    if (houseBlocked(x - half, z) || houseBlocked(x + half, z) || houseBlocked(x, z - half) || houseBlocked(x, z + half)) continue;
+    if (!collides(x, z, half + 0.3, placed, null)) return { x, z };
   }
   return { x: 0, z: 0 };
 }
@@ -11653,7 +11460,7 @@ function setupPointer() {
     toPtr(e); ray.setFromCamera(ptr, S.camera);
     if (ray.ray.intersectPlane(plane, hit)) {
       const o = S.furn[S.dragging]; const item = S.api.items.find(i => i.id === o.userData.type); const half = (item.size || 0.8) / 2;
-      o.position.set(clamp(hit.x, -HALF_W + half, HALF_W - half), 0, clamp(hit.z, -HALF_D + half, HALF_D - half));
+      o.position.set(clampX(hit.x), 0, clampZ(hit.z));
     }
   });
   const end = () => {
@@ -11724,8 +11531,13 @@ function targetFor(use, st) {
   return { x: clampX(f.position.x), z: clampZ(f.position.z + off), id: f.id };
 }
 function randomSpot(st) {
-  for (let t = 0; t < 25; t++) {
-    const x = -BX() + Math.random() * 2 * BX(), z = -BZ() + Math.random() * 2 * BZ();
+  // Shpërndarje mbi TË GJITHË shtëpinë (kufij asimetrikë), jo simetrike rreth zeros — përndryshe
+  // pandaja rrinte vetëm në një cep dhe s'i vizitonte kurrë dhomat e tjera.
+  const useHouse = S && S._houseGrid;
+  const x0 = useHouse ? HOUSE_INNER.minX + 0.5 : -BX(), x1 = useHouse ? HOUSE_INNER.maxX - 0.5 : BX();
+  const z0 = useHouse ? HOUSE_INNER.minZ + 0.5 : -BZ(), z1 = useHouse ? HOUSE_INNER.maxZ - 0.5 : BZ();
+  for (let t = 0; t < 60; t++) {
+    const x = x0 + Math.random() * (x1 - x0), z = z0 + Math.random() * (z1 - z0);
     if (!collides(x, z, 0.45, st.placed || [], null)) return { x, z };
   }
   return { x: 0, z: 0 };
@@ -11795,6 +11607,7 @@ function aiStep(dt) {
   ai.timer -= dt;
   if (ai.timer > 0) { setAnim(st.energy < 25 ? "tired" : "idle"); return; }
   const d = decide(st, em);
+  ai.path = null; ai.pathI = 0;   // cak i ri → rrugë e re
   if (d.state === "seek") { const t = targetFor(d.use, st); if (t) { ai.state = "seek"; ai.use = d.use; ai.target = t; return; } }
   if (d.state === "sleep") { ai.state = "sleep"; return; }
   if (d.state === "wander") { ai.state = "wander"; ai.target = randomSpot(st); return; }
