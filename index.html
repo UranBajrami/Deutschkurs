@@ -9990,13 +9990,10 @@ const PANDA_ITEMS = [
   // MOBILJET: çmime VËRTET të larta — disa ditë mësimi për secilën, e sidomos për shtratin.
   { id:"bowl",    cat:"furniture", emoji:"🥣", cost:300,  placed:true, size:0.6, use:"food" },
   { id:"wbowl",   cat:"furniture", emoji:"🫗", cost:300,  placed:true, size:0.6, use:"water" },
-  { id:"table",   cat:"furniture", emoji:"🪑", cost:700,  placed:true, size:1.1 },
-  { id:"wardrobe",cat:"furniture", emoji:"🚪", cost:1200, placed:true, size:1.1 },
-  { id:"sofa",    cat:"furniture", emoji:"🛋️", cost:1500, placed:true, size:1.5, use:"rest" },
-  { id:"shelf",   cat:"furniture", emoji:"📚", cost:1800, placed:true, size:1.0, bonus:"learn" },
-  { id:"desk",    cat:"furniture", emoji:"🖥️", cost:2200, placed:true, size:1.3, bonus:"learn" },
-  { id:"toilet",  cat:"furniture", emoji:"🚽", cost:2500, placed:true, size:0.7, use:"toilet" },
-  { id:"bathtub", cat:"furniture", emoji:"🛁", cost:3200, placed:true, size:1.5, use:"bath" },
+  // TRE GRUPE MOBILJESH (modelet e përdoruesit) — zëvendësojnë copat e vjetra një-nga-një:
+  { id:"kitchen",    cat:"furniture", emoji:"🍳", cost:2500, placed:true, size:2.5, use:"food" },
+  { id:"livingroom", cat:"furniture", emoji:"📺", cost:3000, placed:true, size:3.4, use:"rest" },
+  { id:"bathroom",   cat:"furniture", emoji:"🚿", cost:3500, placed:true, size:2.5, use:"bath", use2:"toilet" },
   { id:"bed",     cat:"furniture", emoji:"🛏️", cost:4000, placed:true, size:1.6, use:"sleep" },
   // 🌱 Dekor (të vendosshme)
   { id:"plant",   cat:"deco",  emoji:"🌱", cost:250,  placed:true, size:0.5, comfort:2 },
@@ -10317,7 +10314,7 @@ function pandaDrinkQuick() {
 }
 function pandaWashQuick() {
   const p = ensurePanda();
-  if (hasPlaced("bathtub")) {
+  if (hasPlaced("bathroom")) {
     p.hygiene = clamp(p.hygiene + 45, 0, 100); p.mood = clamp(p.mood + 5, 0, 100);
     if (window.Panda3D) window.Panda3D.goUse("bath");
     pandaSay(pt("clean"), 3000); pandaAddXp(3); savePanda(); renderPandaView();
@@ -10335,7 +10332,7 @@ function startLearnSession(min) {
   learnEndsAt = Date.now() + min * 60000;
   document.getElementById("pandaLearnPick").classList.add("hidden");
   document.getElementById("pandaLearnRun").classList.remove("hidden");
-  if (window.Panda3D) window.Panda3D.goUse("desk");
+  if (window.Panda3D) window.Panda3D.goUse("desk");   // "desk" tani çon te dhoma e ndenjes
   pandaSay(pt("learnstart"), 4000);
   learnTimer = setInterval(learnTick, 1000);
   learnTick();
@@ -10354,7 +10351,7 @@ function finishLearnSession() {
   clearInterval(learnTimer); learnTimer = null;
   const p = ensurePanda();
   let coins = LEARN_REWARDS[learnMinutes] || 5;
-  const hasDesk = hasPlaced("desk"), hasShelf = hasPlaced("shelf");
+  const hasDesk = hasPlaced("livingroom"), hasShelf = hasPlaced("kitchen");
   if (hasDesk) coins = Math.round(coins * 1.15);
   if (hasShelf) coins = Math.round(coins * 1.10);
   // Seria e mësimit (ditë radhazi)
@@ -10456,13 +10453,13 @@ function pt(key) { const L = PANDA_TEXT[menuLang] || PANDA_TEXT.sq; return L[key
 const PANDA_ITEM_NAMES = {
   sq: { apple:"Pica", burger:"Hamburger", wings:"Krahë pule", taco:"Tako", bamboo:"Bambu", cake:"Tortë", salad:"Sallatë", water:"Ujë", juice:"Lëng", milk:"Milkshake", icecoffee:"Kafe e ftohtë", soap:"Sapun", medicine:"Ilaç",
         ball:"Top", teddy:"Arush pelushi", bowl:"Enë ushqimi", wbowl:"Enë uji", bed:"Krevat", sofa:"Divan", toilet:"Tualet", bathtub:"Vaskë",
-        table:"Tavolinë", desk:"Tryezë pune", shelf:"Raft librash", wardrobe:"Dollap", plant:"Bimë", lamp:"Llambë", rug:"Qilim", picture:"Pikturë" },
+        kitchen:"Kuzhinë", livingroom:"Dhomë ndenjeje", bathroom:"Banjë", plant:"Bimë", lamp:"Llambë", rug:"Qilim", picture:"Pikturë" },
   de: { apple:"Pizza", burger:"Burger", wings:"Chicken Wings", taco:"Taco", bamboo:"Bambus", cake:"Kuchen", salad:"Salat", water:"Wasser", juice:"Saft", milk:"Milchshake", icecoffee:"Eiskaffee", soap:"Seife", medicine:"Medizin",
         ball:"Ball", teddy:"Teddy", bowl:"Futternapf", wbowl:"Wassernapf", bed:"Bett", sofa:"Sofa", toilet:"Toilette", bathtub:"Badewanne",
-        table:"Tisch", desk:"Schreibtisch", shelf:"Bücherregal", wardrobe:"Schrank", plant:"Pflanze", lamp:"Lampe", rug:"Teppich", picture:"Bild" },
+        kitchen:"Küche", livingroom:"Wohnzimmer", bathroom:"Badezimmer", plant:"Pflanze", lamp:"Lampe", rug:"Teppich", picture:"Bild" },
   en: { apple:"Pizza", burger:"Burger", wings:"Chicken wings", taco:"Taco", bamboo:"Bamboo", cake:"Cake", salad:"Salad", water:"Water", juice:"Juice", milk:"Milkshake", icecoffee:"Iced coffee", soap:"Soap", medicine:"Medicine",
         ball:"Ball", teddy:"Teddy bear", bowl:"Food bowl", wbowl:"Water bowl", bed:"Bed", sofa:"Sofa", toilet:"Toilet", bathtub:"Bathtub",
-        table:"Table", desk:"Desk", shelf:"Bookshelf", wardrobe:"Wardrobe", plant:"Plant", lamp:"Lamp", rug:"Rug", picture:"Picture" }
+        kitchen:"Kitchen", livingroom:"Living room", bathroom:"Bathroom", plant:"Plant", lamp:"Lamp", rug:"Rug", picture:"Picture" }
 };
 function pandaItemName(it) { const L = PANDA_ITEM_NAMES[menuLang] || PANDA_ITEM_NAMES.sq; return L[it.id] || it.id; }
 const PANDA_CAT_NAMES = {
@@ -11027,6 +11024,9 @@ const ASSETS = {
   icecoffee: { glb: "models/food/icecoffee.glb", textures: { map: "models/food/icecoffee_basecolor.jpg", normalMap: "models/food/icecoffee_normal.jpg", roughnessMap: "models/food/icecoffee_roughness.jpg" } },
   bamboo: { glb: null }, cake: { glb: null }, salad: { glb: null }, water: { glb: null }, juice: { glb: null }, milk: { glb: null },
   house:    { glb: "models/house/house.glb", textures: { map: "models/house/house_basecolor.jpg", normalMap: "models/house/house_normal.jpg", roughnessMap: "models/house/house_roughness.jpg" } },   // shtëpia e përdoruesit
+  kitchen:    { glb: "models/furniture/kitchen.glb",    textures: { map: "models/furniture/kitchen_basecolor.jpg",    normalMap: "models/furniture/kitchen_normal.jpg",    roughnessMap: "models/furniture/kitchen_roughness.jpg" } },
+  livingroom: { glb: "models/furniture/livingroom.glb", textures: { map: "models/furniture/livingroom_basecolor.jpg", normalMap: "models/furniture/livingroom_normal.jpg", roughnessMap: "models/furniture/livingroom_roughness.jpg" } },
+  bathroom:   { glb: "models/furniture/bathroom.glb",   textures: { map: "models/furniture/bathroom_basecolor.jpg",   normalMap: "models/furniture/bathroom_normal.jpg",   roughnessMap: "models/furniture/bathroom_roughness.jpg" } },
   bed:      { glb: "models/bed/bed.glb", textures: { map: "models/bed/bed_basecolor.jpg", normalMap: "models/bed/bed_normal.jpg", roughnessMap: "models/bed/bed_roughness.jpg" }, sleepTop: 0.42 },   // modeli i përdoruesit
   sofa:     { glb: null, placeholder: "PLACEHOLDER_SOFA" },
   toilet:   { glb: null, placeholder: "PLACEHOLDER_TOILET" },
@@ -11698,15 +11698,15 @@ function decide(st, em) {
   const has = (t) => (st.placed || []).some(f => f.type === t);
   // Gjumi: natën (23–09) ose kur është i rraskapitur — GJITHMONË te krevati nëse ka, përndryshe në dysheme
   if (S.api.shouldSleep && S.api.shouldSleep()) return has("bed") ? { state: "seek", use: "sleep" } : { state: "sleep" };
-  if (st.toilet > 80 && has("toilet"))  return { state: "seek", use: "toilet" };
+  if (st.toilet > 80 && has("bathroom")) return { state: "seek", use: "toilet" };   // banja e re mbulon tualetin
   const placedFood = (st.placed || []).find(f => { const it = S.api.items.find(i => i.id === f.type); return it && it.consumable && it.cat === "food"; });
   const placedDrink = (st.placed || []).find(f => { const it = S.api.items.find(i => i.id === f.type); return it && it.consumable && it.cat === "drink"; });
   if (placedFood && st.hunger < 92)  return { state: "seek", use: "eat" };     // ushqimi në dhomë → shko dhe haje
   if (placedDrink && st.thirst < 92) return { state: "seek", use: "drink" };
-  if (st.hygiene < 18 && has("bathtub")) return { state: "seek", use: "bath" };
+  if (st.hygiene < 18 && has("bathroom")) return { state: "seek", use: "bath" };    // banja e re mbulon dushin
   if (st.mood < 30 && (has("ball") || has("teddy"))) return { state: "seek", use: "toy" };
   if (st.energy > 55 && Math.random() < 0.15 && (has("ball") || has("teddy"))) return { state: "seek", use: "toy" };
-  if (st.energy > 40 && Math.random() < 0.2 && has("sofa")) return { state: "seek", use: "rest" };
+  if (st.energy > 40 && Math.random() < 0.2 && has("livingroom")) return { state: "seek", use: "rest" };   // divani është pjesë e dhomës së ndenjes
   return Math.random() < 0.55 ? { state: "wander" } : { state: "idle" };
 }
 function targetFor(use, st) {
@@ -11718,7 +11718,7 @@ function targetFor(use, st) {
     const it = S.api.items.find(i => i.id === f.type); const off = Math.max(0.35, (it.size || 0.4) / 2 + 0.15);
     return { x: clampX(f.position.x), z: clampZ(f.position.z + off), id: f.id };
   }
-  const map = { sleep: "bed", toilet: "toilet", bath: "bathtub", rest: "sofa", desk: "desk", toy: has("ball") ? "ball" : "teddy" };
+  const map = { sleep: "bed", toilet: "bathroom", bath: "bathroom", rest: "livingroom", desk: "livingroom", toy: has("ball") ? "ball" : "teddy" };
   const f = placed.find(x => x.type === map[use]); if (!f) return null;
   const it = S.api.items.find(i => i.id === f.type); const off = (it.size || 0.8) / 2 + 0.35;
   return { x: clampX(f.position.x), z: clampZ(f.position.z + off), id: f.id };
