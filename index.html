@@ -11174,27 +11174,70 @@ function computeHouseColliders(root) {
   const bb = new THREE.Box3().setFromObject(root);
   const minX = bb.min.x, maxX = bb.max.x, minZ = bb.min.z, maxZ = bb.max.z;
   const cell = Math.max(maxX - minX, maxZ - minZ) / HOUSE_GRID_N;
-  const ray = new THREE.Raycaster(); const grid = [];
-  // Për çdo qelizë hedhim një rreze VERTIKALE nga lart. Qeliza është e kalueshme vetëm nëse:
-  //  (a) ka DYSHEME banimi poshtë (y≈0), dhe
-  //  (b) NUK ka asgjë në lartësinë e trupit të pandës (0.12–1.2) — pra s'është mur.
-  // Kjo metodë i njeh saktë DYERT: mbi to ka strukturë, por në lartësinë e trupit është e lirë.
-  for (let iz = 0; iz < HOUSE_GRID_N; iz++) {
-    const row = [];
-    for (let ix = 0; ix < HOUSE_GRID_N; ix++) {
-      const x = minX + ix * cell + cell / 2, z = minZ + iz * cell + cell / 2;
-      ray.set(new THREE.Vector3(x, 3, z), new THREE.Vector3(0, -1, 0));
-      const hits = ray.intersectObject(root, true);
-      let hasFloor = false, bodyBlocked = false;
-      for (const hh of hits) {
-        if (Math.abs(hh.point.y) < 0.15) hasFloor = true;
-        if (hh.point.y > 0.12 && hh.point.y < 1.2) bodyBlocked = true;
+  // METODË E SHPEJTË (pa raycast): kalojmë NJË HERË mbi trekëndëshat dhe shënojmë vetëm MURET.
+  // Raycast-i merrte ~14 sekonda në ngarkim; kjo merr ~50 ms. Dyshemeja nuk kërkohet të jetë e plotë
+  // (modeli i thjeshtuar ka vrima) — përndryshe dhomat do të shkëputeshin nga njëra-tjetra.
+  const grid = Array.from({ length: HOUSE_GRID_N }, () => new Array(HOUSE_GRID_N).fill(false));
+  let mesh = null; root.traverse(o => { if (o.isMesh && !mesh) mesh = o; });
+  if (mesh) {
+    const pos = mesh.geometry.attributes.position, idx = mesh.geometry.index, mw = mesh.matrixWorld;
+    const a = new THREE.Vector3(), b2 = new THREE.Vector3(), c2 = new THREE.Vector3();
+    const nrm = new THREE.Vector3(), ab = new THREE.Vector3(), ac = new THREE.Vector3();
+    const total = idx ? idx.count : pos.count;
+    const mark = (x, z) => { const ix = Math.floor((x - minX) / cell), iz = Math.floor((z - minZ) / cell); if (ix >= 0 && iz >= 0 && ix < HOUSE_GRID_N && iz < HOUSE_GRID_N) grid[iz][ix] = true; };
+    for (let i2 = 0; i2 < total; i2 += 3) {
+      const i0 = idx ? idx.getX(i2) : i2, i1 = idx ? idx.getX(i2 + 1) : i2 + 1, i3 = idx ? idx.getX(i2 + 2) : i2 + 2;
+      a.fromBufferAttribute(pos, i0).applyMatrix4(mw); b2.fromBufferAttribute(pos, i1).applyMatrix4(mw); c2.fromBufferAttribute(pos, i3).applyMatrix4(mw);
+      ab.subVectors(b2, a); ac.subVectors(c2, a); nrm.crossVectors(ab, ac).normalize();
+      const minY = Math.min(a.y, b2.y, c2.y), maxY = Math.max(a.y, b2.y, c2.y);
+      if (Math.abs(nrm.y) > 0.45 || maxY < 0.5 || minY > 1.2) continue;   // vetëm MURE të vërteta (jo prag dere, jo skalinë e ulët)
+      const steps = Math.max(2, Math.ceil(Math.max(a.distanceTo(b2), b2.distanceTo(c2), a.distanceTo(c2)) / (cell * 1.1)));
+      for (let u = 0; u <= steps; u++) for (let v = 0; u + v <= steps; v++) {
+        const w = steps - u - v;
+        mark((a.x * u + b2.x * v + c2.x * w) / steps, (a.z * u + b2.z * v + c2.z * w) / steps);
       }
-      row.push(!hasFloor || bodyBlocked);   // true = e bllokuar
     }
-    grid.push(row);
   }
+  // Jashtë dyshemesë së banimit → e bllokuar (që pandaja të mos dalë në bar)
+  for (let iz = 0; iz < HOUSE_GRID_N; iz++) for (let ix = 0; ix < HOUSE_GRID_N; ix++) {
+    const x = minX + ix * cell + cell / 2, z = minZ + iz * cell + cell / 2;
+    if (x < HOUSE_INNER.minX || x > HOUSE_INNER.maxX || z < HOUSE_INNER.minZ || z > HOUSE_INNER.maxZ) grid[iz][ix] = true;
+  }
+  // LIDHJA E DHOMAVE: modeli i thjeshtuar lë ndonjë mur "të trashë" që i ndan dhomat pa derë.
+  // Gjejmë zonën më të madhe të lirë dhe hapim kalim drejt zonave të vogla të izoluara, që pandaja
+  // të mund të shkojë KUDO — ashtu si te Sims, ku çdo dhomë është e arritshme.
+  connectIsolatedAreas(grid, HOUSE_GRID_N);
   return { grid, minX, minZ, cell, n: HOUSE_GRID_N };
+}
+// Bashkon zonat e izoluara me zonën kryesore duke hapur korridore 1-qelizë përmes murit më të hollë.
+function connectIsolatedAreas(grid, N) {
+  const regionOf = Array.from({ length: N }, () => new Int16Array(N).fill(-1));
+  const regions = [];
+  for (let iz = 0; iz < N; iz++) for (let ix = 0; ix < N; ix++) {
+    if (grid[iz][ix] || regionOf[iz][ix] >= 0) continue;
+    const id = regions.length; const cells = []; let q = [[ix, iz]]; regionOf[iz][ix] = id;
+    while (q.length) { const [x, z] = q.pop(); cells.push([x, z]);
+      for (const [dx, dz] of [[1,0],[-1,0],[0,1],[0,-1]]) { const nx = x + dx, nz = z + dz;
+        if (nx >= 0 && nz >= 0 && nx < N && nz < N && !grid[nz][nx] && regionOf[nz][nx] < 0) { regionOf[nz][nx] = id; q.push([nx, nz]); } } }
+    regions.push(cells);
+  }
+  if (regions.length < 2) return;
+  let main = 0; for (let i = 1; i < regions.length; i++) if (regions[i].length > regions[main].length) main = i;
+  // Për çdo zonë tjetër (jo shumë e vogël), gërmo drejt zonës kryesore nëpër murin më të hollë
+  for (let r = 0; r < regions.length; r++) {
+    if (r === main || regions[r].length < 12) continue;
+    let best = null;
+    for (const [x, z] of regions[r]) {
+      for (const [dx, dz] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+        for (let len = 1; len <= 6; len++) {
+          const tx = x + dx * len, tz = z + dz * len;
+          if (tx < 0 || tz < 0 || tx >= N || tz >= N) break;
+          if (!grid[tz][tx]) { if (regionOf[tz][tx] === main && (!best || len < best.len)) best = { x, z, dx, dz, len }; break; }
+        }
+      }
+    }
+    if (best) for (let len = 1; len < best.len; len++) grid[best.z + best.dz * len][best.x + best.dx * len] = false;
+  }
 }
 // GJETJA E RRUGËS (BFS mbi rrjetën e përplasjes): kthen listën e pikave nga A në B duke kaluar
 // nëpër DYERT e vërteta. Pa këtë, pandaja ngec te muri i parë dhe s'del kurrë nga dhoma e vet.
@@ -11304,6 +11347,171 @@ function buildPlaceholderFurniture(id) {
   return g;
 }
 
+async function buildPandaFromRig(gltf) {
+  const root = gltf.scene; let skin = null;
+  root.traverse(o => { if (o.isSkinnedMesh) skin = o; });
+  if (!skin) return null;
+  const [map, normalMap, roughnessMap] = await Promise.all([loadTex(RIG_TEX.map, true), loadTex(RIG_TEX.normalMap, false), loadTex(RIG_TEX.roughnessMap, false)]);
+  skin.material = new THREE.MeshStandardMaterial({ map, normalMap, roughnessMap, roughness: 1, metalness: 0, color: 0xffffff, normalScale: new THREE.Vector2(0.8, 0.8) });
+  skin.castShadow = true; skin.receiveShadow = true; skin.frustumCulled = false;
+
+  const g = new THREE.Group(); g.name = "PANDA_RIG"; g.add(root);
+  const bones = {}; skin.skeleton.bones.forEach(b => { bones[b.name] = b; });
+  const rest = {}; skin.skeleton.bones.forEach(b => { rest[b.name] = { q: b.quaternion.clone(), p: b.position.clone() }; });
+  const mixer = new THREE.AnimationMixer(root);
+  const clips = {}; gltf.animations.forEach(c => { clips[c.name.toLowerCase()] = c; });
+
+  // ---- Overlay-et e shprehjeve te Head-bone (koordinata në cm, sepse rrënja skalohet 0.0132) ----
+  root.updateMatrixWorld(true);
+  const head = bones.Head || bones.head;
+  const worldToHead = (x, y, z) => { const p = new THREE.Vector3(x, y, z); head.worldToLocal(p); return p; };
+  const cmScale = 1 / head.getWorldScale(new THREE.Vector3()).x;    // ~75.7: 1 njësi bote = 75.7 njësi kocke
+  const mkOverlay = (mesh, wx, wy, wz) => { mesh.position.copy(worldToHead(wx, wy, wz)); mesh.scale.multiplyScalar(cmScale); head.add(mesh); return mesh; };
+  const tearMat = new THREE.MeshPhysicalMaterial({ color: 0x8fd3ff, transparent: true, opacity: 0.85, clearcoat: 1 });
+  const tearL = mkOverlay(new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), tearMat), -0.24, 1.72, 0.52); tearL.scale.multiply(new THREE.Vector3(0.8, 1.3, 0.6)); tearL.visible = false;
+  const tearR = mkOverlay(new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8), tearMat), 0.24, 1.72, 0.52); tearR.scale.multiply(new THREE.Vector3(0.8, 1.3, 0.6)); tearR.visible = false;
+  const zzz = new THREE.Group(); [0, 0.14, 0.28].forEach((y, i) => { const z = new THREE.Mesh(new THREE.TorusGeometry(0.03 + i * 0.012, 0.01, 6, 10), pbrMat(0x9fb3ff)); z.position.set(i * 0.06, y, 0); zzz.add(z); });
+  mkOverlay(zzz, 0.5, 2.35, 0); zzz.visible = false;
+
+  g.userData.rig = { root, skin, bones, rest, mixer, clips, current: null, currentName: null, overlays: { tearL, tearR, zzz }, t: 0 };
+  g.userData.expr = { tears: 0 };
+  return g;
+}
+
+async function loadExtraClips(rig) {
+  const extra = (ASSETS.panda && ASSETS.panda.clips) || {};
+  for (const state in extra) {
+    const url = extra[state];
+    try {
+      let anims = [];
+      if (/\.fbx$/i.test(url)) { const { FBXLoader } = await import("three/addons/loaders/FBXLoader.js"); const o = await new Promise((r, j) => new FBXLoader().load(url, r, undefined, j)); anims = o.animations; }
+      else { const gl = await new Promise((r, j) => loader.load(url, r, undefined, j)); anims = gl.animations; }
+      if (anims[0]) { const c = anims[0].clone(); c.name = state; rig.clips[state] = c; }
+    } catch (e) { console.warn("Klipi nuk u ngarkua:", state, url); }
+  }
+}
+
+function rigPlayClip(rig, name, opts = {}) {
+  const clip = rig.clips[name]; if (!clip) return false;
+  if (rig.currentName === name && rig.current) return true;
+  const action = rig.mixer.clipAction(clip);
+  action.reset().setLoop(opts.once ? THREE.LoopOnce : THREE.LoopRepeat, Infinity).setEffectiveTimeScale(opts.speed || 1).fadeIn(0.2).play();
+  action.clampWhenFinished = !!opts.once;
+  if (rig.current) rig.current.fadeOut(0.2);
+  rig.current = action; rig.currentName = name;
+  return true;
+}
+
+function rigStopClip(rig) { if (rig.current) { rig.current.fadeOut(0.15); rig.current = null; rig.currentName = null; } }
+
+function rigResetPose(rig) { for (const n in rig.rest) { const b = rig.bones[n]; if (b) { b.quaternion.copy(rig.rest[n].q); b.position.copy(rig.rest[n].p); } } }
+
+const _e = new THREE.Euler(), _q = new THREE.Quaternion();
+function rotBone(rig, name, x, y, z) {   // rrotullim shtesë mbi pozën e pushimit (radianë)
+  const b = rig.bones[name]; if (!b) return;
+  _q.setFromEuler(_e.set(x, y, z)); b.quaternion.copy(rig.rest[name].q).multiply(_q);
+}
+
+function pointBone(rig, name, childName, tx, ty, tz) {
+  const b = rig.bones[name], c = rig.bones[childName]; if (!b || !c) return;
+  b.quaternion.copy(rig.rest[name].q); b.updateWorldMatrix(true, false);
+  b.parent.getWorldQuaternion(_pw);
+  _tp.set(tx, ty, tz).normalize().applyQuaternion(_pw.clone().invert());       // objektivi në hapësirën e prindit
+  _dl.copy(c.position).normalize();                                             // drejtimi i fëmijës në hapësirën e kockës
+  const q = new THREE.Quaternion().setFromUnitVectors(_dl.clone().applyQuaternion(b.quaternion), _tp);
+  b.quaternion.premultiply(q);
+}
+
+function rigProc(dt, name, em) {
+  const rig = S.panda.userData.rig; const g = S.panda; const st = S.api.getState();
+  rig.t += dt; const t = rig.t;
+  rigResetPose(rig);
+  g.rotation.x = 0; g.rotation.z = 0; g.position.y = 0;
+  const breathe = Math.sin(t * 1.8) * 0.02;
+  const w = (st.weight - 50) / 50;
+  // Pesha: vetëm trupi (Spine/Hips) trashet, jo koka
+  ["Hips","Spine","Spine01","Spine02"].forEach(n => { const b = rig.bones[n]; if (b) b.scale.set(1 + w * 0.12, 1, 1 + w * 0.16); });
+  if (rig.bones.Head) rig.bones.Head.scale.set(1 / (1 + w * 0.12), 1, 1 / (1 + w * 0.16)); // kompenso që koka të mos trashet
+  if (name === "walk") {
+    const s = Math.sin(t * 8);
+    rotBone(rig, "LeftUpLeg", s * 0.55, 0, 0); rotBone(rig, "RightUpLeg", -s * 0.55, 0, 0);
+    rotBone(rig, "LeftLeg", Math.max(0, -s) * 0.6, 0, 0); rotBone(rig, "RightLeg", Math.max(0, s) * 0.6, 0, 0);
+    rotBone(rig, "LeftArm", -s * 0.45, 0, 0); rotBone(rig, "RightArm", s * 0.45, 0, 0);
+    rotBone(rig, "Spine", 0.05, 0, -s * 0.05); rotBone(rig, "Head", 0.05, 0, s * 0.05);
+    g.position.y = Math.abs(s) * 0.03;
+  } else if (name === "sleep") {
+    g.rotation.z = 1.3; g.position.y = -0.15 + Math.sin(t * 1.4) * 0.008; rotBone(rig, "Head", 0.2, 0, 0.15);
+    rotBone(rig, "LeftUpLeg", -0.6, 0, 0); rotBone(rig, "RightUpLeg", -0.6, 0, 0); rotBone(rig, "LeftArm", 0.4, 0, 0.6); rotBone(rig, "RightArm", 0.4, 0, -0.6);
+  } else if (name === "eat" || name === "drink") {
+    rotBone(rig, "Head", 0.28 + Math.sin(t * 9) * 0.1, 0, 0);
+    pointBone(rig, "LeftArm", "LeftForeArm", 0.35, -0.3, 1); pointBone(rig, "RightArm", "RightForeArm", -0.35, -0.3, 1);
+    pointBone(rig, "LeftForeArm", "LeftHand", 0.15, 0.9, 0.5); pointBone(rig, "RightForeArm", "RightHand", -0.15, 0.9, 0.5);
+  } else if (name === "happy" || name === "play") {
+    g.position.y = Math.abs(Math.sin(t * 7)) * 0.18;
+    pointBone(rig, "LeftArm", "LeftForeArm", 0.6, 1, 0.2 + Math.sin(t * 10) * 0.3); pointBone(rig, "RightArm", "RightForeArm", -0.6, 1, 0.2 + Math.sin(t * 10) * 0.3);
+    pointBone(rig, "LeftForeArm", "LeftHand", 0.4, 1, 0); pointBone(rig, "RightForeArm", "RightHand", -0.4, 1, 0);
+    rotBone(rig, "Head", -0.1, 0, Math.sin(t * 6) * 0.15); rotBone(rig, "Spine", 0, Math.sin(t * 3) * 0.2, 0);
+  } else if (name === "greeting") {
+    pointBone(rig, "RightArm", "RightForeArm", -0.9, 0.9, 0.3); pointBone(rig, "RightForeArm", "RightHand", -0.3 - Math.sin(t * 9) * 0.5, 1, 0.2);
+    rotBone(rig, "Head", 0, 0.15, -0.1); g.position.y = breathe;
+  } else if (name === "surprised") {
+    rotBone(rig, "Head", -0.2, 0, 0); pointBone(rig, "LeftArm", "LeftForeArm", 1, 0.2, 0.6); pointBone(rig, "RightArm", "RightForeArm", -1, 0.2, 0.6); g.position.y = Math.max(0, 0.12 - t * 0.3);
+  } else if (name === "sit") {
+    g.position.y = -0.36; rotBone(rig, "LeftUpLeg", -1.4, 0, 0.15); rotBone(rig, "RightUpLeg", -1.4, 0, -0.15); rotBone(rig, "LeftLeg", 1.2, 0, 0); rotBone(rig, "RightLeg", 1.2, 0, 0); rotBone(rig, "Head", 0, Math.sin(t * 0.8) * 0.2, 0);
+  } else if (name === "bath") {
+    g.position.y = -0.2; pointBone(rig, "LeftArm", "LeftForeArm", 0.5, 0.2 + Math.sin(t * 5) * 0.4, 0.8); pointBone(rig, "RightArm", "RightForeArm", -0.5, 0.2 - Math.sin(t * 5) * 0.4, 0.8); rotBone(rig, "Head", 0, 0, Math.sin(t * 2) * 0.1);
+  } else if (name === "tired") {
+    rotBone(rig, "Spine", 0.18, 0, 0); rotBone(rig, "Head", 0.3, 0, 0); g.position.y = breathe;
+  } else { // idle
+    g.position.y = breathe; rotBone(rig, "Spine", Math.sin(t * 1.8) * 0.02, 0, 0);
+    rotBone(rig, "Head", 0, Math.sin(t * 0.7) * 0.3, Math.sin(t * 0.45) * 0.06);
+    rotBone(rig, "LeftArm", 0, 0, Math.sin(t * 1.2) * 0.04); rotBone(rig, "RightArm", 0, 0, -Math.sin(t * 1.2) * 0.04);
+    if (em === "sad" || em === "lonely" || em === "sick") { rotBone(rig, "Head", 0.3, 0, 0); rotBone(rig, "Spine", 0.12, 0, 0); }
+    if (em === "hungry" || em === "thirsty") { rotBone(rig, "Head", 0.12, 0.4, 0); pointBone(rig, "LeftArm", "LeftForeArm", 0.4, -0.3, 0.9); pointBone(rig, "RightArm", "RightForeArm", -0.4, -0.3, 0.9); }
+    if (em === "excited" || em === "happy") { g.position.y = Math.abs(Math.sin(t * 4)) * 0.05; rotBone(rig, "Head", 0, 0, Math.sin(t * 4) * 0.1); }
+    if (em === "urgent") { g.position.y = Math.abs(Math.sin(t * 12)) * 0.025; rotBone(rig, "LeftUpLeg", Math.sin(t * 12) * 0.25, 0, 0); rotBone(rig, "RightUpLeg", -Math.sin(t * 12) * 0.25, 0, 0); }
+  }
+}
+
+function rigAnim(dt) {
+  const rig = S.panda.userData.rig; const em = S.api.getEmotion(); const name = S.anim.name;
+  // 1) Klip i vërtetë për gjendjen? (p.sh. "happy" nëse u ngarkua) ose klip emocioni (uria → stomp)
+  const alias = rig.clips[name] ? name : (RIG_STATE_ALIAS[name] && rig.clips[RIG_STATE_ALIAS[name]] ? RIG_STATE_ALIAS[name] : null);
+  const react = (name === "idle" && RIG_STATE_CLIPS[em] && rig.clips[RIG_STATE_CLIPS[em]] && rig.stompUntil > performance.now()) ? RIG_STATE_CLIPS[em] : null;
+  const wantClip = alias || react;
+  if (wantClip) {
+    const spd = RIG_SPEED()[wantClip] || 1;
+    if (rig.currentName === wantClip && rig.current) rig.current.setEffectiveTimeScale(spd);   // ritmi ndryshon live (lodhje)
+    if (rigPlayClip(rig, wantClip, { once: RIG_ONCE.has(wantClip), speed: spd })) {
+      S.panda.rotation.x = 0; S.panda.rotation.z = 0; S.panda.position.y = (S.ai.state === "sleep" ? (S.sleepY || 0) : 0);   // klipi vendos vetë pozën; mbi krevat qëndron lart
+      rig.mixer.update(dt); rigOverlays(dt, em, name); return;
+    }
+  }
+  if (rig.current) { rigStopClip(rig); rig.mixer.update(dt); rig.mixer.stopAllAction(); }
+  rigProc(dt, name, em);
+  rigOverlays(dt, em, name);
+}
+
+function rigOverlays(dt, em, name) {
+  const rig = S.panda.userData.rig, O = rig.overlays, E = S.panda.userData.expr;
+  const preset = EXPR_PRESETS[em] || { tears: 0 };
+  const k = Math.min(1, dt * 5); E.tears += (preset.tears - E.tears) * k;
+  O.tearL.visible = O.tearR.visible = E.tears > 0.3;
+  if (O.tearL.visible) { const yy = -((rig.t * 0.6) % 0.25) * 60; O.tearL.position.y = O.tearL.userData.y0 !== undefined ? O.tearL.userData.y0 + yy : (O.tearL.userData.y0 = O.tearL.position.y); O.tearR.position.y = O.tearL.position.y; }
+  O.zzz.visible = name === "sleep"; if (O.zzz.visible) O.zzz.rotation.z = Math.sin(rig.t) * 0.1;
+}
+
+function rigMaybeStomp() {
+  const rig = S.panda && S.panda.userData.rig; if (!rig || !rig.clips.stomp) return;
+  const em = S.api.getEmotion();
+  const clipName = RIG_STATE_CLIPS[em];
+  if (clipName && rig.clips[clipName] && S.ai.state === "idle" && performance.now() > (rig.nextStomp || 0)) {
+    rig.stompUntil = performance.now() + Math.min(3500, rig.clips[clipName].duration * 1000 + 200);
+    rig.nextStomp = performance.now() + 9000 + Math.random() * 6000;
+    if (S.api.say) S.api.say(em);
+  }
+}
+
 function pandaMissing() {   // Vetëm gjendje gabimi: modeli s'u ngarkua (rrjeti / skedari mungon)
   const g = new THREE.Group(); g.name = "PANDA_MISSING";
   const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.35, 0.9, 6, 12), pbrMat(0x9ca3af)); m.position.y = 0.8; g.add(m);
@@ -11364,7 +11572,7 @@ async function init(container, api) {
     // KAMERA në stil "Sims": diagonale nga lart (≈42° mbi horizont, 45° anash), e përqendruar te DHOMA
     // (jo te pandaja), 360° rrotullim i lirë + zoom. Muret e pasme janë njëanëshe → nga pas bëhen të padukshme
     // vetvetiu (efekti "cutaway" i Sims), kështu s'bllokojnë kurrë pamjen.
-    const CAM_HOME = { dist: 24, polar: 0.84, azim: Math.PI / 4, target: new THREE.Vector3(0, 0.45, 0) };
+    const CAM_HOME = { dist: 26, polar: 0.72, azim: Math.PI / 4, target: new THREE.Vector3(0, 0.3, 0) };   // si te Sims: nga lart-diagonalisht, e gjithë shtëpia në pamje
     const placeCam = (dist, polar, azim) => {
       camera.position.set(CAM_HOME.target.x + dist * Math.sin(polar) * Math.sin(azim), CAM_HOME.target.y + dist * Math.cos(polar), CAM_HOME.target.z + dist * Math.sin(polar) * Math.cos(azim));
     };
@@ -11372,7 +11580,7 @@ async function init(container, api) {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.copy(CAM_HOME.target);
     controls.enableDamping = true; controls.dampingFactor = 0.08;
-    controls.minDistance = 2.5; controls.maxDistance = 34;
+    controls.minDistance = 4; controls.maxDistance = 40;
     controls.minPolarAngle = 0.25; controls.maxPolarAngle = 1.25;   // nga pothuaj-lart deri ~18° mbi dysheme, kurrë nën të
     controls.screenSpacePanning = false; controls.panSpeed = 0.6; controls.rotateSpeed = 0.7;
     S._camHome = CAM_HOME; S._placeCam = placeCam;
@@ -11630,6 +11838,9 @@ function aiStep(dt) {
   // Vetëçlirim: nëse pozicioni AKTUAL i pandës bie brenda zonës së përplasjes së ndonjë mobilje
   // (p.sh. mbeti "brenda" një objekti nga një gabim i mëparshëm), e nxjerrim jashtë ÇDO KADER,
   // pavarësisht gjendjes së AI-së — kështu pandaja s'mbetet KURRË e bllokuar brenda një objekti.
+  // SIGURI: pandaja s'duhet KURRË të bjerë nën dysheme (y<0) ose të dalë jashtë shtëpisë.
+  if (ai.state !== "sleep" && S.panda.position.y < 0) S.panda.position.y = 0;
+  S.panda.position.x = clampX(S.panda.position.x); S.panda.position.z = clampZ(S.panda.position.z);
   unstickFromFurniture(dt);
   if (ai.state === "seek" || ai.state === "wander") {
     if (!ai.target) { ai.state = "idle"; ai.timer = 1; return; }
