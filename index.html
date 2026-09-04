@@ -9994,7 +9994,7 @@ const PANDA_ITEMS = [
   { id:"kitchen",    cat:"furniture", emoji:"🍳", cost:2500, placed:true, size:2.5, use:"food" },
   { id:"livingroom", cat:"furniture", emoji:"📺", cost:3000, placed:true, size:3.4, use:"rest" },
   { id:"bathroom",   cat:"furniture", emoji:"🚿", cost:3500, placed:true, size:2.5, use:"bath", use2:"toilet" },
-  { id:"bed",     cat:"furniture", emoji:"🛏️", cost:4000, placed:true, size:1.6, use:"sleep" },
+  { id:"bed",     cat:"furniture", emoji:"🛏️", cost:4000, placed:true, size:2.6, use:"sleep" },
   // 🌱 Dekor (të vendosshme)
   { id:"plant",   cat:"deco",  emoji:"🌱", cost:250,  placed:true, size:0.5, comfort:2 },
   { id:"lamp",    cat:"deco",  emoji:"💡", cost:280,  placed:true, size:0.4, comfort:2 },
@@ -10452,13 +10452,13 @@ function pt(key) { const L = PANDA_TEXT[menuLang] || PANDA_TEXT.sq; return L[key
 
 const PANDA_ITEM_NAMES = {
   sq: { apple:"Pica", burger:"Hamburger", wings:"Krahë pule", taco:"Tako", bamboo:"Bambu", cake:"Tortë", salad:"Sallatë", water:"Ujë", juice:"Lëng", milk:"Milkshake", icecoffee:"Kafe e ftohtë", soap:"Sapun", medicine:"Ilaç",
-        ball:"Top", teddy:"Arush pelushi", bowl:"Enë ushqimi", wbowl:"Enë uji", bed:"Krevat", sofa:"Divan", toilet:"Tualet", bathtub:"Vaskë",
+        ball:"Top", teddy:"Arush pelushi", bowl:"Enë ushqimi", wbowl:"Enë uji", bed:"Dhomë gjumi", sofa:"Divan", toilet:"Tualet", bathtub:"Vaskë",
         kitchen:"Kuzhinë", livingroom:"Dhomë ndenjeje", bathroom:"Banjë", plant:"Bimë", lamp:"Llambë", rug:"Qilim", picture:"Pikturë" },
   de: { apple:"Pizza", burger:"Burger", wings:"Chicken Wings", taco:"Taco", bamboo:"Bambus", cake:"Kuchen", salad:"Salat", water:"Wasser", juice:"Saft", milk:"Milchshake", icecoffee:"Eiskaffee", soap:"Seife", medicine:"Medizin",
-        ball:"Ball", teddy:"Teddy", bowl:"Futternapf", wbowl:"Wassernapf", bed:"Bett", sofa:"Sofa", toilet:"Toilette", bathtub:"Badewanne",
+        ball:"Ball", teddy:"Teddy", bowl:"Futternapf", wbowl:"Wassernapf", bed:"Schlafzimmer", sofa:"Sofa", toilet:"Toilette", bathtub:"Badewanne",
         kitchen:"Küche", livingroom:"Wohnzimmer", bathroom:"Badezimmer", plant:"Pflanze", lamp:"Lampe", rug:"Teppich", picture:"Bild" },
   en: { apple:"Pizza", burger:"Burger", wings:"Chicken wings", taco:"Taco", bamboo:"Bamboo", cake:"Cake", salad:"Salad", water:"Water", juice:"Juice", milk:"Milkshake", icecoffee:"Iced coffee", soap:"Soap", medicine:"Medicine",
-        ball:"Ball", teddy:"Teddy bear", bowl:"Food bowl", wbowl:"Water bowl", bed:"Bed", sofa:"Sofa", toilet:"Toilet", bathtub:"Bathtub",
+        ball:"Ball", teddy:"Teddy bear", bowl:"Food bowl", wbowl:"Water bowl", bed:"Bedroom", sofa:"Sofa", toilet:"Toilet", bathtub:"Bathtub",
         kitchen:"Kitchen", livingroom:"Living room", bathroom:"Bathroom", plant:"Plant", lamp:"Lamp", rug:"Rug", picture:"Picture" }
 };
 function pandaItemName(it) { const L = PANDA_ITEM_NAMES[menuLang] || PANDA_ITEM_NAMES.sq; return L[it.id] || it.id; }
@@ -11027,7 +11027,7 @@ const ASSETS = {
   kitchen:    { glb: "models/furniture/kitchen.glb",    textures: { map: "models/furniture/kitchen_basecolor.jpg",    normalMap: "models/furniture/kitchen_normal.jpg",    roughnessMap: "models/furniture/kitchen_roughness.jpg" } },
   livingroom: { glb: "models/furniture/livingroom.glb", textures: { map: "models/furniture/livingroom_basecolor.jpg", normalMap: "models/furniture/livingroom_normal.jpg", roughnessMap: "models/furniture/livingroom_roughness.jpg" } },
   bathroom:   { glb: "models/furniture/bathroom.glb",   textures: { map: "models/furniture/bathroom_basecolor.jpg",   normalMap: "models/furniture/bathroom_normal.jpg",   roughnessMap: "models/furniture/bathroom_roughness.jpg" } },
-  bed:      { glb: "models/bed/bed.glb", textures: { map: "models/bed/bed_basecolor.jpg", normalMap: "models/bed/bed_normal.jpg", roughnessMap: "models/bed/bed_roughness.jpg" }, sleepTop: 0.42 },   // modeli i përdoruesit
+  bed:      { glb: "models/bed/bedroom.glb", textures: { map: "models/bed/bedroom_basecolor.jpg", normalMap: "models/bed/bedroom_normal.jpg", roughnessMap: "models/bed/bedroom_roughness.jpg" }, sleepTop: 0.55 },   // dhoma e gjumit e përdoruesit (dyshek në lartësinë 0.55)
   sofa:     { glb: null, placeholder: "PLACEHOLDER_SOFA" },
   toilet:   { glb: null, placeholder: "PLACEHOLDER_TOILET" },
   bathtub:  { glb: null, placeholder: "PLACEHOLDER_BATHTUB" },
@@ -11097,6 +11097,45 @@ function plasterTexture(color) {
   }, 4, 2);
 }
 
+/* ---------- Normalizim i modeleve GLB të mobilieve/ushqimit: përshtat madhësinë dhe vendos në dysheme ---------- */
+async function applyAssetTextures(root, id) {
+  const tx = ASSETS[id] && ASSETS[id].textures; if (!tx) return;
+  const [map, normalMap, roughnessMap] = await Promise.all([tx.map ? loadTex(tx.map, true) : null, tx.normalMap ? loadTex(tx.normalMap, false) : null, tx.roughnessMap ? loadTex(tx.roughnessMap, false) : null]);
+  root.traverse(o => { if (o.isMesh) o.material = new THREE.MeshStandardMaterial({ map, normalMap, roughnessMap, roughness: 1, metalness: 0, normalScale: new THREE.Vector2(0.7, 0.7) }); });
+}
+function normalizeFurnitureModel(root, id) {
+  const item = (S && S.api.items.find(i => i.id === id)) || ASSETS[id] || {};
+  root.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material && o.material.map) o.material.map.colorSpace = THREE.SRGBColorSpace; } });
+  const bb = new THREE.Box3().setFromObject(root); const size = bb.getSize(new THREE.Vector3()); const center = bb.getCenter(new THREE.Vector3());
+  const target = item.size || 0.8; const footprint = Math.max(size.x, size.z) || 1;
+  const s = target / footprint;
+  const g = new THREE.Group(); g.name = "MODEL_" + id;
+  root.scale.setScalar(s); root.position.set(-center.x * s, -bb.min.y * s, -center.z * s);   // qendër në x/z, këmbët në y=0
+  g.userData.topY = size.y * s; g.add(root); return g;
+}
+
+/* ---------- SHPREHJET (rig pa blendshapes): vetëm lotët dhe Zzz si overlay; pjesa tjetër vjen nga klipet/poza ---------- */
+const EXPR_PRESETS = { sad: { tears: 0.6 }, lonely: { tears: 0.3 }, sick: { tears: 0.2 }, urgent: { tears: 0.2 } };
+
+/* ---------- PANDA ME RIG (GLB me skelet + klipe) — PandaRigController ----------
+   Modeli: models/panda/panda_rig.glb (24 bones, emra standardë Mixamo: Hips, Spine, Head, LeftArm...).
+   KLIPET: çdo gjendje mund të ketë një klip të vërtetë (ASSETS.panda.clips[state] = "skedar.glb/.fbx").
+   Nëse mungon, përdoret animacion PROCEDURAL mbi kockat (rigProc) — pra pandaja lëviz gjithmonë.
+   SHPREHJET: pa morph targets → koka (rrotullim), faqet, lotët, Zzz të bashkëngjitura te Head-bone,
+   dhe klipi "stomp" kur ka uri/është i zemëruar (kërkesë e lojës). */
+const RIG_TEX = { map: "models/panda/panda_basecolor.jpg", normalMap: "models/panda/panda_normal.jpg", roughnessMap: "models/panda/panda_roughness.jpg" };
+const RIG_STATE_CLIPS = { hungry: "stomp", angry: "stomp", lonely: "help", sad: "help" };   // emocion → klip reagimi (herë pas here)
+// gjendje e lojës → emri i klipit (nëse gjendja s'ka klip me të njëjtin emër)
+const RIG_STATE_ALIAS = { play: "dance", rest: "sit", tired: "sit" };
+const RIG_ONCE = new Set(["greeting", "cheer", "sit", "stomp", "help", "surprised"]);   // luhen një herë; të tjerat në lak
+const RIG_SPEED = () => ({ walk: 0.9 * (S.moveTempo || 1), run: 0.9 * (S.moveTempo || 1) });
+const texLoader = new THREE.TextureLoader();
+
+function loadTex(url, srgb) {
+  return new Promise((res) => texLoader.load(url, (t) => { if (!t) return res(null); t.flipY = true; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; res(t); }, undefined, () => res(null)));
+}
+
+
 // Ngarkon SHTËPINË reale (modeli i përdoruesit) në vend të dhomës së ndërtuar me kod.
 async function buildRoom(scene) {
   const a = ASSETS.house;
@@ -11112,8 +11151,8 @@ async function buildRoom(scene) {
     root.position.set(-c.x, -(-11 * HOUSE_SCALE), -c.z);
     root.traverse(o => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = true; if (o.material) o.material.side = THREE.DoubleSide; } });
     root.name = "HOUSE"; scene.add(root);
-    const sun = new THREE.DirectionalLight(0xfff6e8, 1.4); sun.position.set(6, 12, 6); scene.add(sun);
-    scene.add(new THREE.HemisphereLight(0xdff0ff, 0xe8dcc8, 1.05));
+    // KUJDES: ndriçimin e vendos init() (Hemisphere 1.1 + Diell 1.6). Mos shto drita këtu —
+    // përndryshe skena "digjet" krejt e bardhë nga ndriçimi i dyfishtë.
     // KUJDES: këtu S ende NUK ekziston (krijohet më poshtë në init), prandaj e kthejmë rezultatin
     // dhe e vendosim te S pasi ai të jetë krijuar. Përndryshe hidhet gabim dhe skena mbetet BOSH.
     return { house: root, grid: computeHouseColliders(root) };
@@ -11197,6 +11236,32 @@ function findPath(sx, sz, tx, tz) {
   out.push(path[path.length - 1]);
   return out;
 }
+// A bie NDONJË pjesë e mobiljes (jo vetëm qendra) brenda një muri? Kontrollon një rrjet 5×5
+// pikash mbi gjurmën e objektit — kështu mobiljet e mëdha s'hyjnë me qoshe brenda murit.
+function furnitureFitsHouse(x, z, size, rotY) {
+  if (!(S && S._houseGrid)) return true;
+  const half = (size || 0.8) / 2;
+  const cos = Math.cos(rotY || 0), sin = Math.sin(rotY || 0);
+  for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) {
+    const lx = a * half, lz = b * half;                 // pikë lokale në gjurmën e objektit
+    const wx = x + lx * cos - lz * sin, wz = z + lx * sin + lz * cos;   // rrotullo në botë
+    if (houseBlocked(wx, wz)) return false;
+  }
+  return true;
+}
+// Gjen vendin e lirë më të afërt ku mobilja hyn e TËRA brenda dhomës (spirale nga pika e dëshiruar).
+function snapInsideHouse(x, z, size, rotY) {
+  if (furnitureFitsHouse(x, z, size, rotY)) return { x, z };
+  const step = (S && S._houseGrid) ? S._houseGrid.cell : 0.2;
+  for (let r = 1; r <= 25; r++) {
+    for (let a = 0; a < 16; a++) {
+      const ang = a * Math.PI / 8;
+      const nx = x + Math.cos(ang) * r * step, nz = z + Math.sin(ang) * r * step;
+      if (furnitureFitsHouse(nx, nz, size, rotY)) return { x: nx, z: nz };
+    }
+  }
+  return { x, z };
+}
 function houseBlocked(x, z) {
   const hg = S && S._houseGrid; if (!hg) return false;
   const ix = Math.floor((x - hg.minX) / hg.cell), iz = Math.floor((z - hg.minZ) / hg.cell);
@@ -11276,7 +11341,7 @@ async function init(container, api) {
     renderer.domElement.style.cssText = "width:100%;height:100%;display:block;touch-action:none;";
     scene.add(new THREE.HemisphereLight(0xfff4e6, 0xd9c3a8, 1.1));
     const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(3, 6, 4); sun.castShadow = true;
-    sun.shadow.mapSize.set(1024, 1024); sun.shadow.camera.left = -6; sun.shadow.camera.right = 6; sun.shadow.camera.top = 6; sun.shadow.camera.bottom = -6;
+    sun.shadow.mapSize.set(1024, 1024); sun.shadow.camera.left = -12; sun.shadow.camera.right = 12; sun.shadow.camera.top = 12; sun.shadow.camera.bottom = -12;   // shtëpia është ~19.5 njësi
     scene.add(sun);
     const houseResult = await buildRoom(scene);
 
@@ -11383,9 +11448,7 @@ function findFreeSpot(item) {
   for (let t = 0; t < 120; t++) {
     const x = HOUSE_INNER.minX + 0.6 + Math.random() * (HOUSE_INNER.maxX - HOUSE_INNER.minX - 1.2);
     const z = HOUSE_INNER.minZ + 0.6 + Math.random() * (HOUSE_INNER.maxZ - HOUSE_INNER.minZ - 1.2);
-    if (houseBlocked(x, z)) continue;
-    // kontrollo edhe cepat e objektit, që mobilja e madhe të mos hyjë në mur
-    if (houseBlocked(x - half, z) || houseBlocked(x + half, z) || houseBlocked(x, z - half) || houseBlocked(x, z + half)) continue;
+    if (!furnitureFitsHouse(x, z, item.size || 0.8, 0)) continue;   // e TËRA brenda dhomës
     if (!collides(x, z, half + 0.3, placed, null)) return { x, z };
   }
   return { x: 0, z: 0 };
@@ -11470,7 +11533,9 @@ function setupPointer() {
     toPtr(e); ray.setFromCamera(ptr, S.camera);
     if (ray.ray.intersectPlane(plane, hit)) {
       const o = S.furn[S.dragging]; const item = S.api.items.find(i => i.id === o.userData.type); const half = (item.size || 0.8) / 2;
-      o.position.set(clampX(hit.x), 0, clampZ(hit.z));
+      const itDrag = S.api.items.find(i => i.id === o.userData.type) || {};
+      const sp = snapInsideHouse(clampX(hit.x), clampZ(hit.z), itDrag.size || 0.8, o.rotation.y);
+      o.position.set(sp.x, 0, sp.z);
     }
   });
   const end = () => {
@@ -11479,9 +11544,13 @@ function setupPointer() {
     const placed = S.api.getState().placed || [];
     const f = placed.find(x => x.id === id);
     if (moved && f) {
-      if (collides(o.position.x, o.position.z, ((S.api.items.find(i => i.id === o.userData.type).size || 0.8) / 2), placed, id)) {
+      const it = S.api.items.find(i => i.id === o.userData.type) || {};
+      // Fut mobiljen TËRËSISHT brenda dhomës (asnjë qoshe në mur), pastaj kontrollo përplasjen me mobiljet e tjera
+      const snap = snapInsideHouse(o.position.x, o.position.z, it.size || 0.8, o.rotation.y);
+      o.position.set(snap.x, 0, snap.z);
+      if (collides(snap.x, snap.z, ((it.size || 0.8) / 2), placed, id)) {
         o.position.set(f.position.x, 0, f.position.z);  // ishte mbi diçka tjetër → kthehu
-      } else S.api.onTransform(id, { position: { x: o.position.x, z: o.position.z }, rotation: { y: o.rotation.y } });
+      } else S.api.onTransform(id, { position: { x: snap.x, z: snap.z }, rotation: { y: o.rotation.y } });
     }
   };
   el.addEventListener("pointerup", end); el.addEventListener("pointercancel", end);
