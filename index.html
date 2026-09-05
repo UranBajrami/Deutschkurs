@@ -11236,7 +11236,14 @@ function connectIsolatedAreas(grid, N) {
         }
       }
     }
-    if (best) for (let len = 1; len < best.len; len++) grid[best.z + best.dz * len][best.x + best.dx * len] = false;
+    // Hap kalimin ME GJERËSI 3 qeliza (≈0.6 njësi), që pandaja të kalojë e tëra pa prekur mur
+    if (best) for (let len = 1; len < best.len; len++) {
+      for (let side = -1; side <= 1; side++) {
+        const ox = best.dz * side, oz = best.dx * side;   // pingul me drejtimin e kalimit
+        const gx = best.x + best.dx * len + ox, gz = best.z + best.dz * len + oz;
+        if (gx >= 0 && gz >= 0 && gx < N && gz < N) grid[gz][gx] = false;
+      }
+    }
   }
 }
 // GJETJA E RRUGËS (BFS mbi rrjetën e përplasjes): kthen listën e pikave nga A në B duke kaluar
@@ -11304,6 +11311,18 @@ function snapInsideHouse(x, z, size, rotY) {
     }
   }
   return { x, z };
+}
+// Kthen pozicionin e dhënë nëse është i lirë dhe i lidhur me qendrën e shtëpisë; përndryshe kërkon
+// në spirale qelizën e lirë më të afërt nga e cila ekziston rrugë drejt qendrës.
+function safeSpawn(x, z) {
+  const hg = S && S._houseGrid; if (!hg) return { x, z };
+  const okHere = !houseBlocked(x, z) && !!findPath(x, z, 0, 0);
+  if (okHere) return { x, z };
+  for (let r = 1; r <= 40; r++) for (let a = 0; a < 24; a++) {
+    const ang = a * Math.PI / 12, nx = x + Math.cos(ang) * r * hg.cell, nz = z + Math.sin(ang) * r * hg.cell;
+    if (!houseBlocked(nx, nz) && findPath(nx, nz, 0, 0)) return { x: nx, z: nz };
+  }
+  return { x: 0, z: 0 };
 }
 function houseBlocked(x, z) {
   const hg = S && S._houseGrid; if (!hg) return false;
@@ -11608,7 +11627,12 @@ function resize() {
 function restorePanda() {
   if (!S) return;
   const st = S.api.getState();
-  const px = clampX(+((st.pos||{}).x) || 0), pz = clampZ(+((st.pos||{}).z) || 0.5);
+  let px = clampX(+((st.pos||{}).x) || 0), pz = clampZ(+((st.pos||{}).z) || 0.5);
+  // SPAWN I SIGURT: pozicioni i ruajtur mund të bjerë brenda një muri ose në një zonë të shkëputur
+  // (p.sh. pas ndryshimit të modelit). Nëse nga aty S'KA rrugë drejt qendrës, vendose në qelizën
+  // e lirë më të afërt që ka rrugë — përndryshe pandaja ngec që në fillim.
+  const safe = safeSpawn(px, pz);
+  px = safe.x; pz = safe.z;
   S.panda.position.set(px, 0, pz); S.panda.rotation.y = +st.rotY || 0;
   // Pas rifreskimit: nëse është natë/gjumë, kthehet vetë te krevati përmes AI-së (jo teleportim)
   S.ai.state = "idle"; S.ai.timer = 0.5; setAnim("idle"); S.sleepY = 0;
@@ -11801,7 +11825,7 @@ function decide(st, em) {
   if (st.mood < 30 && (has("ball") || has("teddy"))) return { state: "seek", use: "toy" };
   if (st.energy > 55 && Math.random() < 0.15 && (has("ball") || has("teddy"))) return { state: "seek", use: "toy" };
   if (st.energy > 40 && Math.random() < 0.2 && has("livingroom")) return { state: "seek", use: "rest" };   // divani është pjesë e dhomës së ndenjes
-  return Math.random() < 0.55 ? { state: "wander" } : { state: "idle" };
+  return Math.random() < 0.85 ? { state: "wander" } : { state: "idle" };   // pandaja patrullon shpesh, rri rrallë
 }
 function targetFor(use, st) {
   const placed = st.placed || [];
@@ -11817,7 +11841,32 @@ function targetFor(use, st) {
   const it = S.api.items.find(i => i.id === f.type); const off = (it.size || 0.8) / 2 + 0.35;
   return { x: clampX(f.position.x), z: clampZ(f.position.z + off), id: f.id };
 }
-function randomSpot(st) {
+// PATRULLIM: mban shënim ku ka qenë së fundi dhe zgjedh me përparësi zonat e PAVIZITUARA,
+// që pandaja të bëjë "raundin" e gjithë banesës e jo të rrijë në një cep.
+// KUJTESA E PATRULLIMIT: rrjetë e trashë (blloqe 1.5 njësi) ku numërojmë sa herë ka kaluar pandaja.
+// Caku i ri zgjidhet me përparësi te blloku më PAK i vizituar → me kohë mbulon TË GJITHË banesën,
+// në vend që të përsërisë gjithnjë të njëjtat rrugë.
+const PATROL_BLOCK = 1.5;
+function patrolKey(x, z) { return Math.floor(x / PATROL_BLOCK) + "," + Math.floor(z / PATROL_BLOCK); }
+function patrolNote(x, z) {
+  if (!S._visits) S._visits = new Map();
+  const k = patrolKey(x, z); S._visits.set(k, (S._visits.get(k) || 0) + 1);
+}
+function pickPatrolSpot(st) {
+  if (!S._visits) S._visits = new Map();
+  const cand = [];
+  for (let t = 0; t < 60; t++) {
+    const s2 = randomSpotRaw(st); if (!s2) continue;
+    const visits = S._visits.get(patrolKey(s2.x, s2.z)) || 0;
+    const dNow = Math.hypot(s2.x - S.panda.position.x, s2.z - S.panda.position.z);
+    cand.push({ s: s2, score: -visits * 3 - Math.abs(dNow - 5) * 0.4 + Math.random() * 0.5 });
+  }
+  if (!cand.length) return { x: 0, z: 0 };
+  cand.sort((a, b) => b.score - a.score);
+  return cand[Math.floor(Math.random() * Math.min(3, cand.length))].s;
+}
+function randomSpot(st) { return pickPatrolSpot(st); }
+function randomSpotRaw(st) {
   // Shpërndarje mbi TË GJITHË shtëpinë (kufij asimetrikë), jo simetrike rreth zeros — përndryshe
   // pandaja rrinte vetëm në një cep dhe s'i vizitonte kurrë dhomat e tjera.
   const useHouse = S && S._houseGrid;
@@ -11844,11 +11893,29 @@ function aiStep(dt) {
   unstickFromFurniture(dt);
   if (ai.state === "seek" || ai.state === "wander") {
     if (!ai.target) { ai.state = "idle"; ai.timer = 1; return; }
-    const dx = ai.target.x - S.panda.position.x, dz = ai.target.z - S.panda.position.z, d = Math.hypot(dx, dz);
-    if (d < 0.15) {
-      if (ai.state === "seek" && ai.use) { arrive(ai.use); } else { ai.state = "idle"; ai.timer = 1.5 + Math.random() * 3; setAnim("idle"); }
+    // A arritëm te CAKU përfundimtar?
+    const fdx = ai.target.x - S.panda.position.x, fdz = ai.target.z - S.panda.position.z;
+    if (Math.hypot(fdx, fdz) < 0.2) {
+      ai.path = null; ai.pathI = 0; ai.goalTime = 0;
+      if (ai.state === "seek" && ai.use) { arrive(ai.use); } else { ai.state = "idle"; ai.timer = 0.4 + Math.random() * 1.2; setAnim("idle"); }   // pushim i shkurtër → patrullim i vazhdueshëm
       ai.target = null; flush(); return;
     }
+    // AFAT: nëse një cak zgjat më shumë se 20 s, hiqe dhe zgjidh një tjetër — kështu pandaja
+    // s'mbetet KURRË e lidhur pas një caku problematik dhe patrullimi vazhdon gjithnjë.
+    ai.goalTime = (ai.goalTime || 0) + dt;
+    if (ai.goalTime > 20) { ai.goalTime = 0; ai.path = null; ai.pathI = 0; ai.target = null; ai.state = "idle"; ai.timer = 0.2; return; }
+    // NDIQ RRUGËN (BFS nëpër dyer). Pa këtë, pandaja ngec te muri i parë dhe ecën "në vend".
+    if (S._houseGrid && !ai.path) {
+      ai.path = findPath(S.panda.position.x, S.panda.position.z, ai.target.x, ai.target.z);
+      ai.pathI = ai.path ? 1 : 0;
+      if (!ai.path) { ai.target = null; ai.state = "idle"; ai.timer = 0.3; return; }   // cak i paarritshëm → provo tjetër
+    }
+    let wp = ai.target;
+    if (ai.path && ai.path.length) {
+      while (ai.pathI < ai.path.length - 1 && Math.hypot(ai.path[ai.pathI].x - S.panda.position.x, ai.path[ai.pathI].z - S.panda.position.z) < 0.25) ai.pathI++;
+      wp = ai.path[Math.min(ai.pathI, ai.path.length - 1)];
+    }
+    const dx = wp.x - S.panda.position.x, dz = wp.z - S.panda.position.z, d = Math.max(0.0001, Math.hypot(dx, dz));
     const desiredX = dx / d, desiredZ = dz / d;
     const step = ai.speed * dt;
     const placed = st.placed || [];
@@ -11873,10 +11940,15 @@ function aiStep(dt) {
       // Asnjë drejtim i lirë (rast shumë i rrallë): provo një cak të ri të rastësishëm, mos ngri pandaly
       ai.state = "idle"; ai.timer = 0.4; ai.target = null; setAnim("idle"); return;
     }
+    patrolNote(S.panda.position.x, S.panda.position.z);   // shëno bllokun ku po ecën
     S.panda.position.x = clampX(S.panda.position.x + nx * step);
     S.panda.position.z = clampZ(S.panda.position.z + nz * step);
     S.panda.rotation.y = Math.atan2(nx, nz);
-    setAnim(ai.state === "seek" && (ai.use === "toy" || ai.use === "rest") && S.panda.userData.rig && S.panda.userData.rig.clips.run ? "run" : "walk");
+    // Shtëpia është e madhe (≈19 njësi): nëse caku është larg, VRAPO — përndryshe ecja zgjat me minuta
+    // dhe pandaja duket sikur s'lëviz fare. Shpejtësia mbetet e lidhur me klipin (këmbët s'rrëshqasin).
+    const farAway = Math.hypot(ai.target.x - S.panda.position.x, ai.target.z - S.panda.position.z) > 3;
+    const canRun = S.panda.userData.rig && S.panda.userData.rig.clips.run;
+    setAnim(canRun && (farAway || (ai.state === "seek" && (ai.use === "toy" || ai.use === "rest"))) ? "run" : "walk");
     return;
   }
   if (ai.state === "busy") {
@@ -11897,11 +11969,11 @@ function aiStep(dt) {
   ai.timer -= dt;
   if (ai.timer > 0) { setAnim(st.energy < 25 ? "tired" : "idle"); return; }
   const d = decide(st, em);
-  ai.path = null; ai.pathI = 0;   // cak i ri → rrugë e re
+  ai.path = null; ai.pathI = 0; ai.goalTime = 0;   // cak i ri → rrugë e re
   if (d.state === "seek") { const t = targetFor(d.use, st); if (t) { ai.state = "seek"; ai.use = d.use; ai.target = t; return; } }
   if (d.state === "sleep") { ai.state = "sleep"; return; }
   if (d.state === "wander") { ai.state = "wander"; ai.target = randomSpot(st); return; }
-  ai.state = "idle"; ai.timer = 1.5 + Math.random() * 2.5;
+  ai.state = "idle"; ai.timer = 0.5 + Math.random() * 1.2;
 }
 function arrive(use) {
   const ai = S.ai; const targetId = ai.target && ai.target.id; ai.use = null;
