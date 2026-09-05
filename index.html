@@ -10545,11 +10545,22 @@ function renderPandaStatus() {
   document.getElementById("pandaStreak").textContent = "🔥 " + (p.learnStreak || 0);
   const need = 100 + (p.level - 1) * 60;
   document.getElementById("pandaXpFill").style.width = Math.round((p.xp / need) * 100) + "%";
+  renderPandaNeedsOnly(p);
+}
+// VETËM shiritat (pa dyqan, pa inventar) — thirret shpesh gjatë ngrënies/pirjes, prandaj duhet të jetë e lehtë
+function renderPandaNeedsOnly(p) {
+  const el = document.getElementById("pandaNeeds"); if (!el) return;
   const rows = [
     ["hunger","🍎",p.hunger],["thirst","💧",p.thirst],["energy","⚡",p.energy],["mood","❤️",p.mood],
     ["hygiene","🧼",p.hygiene],["toilet","🚽",100 - p.toilet],["affection","🤗",p.affection],["health","💚",p.health]
   ];
-  document.getElementById("pandaNeeds").innerHTML = rows.map(([k, ic, v]) => {
+  // Përditëso vetëm gjerësinë/vlerën nëse rreshtat ekzistojnë tashmë (pa rindërtim DOM)
+  const fills = el.querySelectorAll(".pn-fill"), vals = el.querySelectorAll(".pn-val");
+  if (fills.length === rows.length) {
+    rows.forEach(([k, ic, v], i) => { const col = v > 60 ? "var(--green)" : v > 30 ? "var(--gold)" : "var(--red)"; fills[i].style.width = Math.round(v) + "%"; fills[i].style.background = col; vals[i].textContent = Math.round(v); });
+    return;
+  }
+  el.innerHTML = rows.map(([k, ic, v]) => {
     const col = v > 60 ? "var(--green)" : v > 30 ? "var(--gold)" : "var(--red)";
     return `<div class="pn-row"><span class="pn-ic">${ic}</span><span class="pn-lbl">${uiText("panda.need." + k)}</span>
       <div class="pn-track"><div class="pn-fill" style="width:${Math.round(v)}%;background:${col}"></div></div><span class="pn-val">${Math.round(v)}</span></div>`;
@@ -10643,7 +10654,7 @@ function pandaConsumeTick(instId, dt, total) {
   const frac = dt / total;
   for (const k in it.effect) p[k] = clamp(p[k] + it.effect[k] * frac, 0, 100);
   consumeTickAccum += dt;
-  if (consumeTickAccum >= 0.2) { consumeTickAccum = 0; renderPandaView(); }   // rifreskim i shiritit disa herë në sekondë, jo çdo kuadër
+  if (consumeTickAccum >= 0.25) { consumeTickAccum = 0; renderPandaNeedsOnly(p); }   // vetëm shiritat — renderPandaView() rindërtonte dyqanin 5×/s dhe ngrinte lojën
 }
 function pandaConsume(instId) {
   const p = ensurePanda();
@@ -11051,6 +11062,9 @@ const HOUSE_SCALE = 0.1023;                  // 190.3 njësi modeli → 19.5 nj�
 // muret e jashtme bien rreth 5%–95% të gjerësisë; brenda kësaj pandaja lëviz lirshëm.
 // Kufijtë e VËRTETË të dyshemesë së banimit, matur me rreze nga lart (jo lëndina përreth):
 const HOUSE_INNER = { minX: -8.6, maxX: 8.4, minZ: -7.1, maxZ: 9.1 };
+// DERA KRYESORE: e vetmja pikë ku pandaja mund të dalë nga shtëpia në lëndinë. null = shtëpia e mbyllur.
+// Vendoset si {x, z, r} (r = rreze e hapjes në njësi). Përditësohet sapo dera identifikohet në model.
+const MAIN_DOOR = null;
 const HALF_W = ROOM.w / 2, HALF_D = ROOM.d / 2;
 const PASTEL = { wall: 0xf3e6ee, wall2: 0xe6eef6, floor: 0xe9d8c4, base: 0xd9c3a8 };
 
@@ -11198,19 +11212,53 @@ function computeHouseColliders(root) {
       }
     }
   }
-  // Jashtë dyshemesë së banimit → e bllokuar (që pandaja të mos dalë në bar)
-  for (let iz = 0; iz < HOUSE_GRID_N; iz++) for (let ix = 0; ix < HOUSE_GRID_N; ix++) {
-    const x = minX + ix * cell + cell / 2, z = minZ + iz * cell + cell / 2;
-    if (x < HOUSE_INNER.minX || x > HOUSE_INNER.maxX || z < HOUSE_INNER.minZ || z > HOUSE_INNER.maxZ) grid[iz][ix] = true;
+  // DYSHEMEJA E BANIMIT vs LËNDINA: dy maska nga trekëndëshat horizontalë.
+  const NN = HOUSE_GRID_N;
+  const floorM = Array.from({ length: NN }, () => new Uint8Array(NN)), lawnM = Array.from({ length: NN }, () => new Uint8Array(NN));
+  if (mesh) {
+    const pos = mesh.geometry.attributes.position, idx = mesh.geometry.index, mw = mesh.matrixWorld;
+    const a = new THREE.Vector3(), b2 = new THREE.Vector3(), c2 = new THREE.Vector3(), nrm = new THREE.Vector3(), ab = new THREE.Vector3(), ac = new THREE.Vector3();
+    const total = idx ? idx.count : pos.count;
+    const markM = (M, x, z) => { const ix = Math.floor((x - minX) / cell), iz = Math.floor((z - minZ) / cell); if (ix >= 0 && iz >= 0 && ix < NN && iz < NN) M[iz][ix] = 1; };
+    for (let i2 = 0; i2 < total; i2 += 3) {
+      const i0 = idx ? idx.getX(i2) : i2, i1 = idx ? idx.getX(i2 + 1) : i2 + 1, i3 = idx ? idx.getX(i2 + 2) : i2 + 2;
+      a.fromBufferAttribute(pos, i0).applyMatrix4(mw); b2.fromBufferAttribute(pos, i1).applyMatrix4(mw); c2.fromBufferAttribute(pos, i3).applyMatrix4(mw);
+      ab.subVectors(b2, a); ac.subVectors(c2, a); nrm.crossVectors(ab, ac).normalize();
+      if (nrm.y < 0.7) continue;
+      const cy = (a.y + b2.y + c2.y) / 3;
+      const M = Math.abs(cy) < 0.15 ? floorM : (cy < -0.05 && cy > -0.7 ? lawnM : null); if (!M) continue;
+      const steps = Math.max(2, Math.ceil(Math.max(a.distanceTo(b2), b2.distanceTo(c2), a.distanceTo(c2)) / (cell * 0.8)));
+      for (let u = 0; u <= steps; u++) for (let v = 0; u + v <= steps; v++) { const w = steps - u - v; markM(M, (a.x * u + b2.x * v + c2.x * w) / steps, (a.z * u + b2.z * v + c2.z * w) / steps); }
+    }
   }
+  // Mbush VRIMAT e dyshemesë (modeli i thjeshtuar): çdo qelizë jo-dysheme që s'arrin te skaji i rrjetës pa kaluar
+  // nëpër dysheme, është vrimë e brendshme → trajtohet si dysheme. Lëndina arrin te skaji → mbetet jashtë.
+  const outside = Array.from({ length: NN }, () => new Uint8Array(NN));
+  { const q = []; for (let i = 0; i < NN; i++) { for (const [x, z] of [[i, 0], [i, NN - 1], [0, i], [NN - 1, i]]) if (!floorM[z][x] && !outside[z][x]) { outside[z][x] = 1; q.push([x, z]); } }
+    while (q.length) { const [x, z] = q.pop(); for (const [dx, dz] of [[1,0],[-1,0],[0,1],[0,-1]]) { const nx = x + dx, nz = z + dz; if (nx >= 0 && nz >= 0 && nx < NN && nz < NN && !floorM[nz][nx] && !outside[nz][nx]) { outside[nz][nx] = 1; q.push([nx, nz]); } } } }
+  const inside = Array.from({ length: NN }, (_, iz) => Uint8Array.from({ length: NN }, (__, ix) => (floorM[iz][ix] || !outside[iz][ix]) ? 1 : 0));
+  // RINGU I JASHTËM I MBYLLUR: çdo qelizë jashtë banesës, brenda 2 qelizave nga banesa → mur. Kështu
+  // asnjë vrimë e murit të jashtëm s'e lëshon pandanë jashtë — VETËM te dera kryesore (MAIN_DOOR).
+  for (let iz = 0; iz < NN; iz++) for (let ix = 0; ix < NN; ix++) {
+    if (inside[iz][ix]) continue;
+    const x = minX + ix * cell + cell / 2, z = minZ + iz * cell + cell / 2;
+    let nearInside = false;
+    for (let dz = -2; dz <= 2 && !nearInside; dz++) for (let dx = -2; dx <= 2; dx++) { const nx = ix + dx, nz = iz + dz; if (nx >= 0 && nz >= 0 && nx < NN && nz < NN && inside[nz][nx]) { nearInside = true; break; } }
+    const atDoor = MAIN_DOOR && Math.hypot(x - MAIN_DOOR.x, z - MAIN_DOOR.z) < (MAIN_DOOR.r || 0.9);
+    if (nearInside && !atDoor) grid[iz][ix] = true;                 // ring i mbyllur
+    else if (!lawnM[iz][ix] && !atDoor) grid[iz][ix] = true;        // jo lëndinë, jo derë → jashtë hartës
+  }
+  S_insideMask = inside;
   // LIDHJA E DHOMAVE: modeli i thjeshtuar lë ndonjë mur "të trashë" që i ndan dhomat pa derë.
   // Gjejmë zonën më të madhe të lirë dhe hapim kalim drejt zonave të vogla të izoluara, që pandaja
   // të mund të shkojë KUDO — ashtu si te Sims, ku çdo dhomë është e arritshme.
   connectIsolatedAreas(grid, HOUSE_GRID_N);
-  return { grid, minX, minZ, cell, n: HOUSE_GRID_N };
+  return { grid, minX, minZ, cell, n: HOUSE_GRID_N, inside };
 }
 // Bashkon zonat e izoluara me zonën kryesore duke hapur korridore 1-qelizë përmes murit më të hollë.
+let S_insideMask = null;
 function connectIsolatedAreas(grid, N) {
+  const inside = S_insideMask;
   const regionOf = Array.from({ length: N }, () => new Int16Array(N).fill(-1));
   const regions = [];
   for (let iz = 0; iz < N; iz++) for (let ix = 0; ix < N; ix++) {
@@ -11222,10 +11270,13 @@ function connectIsolatedAreas(grid, N) {
     regions.push(cells);
   }
   if (regions.length < 2) return;
-  let main = 0; for (let i = 1; i < regions.length; i++) if (regions[i].length > regions[main].length) main = i;
+  // vetëm rajonet BRENDA banesës merren parasysh (lëndina jashtë nuk lidhet kurrë përmes murit)
+  const isInside = (cells) => !inside || cells.filter(([x, z]) => inside[z][x]).length > cells.length * 0.6;
+  let main = -1; for (let i = 0; i < regions.length; i++) if (isInside(regions[i]) && (main < 0 || regions[i].length > regions[main].length)) main = i;
+  if (main < 0) return;
   // Për çdo zonë tjetër (jo shumë e vogël), gërmo drejt zonës kryesore nëpër murin më të hollë
   for (let r = 0; r < regions.length; r++) {
-    if (r === main || regions[r].length < 12) continue;
+    if (r === main || regions[r].length < 12 || !isInside(regions[r])) continue;
     let best = null;
     for (const [x, z] of regions[r]) {
       for (const [dx, dz] of [[1,0],[-1,0],[0,1],[0,-1]]) {
@@ -11733,8 +11784,8 @@ const wallMargin = () => 0.3 + 0.6 * ((S && S.growthScale) || 1);
 const BX = () => (S && S._houseGrid) ? HOUSE_INNER.maxX : HALF_W - wallMargin();
 const BZ = () => (S && S._houseGrid) ? HOUSE_INNER.maxZ : HALF_D - wallMargin();
 // Klemb pozicionin brenda dyshemesë reale (kufij asimetrikë te shtëpia)
-const clampX = (v) => (S && S._houseGrid) ? clamp(v, HOUSE_INNER.minX, HOUSE_INNER.maxX) : clamp(v, -BX(), BX());
-const clampZ = (v) => (S && S._houseGrid) ? clamp(v, HOUSE_INNER.minZ, HOUSE_INNER.maxZ) : clamp(v, -BZ(), BZ());
+const clampX = (v) => (S && S._houseGrid) ? clamp(v, S._houseGrid.minX + 0.3, S._houseGrid.minX + S._houseGrid.cell * S._houseGrid.n - 0.3) : clamp(v, -BX(), BX());
+const clampZ = (v) => (S && S._houseGrid) ? clamp(v, S._houseGrid.minZ + 0.3, S._houseGrid.minZ + S._houseGrid.cell * S._houseGrid.n - 0.3) : clamp(v, -BZ(), BZ());
 // Shpejtësitë e klipeve (të matura): sa lëviz trupi për sekondë në skalim 1 — që këmbët të mos rrëshqasin
 const CLIP_GROUND_SPEED = { walk: 1.24, run: 3.62 };
 
@@ -11866,6 +11917,11 @@ function pickPatrolSpot(st) {
   return cand[Math.floor(Math.random() * Math.min(3, cand.length))].s;
 }
 function randomSpot(st) { return pickPatrolSpot(st); }
+function isInsideHouse(x, z) {
+  const hg = S && S._houseGrid; if (!hg || !hg.inside) return true;
+  const ix = Math.floor((x - hg.minX) / hg.cell), iz = Math.floor((z - hg.minZ) / hg.cell);
+  return ix >= 0 && iz >= 0 && ix < hg.n && iz < hg.n && !!hg.inside[iz][ix];
+}
 function randomSpotRaw(st) {
   // Shpërndarje mbi TË GJITHË shtëpinë (kufij asimetrikë), jo simetrike rreth zeros — përndryshe
   // pandaja rrinte vetëm në një cep dhe s'i vizitonte kurrë dhomat e tjera.
@@ -11874,7 +11930,7 @@ function randomSpotRaw(st) {
   const z0 = useHouse ? HOUSE_INNER.minZ + 0.5 : -BZ(), z1 = useHouse ? HOUSE_INNER.maxZ - 0.5 : BZ();
   for (let t = 0; t < 60; t++) {
     const x = x0 + Math.random() * (x1 - x0), z = z0 + Math.random() * (z1 - z0);
-    if (!collides(x, z, 0.45, st.placed || [], null)) return { x, z };
+    if (isInsideHouse(x, z) && !collides(x, z, 0.45, st.placed || [], null)) return { x, z };
   }
   return { x: 0, z: 0 };
 }
