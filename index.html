@@ -11156,7 +11156,12 @@ const ASSETS = {
   kitchen:    { glb: "models/furniture/kitchen.glb",    textures: { map: "models/furniture/kitchen_basecolor.jpg",    normalMap: "models/furniture/kitchen_normal.jpg",    roughnessMap: "models/furniture/kitchen_roughness.jpg" } },
   livingroom: { glb: "models/furniture/livingroom.glb", textures: { map: "models/furniture/livingroom_basecolor.jpg", normalMap: "models/furniture/livingroom_normal.jpg", roughnessMap: "models/furniture/livingroom_roughness.jpg" } },
   bathroom:   { glb: "models/furniture/bathroom.glb",   textures: { map: "models/furniture/bathroom_basecolor.jpg",   normalMap: "models/furniture/bathroom_normal.jpg",   roughnessMap: "models/furniture/bathroom_roughness.jpg" } },
-  bed:      { glb: "models/bed/bedroom.glb", textures: { map: "models/bed/bedroom_basecolor.jpg", normalMap: "models/bed/bedroom_normal.jpg", roughnessMap: "models/bed/bedroom_roughness.jpg" }, sleepTop: 0.55 },   // dhoma e gjumit e përdoruesit (dyshek në lartësinë 0.55)
+  bed:      { glb: "models/bed/bedroom.glb", textures: { map: "models/bed/bedroom_basecolor.jpg", normalMap: "models/bed/bedroom_normal.jpg", roughnessMap: "models/bed/bedroom_roughness.jpg" }, sleepTop: 0.55,
+            // Dysheku NUK është në qendër të grupit (aty ka edhe dollapin): matur me rreze nga lart,
+            // qendra e dyshekut bie 0.50 njësi majtas dhe 0.11 përpara qendrës së modelit.
+            sleepOffset: { x: -0.50, z: 0.11 },
+            // Trupi shtrihet PËRGJATË shtratit (boshti i gjatë X), me shpinë poshtë
+            sleepYaw: Math.PI / 2 },
   sofa:     { glb: null, placeholder: "PLACEHOLDER_SOFA" },
   toilet:   { glb: null, placeholder: "PLACEHOLDER_TOILET" },
   bathtub:  { glb: null, placeholder: "PLACEHOLDER_BATHTUB" },
@@ -12319,7 +12324,12 @@ function arrive(use) {
     if (bed) {   // ngjitu në dyshek: pika më e ulët e trupit gjatë klipit "sleep" të bjerë saktë mbi shtrat
       const a = ASSETS.bed || {}; const bedTop = a.sleepTop !== undefined ? a.sleepTop : (bed.userData.topY || 0.4) * 0.9;
       S.sleepY = bedTop - SLEEP_REST_LOW_Y * (S.growthScale || 1);
-      S.panda.position.set(bed.position.x, S.sleepY, bed.position.z); S.panda.rotation.y = bed.rotation.y;
+      // Zhvendosja e dyshekut duhet ROTULLUAR bashkë me mobiljen, përndryshe pandaja bie jashtë shtratit
+      const so = a.sleepOffset || { x: 0, z: 0 };
+      const ry = bed.rotation.y, cs = Math.cos(ry), sn = Math.sin(ry);
+      const ox = so.x * cs + so.z * sn, oz = -so.x * sn + so.z * cs;
+      S.panda.position.set(bed.position.x + ox, S.sleepY, bed.position.z + oz);
+      S.panda.rotation.y = ry + (a.sleepYaw || 0);   // shtrihet përgjatë shtratit
       S.wakeAwayPos = { x: bed.position.x, z: bed.position.z, ry: bed.rotation.y };   // per t'u larguar prej shtratit kur zgjohet
     } else { S.sleepY = 0; S.wakeAwayPos = null; }
     ai.state = "sleep"; setAnim("sleep"); return;
