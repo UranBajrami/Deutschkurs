@@ -11253,7 +11253,9 @@ const RIG_SPEED = () => ({ walk: 0.9 * (S.moveTempo || 1), run: 0.9 * (S.moveTem
 const texLoader = new THREE.TextureLoader();
 
 function loadTex(url, srgb) {
-  return new Promise((res) => texLoader.load(url, (t) => { if (!t) return res(null); t.flipY = true; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; res(t); }, undefined, () => res(null)));
+  // KUJDES: për modele glTF/GLB flipY duhet të jetë FALSE. Me true, çdo trekëndësh merr pjesën e
+  // gabuar të atlasit → tekstura del si "njolla" pa kuptim. (Ky ishte shkaku i ushqimeve të prishura.)
+  return new Promise((res) => texLoader.load(url, (t) => { if (!t) return res(null); t.flipY = false; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; res(t); }, undefined, () => res(null)));
 }
 
 
