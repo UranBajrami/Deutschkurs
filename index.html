@@ -11034,7 +11034,7 @@ const ASSETS = {
   milk: { glb: "models/food/milkshake.glb", textures: { map: "models/food/milkshake_basecolor.jpg", normalMap: "models/food/milkshake_normal.jpg", roughnessMap: "models/food/milkshake_roughness.jpg" } },
   icecoffee: { glb: "models/food/icecoffee.glb", textures: { map: "models/food/icecoffee_basecolor.jpg", normalMap: "models/food/icecoffee_normal.jpg", roughnessMap: "models/food/icecoffee_roughness.jpg" } },
   bamboo: { glb: null }, cake: { glb: null }, salad: { glb: null }, water: { glb: null }, juice: { glb: null }, milk: { glb: null },
-  house:    { glb: "models/house/house.glb" },   // shtëpia e re (me segmente: mesh_2=dysheme, mesh_3=mure, mesh_1=çati)
+  house:    { glb: "models/house/house.glb", textures: { map: "models/house/house_basecolor.jpg", normalMap: "models/house/house_normal.jpg", roughnessMap: "models/house/house_roughness.jpg" } },   // GLB e përdoruesit, e ndarë në: roof / walls / floor
   garden:   { glb: "models/garden/garden.glb", textures: { map: "models/garden/garden_basecolor.jpg", normalMap: "models/garden/garden_normal.jpg", roughnessMap: "models/garden/garden_roughness.jpg" } },
   kitchen:    { glb: "models/furniture/kitchen.glb",    textures: { map: "models/furniture/kitchen_basecolor.jpg",    normalMap: "models/furniture/kitchen_normal.jpg",    roughnessMap: "models/furniture/kitchen_roughness.jpg" } },
   livingroom: { glb: "models/furniture/livingroom.glb", textures: { map: "models/furniture/livingroom_basecolor.jpg", normalMap: "models/furniture/livingroom_normal.jpg", roughnessMap: "models/furniture/livingroom_roughness.jpg" } },
@@ -11057,8 +11057,8 @@ const ASSETS = {
   teddy:    { glb: null, placeholder: "PLACEHOLDER_TEDDY" }
 };
 
-const ROOM = { w: 16.0, d: 19.5, h: 7.2 };   // përmasat e shtëpisë së re
-const HOUSE_SCALE = 162.659;                 // modeli i ri është shumë i vogël → 19.5 njësi loje
+const ROOM = { w: 16.0, d: 19.5, h: 7.4 };   // përmasat e shtëpisë së përdoruesit
+const HOUSE_SCALE = 10.263;                  // GLB e përdoruesit → 19.5 njësi loje
 // Kufijtë e murit të jashtëm brenda modelit (matur nga rrjeta e skanimit të grundrissit):
 // muret e jashtme bien rreth 5%–95% të gjerësisë; brenda kësaj pandaja lëviz lirshëm.
 // Kufijtë e VËRTETË të dyshemesë së banimit, matur me rreze nga lart (jo lëndina përreth):
@@ -11163,8 +11163,10 @@ async function buildRoom(scene) {
     const bb2 = new THREE.Box3().setFromObject(root); const c = bb2.getCenter(new THREE.Vector3());
     // Dyshemeja e BANIMIT (jo lëndina përreth) ndodhet te y=-11 në modelin origjinal — matur nga
     // sipërfaqet horizontale më të mëdha. E ulim saktë në y=0 që pandaja të ecë mbi dysheme, jo mbi bar.
-    // Dyshemeja e shtëpisë së re (mesh_2) mbaron te y≈0.79 pas shkallëzimit → e ulim në 0
-    root.position.set(-c.x, -0.79, -c.z);
+    // Sipërfaqja e sipërme e dyshemesë (segmenti "floor") të bjerë saktë te y=0
+    let floorTop = 0;
+    root.traverse(o => { if (o.isMesh && o.name === "floor") { const fb = new THREE.Box3().setFromObject(o); floorTop = fb.max.y; } });
+    root.position.set(-c.x, -floorTop, -c.z);
     root.traverse(o => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = true; if (o.material) o.material.side = THREE.DoubleSide; } });
     root.name = "HOUSE"; scene.add(root);
     setupRoofCutaway(root);   // efekti "Sims": pjesa e çatisë para kamerës bëhet e tejdukshme
@@ -11214,13 +11216,13 @@ function setupRoofCutaway(root) {
   const ctr = bb.getCenter(new THREE.Vector3());
   const halfX = (bb.max.x - bb.min.x) / 2, halfZ = (bb.max.z - bb.min.z) / 2;
   root.traverse(o => {
-    if (!o.isMesh || o.name !== "mesh_1") return;   // vetëm segmenti i çatisë
+    if (!o.isMesh || o.name !== "roof") return;   // vetëm segmenti i çatisë
     const mat = o.material;
     mat.transparent = true;
     mat.depthWrite = true;
     mat.onBeforeCompile = (shader) => {
       shader.uniforms.u_cutCenter = { value: new THREE.Vector3(0, 0, 0) };
-      shader.uniforms.u_cutRadius = { value: 11.0 };
+      shader.uniforms.u_cutRadius = { value: 12.0 };
       shader.uniforms.u_edgeKeep  = { value: 0.88 };
       shader.uniforms.u_houseCtr  = { value: new THREE.Vector2(ctr.x, ctr.z) };
       shader.uniforms.u_houseHalf = { value: new THREE.Vector2(halfX, halfZ) };
@@ -11288,7 +11290,7 @@ function computeHouseColliders(root) {
       const minY = Math.min(a.y, b2.y, c2.y), maxY = Math.max(a.y, b2.y, c2.y);
       // Modeli i ri është i SEGMENTUAR: mesh_3 = muret, mesh_0 = shtesa, mesh_2 = dyshemeja, mesh_1 = çatia.
       // Përdorim emrin e segmentit — shumë më i saktë se hamendësimi nga normalja.
-      if (meshName === "mesh_2" || meshName === "mesh_1") continue;       // dysheme/çati s'janë pengesë
+      if (meshName === "floor" || meshName === "roof") continue;       // dysheme/çati s'janë pengesë
       if (maxY < 0.45 || minY > 1.15) continue;                          // jashtë lartësisë së trupit
       const steps = Math.max(2, Math.ceil(Math.max(a.distanceTo(b2), b2.distanceTo(c2), a.distanceTo(c2)) / (cell * 1.1)));
       for (let u = 0; u <= steps; u++) for (let v = 0; u + v <= steps; v++) {
@@ -11304,7 +11306,7 @@ function computeHouseColliders(root) {
   // pa hamendësuar nga lartësia. Kjo e bën maskën e brendshme shumë më të saktë.
   for (const mesh of meshes) {
     const meshName = mesh.name || "";
-    if (meshName !== "mesh_2") continue;
+    if (meshName !== "floor") continue;
     const pos = mesh.geometry.attributes.position, idx = mesh.geometry.index, mw = mesh.matrixWorld;
     const a = new THREE.Vector3(), b2 = new THREE.Vector3(), c2 = new THREE.Vector3(), nrm = new THREE.Vector3(), ab = new THREE.Vector3(), ac = new THREE.Vector3();
     const total = idx ? idx.count : pos.count;
