@@ -11034,7 +11034,7 @@ const ASSETS = {
   milk: { glb: "models/food/milkshake.glb", textures: { map: "models/food/milkshake_basecolor.jpg", normalMap: "models/food/milkshake_normal.jpg", roughnessMap: "models/food/milkshake_roughness.jpg" } },
   icecoffee: { glb: "models/food/icecoffee.glb", textures: { map: "models/food/icecoffee_basecolor.jpg", normalMap: "models/food/icecoffee_normal.jpg", roughnessMap: "models/food/icecoffee_roughness.jpg" } },
   bamboo: { glb: null }, cake: { glb: null }, salad: { glb: null }, water: { glb: null }, juice: { glb: null }, milk: { glb: null },
-  house:    { glb: "models/house/house.glb", textures: { map: "models/house/house_basecolor.jpg", normalMap: "models/house/house_normal.jpg", roughnessMap: "models/house/house_roughness.jpg" } },   // shtëpia e përdoruesit
+  house:    { glb: "models/house/house.glb" },   // shtëpia e re (me segmente: mesh_2=dysheme, mesh_3=mure, mesh_1=çati)
   kitchen:    { glb: "models/furniture/kitchen.glb",    textures: { map: "models/furniture/kitchen_basecolor.jpg",    normalMap: "models/furniture/kitchen_normal.jpg",    roughnessMap: "models/furniture/kitchen_roughness.jpg" } },
   livingroom: { glb: "models/furniture/livingroom.glb", textures: { map: "models/furniture/livingroom_basecolor.jpg", normalMap: "models/furniture/livingroom_normal.jpg", roughnessMap: "models/furniture/livingroom_roughness.jpg" } },
   bathroom:   { glb: "models/furniture/bathroom.glb",   textures: { map: "models/furniture/bathroom_basecolor.jpg",   normalMap: "models/furniture/bathroom_normal.jpg",   roughnessMap: "models/furniture/bathroom_roughness.jpg" } },
@@ -11056,12 +11056,12 @@ const ASSETS = {
   teddy:    { glb: null, placeholder: "PLACEHOLDER_TEDDY" }
 };
 
-const ROOM = { w: 19.5, d: 19.3, h: 3.1 };   // përmasat e SHTËPISË reale (modeli i përdoruesit), jo dhoma e vjetër
-const HOUSE_SCALE = 0.1023;                  // 190.3 njësi modeli → 19.5 njësi loje (lartësia e murit ≈ 2.8)
+const ROOM = { w: 16.0, d: 19.5, h: 7.2 };   // përmasat e shtëpisë së re
+const HOUSE_SCALE = 162.659;                 // modeli i ri është shumë i vogël → 19.5 njësi loje
 // Kufijtë e murit të jashtëm brenda modelit (matur nga rrjeta e skanimit të grundrissit):
 // muret e jashtme bien rreth 5%–95% të gjerësisë; brenda kësaj pandaja lëviz lirshëm.
 // Kufijtë e VËRTETË të dyshemesë së banimit, matur me rreze nga lart (jo lëndina përreth):
-const HOUSE_INNER = { minX: -8.6, maxX: 8.4, minZ: -7.1, maxZ: 9.1 };
+const HOUSE_INNER = { minX: -8.0, maxX: 8.0, minZ: -9.7, maxZ: 9.7 };   // kufijtë e shtëpisë së re
 // DERA KRYESORE: e vetmja pikë ku pandaja mund të dalë nga shtëpia në lëndinë. null = shtëpia e mbyllur.
 // Vendoset si {x, z, r} (r = rreze e hapjes në njësi). Përditësohet sapo dera identifikohet në model.
 const MAIN_DOOR = null;
@@ -11162,7 +11162,8 @@ async function buildRoom(scene) {
     const bb2 = new THREE.Box3().setFromObject(root); const c = bb2.getCenter(new THREE.Vector3());
     // Dyshemeja e BANIMIT (jo lëndina përreth) ndodhet te y=-11 në modelin origjinal — matur nga
     // sipërfaqet horizontale më të mëdha. E ulim saktë në y=0 që pandaja të ecë mbi dysheme, jo mbi bar.
-    root.position.set(-c.x, -(-11 * HOUSE_SCALE), -c.z);
+    // Dyshemeja e shtëpisë së re (mesh_2) mbaron te y≈0.79 pas shkallëzimit → e ulim në 0
+    root.position.set(-c.x, -0.79, -c.z);
     root.traverse(o => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = true; if (o.material) o.material.side = THREE.DoubleSide; } });
     root.name = "HOUSE"; scene.add(root);
     // KUJDES: ndriçimin e vendos init() (Hemisphere 1.1 + Diell 1.6). Mos shto drita këtu —
@@ -11192,8 +11193,9 @@ function computeHouseColliders(root) {
   // Raycast-i merrte ~14 sekonda në ngarkim; kjo merr ~50 ms. Dyshemeja nuk kërkohet të jetë e plotë
   // (modeli i thjeshtuar ka vrima) — përndryshe dhomat do të shkëputeshin nga njëra-tjetra.
   const grid = Array.from({ length: HOUSE_GRID_N }, () => new Array(HOUSE_GRID_N).fill(false));
-  let mesh = null; root.traverse(o => { if (o.isMesh && !mesh) mesh = o; });
-  if (mesh) {
+  const meshes = []; root.traverse(o => { if (o.isMesh) meshes.push(o); });
+  for (const mesh of meshes) {
+    const meshName = mesh.name || "";
     const pos = mesh.geometry.attributes.position, idx = mesh.geometry.index, mw = mesh.matrixWorld;
     const a = new THREE.Vector3(), b2 = new THREE.Vector3(), c2 = new THREE.Vector3();
     const nrm = new THREE.Vector3(), ab = new THREE.Vector3(), ac = new THREE.Vector3();
@@ -11204,7 +11206,10 @@ function computeHouseColliders(root) {
       a.fromBufferAttribute(pos, i0).applyMatrix4(mw); b2.fromBufferAttribute(pos, i1).applyMatrix4(mw); c2.fromBufferAttribute(pos, i3).applyMatrix4(mw);
       ab.subVectors(b2, a); ac.subVectors(c2, a); nrm.crossVectors(ab, ac).normalize();
       const minY = Math.min(a.y, b2.y, c2.y), maxY = Math.max(a.y, b2.y, c2.y);
-      if (Math.abs(nrm.y) > 0.45 || maxY < 0.5 || minY > 1.2) continue;   // vetëm MURE të vërteta (jo prag dere, jo skalinë e ulët)
+      // Modeli i ri është i SEGMENTUAR: mesh_3 = muret, mesh_0 = shtesa, mesh_2 = dyshemeja, mesh_1 = çatia.
+      // Përdorim emrin e segmentit — shumë më i saktë se hamendësimi nga normalja.
+      if (meshName === "mesh_2" || meshName === "mesh_1") continue;       // dysheme/çati s'janë pengesë
+      if (maxY < 0.45 || minY > 1.15) continue;                          // jashtë lartësisë së trupit
       const steps = Math.max(2, Math.ceil(Math.max(a.distanceTo(b2), b2.distanceTo(c2), a.distanceTo(c2)) / (cell * 1.1)));
       for (let u = 0; u <= steps; u++) for (let v = 0; u + v <= steps; v++) {
         const w = steps - u - v;
@@ -11215,7 +11220,11 @@ function computeHouseColliders(root) {
   // DYSHEMEJA E BANIMIT vs LËNDINA: dy maska nga trekëndëshat horizontalë.
   const NN = HOUSE_GRID_N;
   const floorM = Array.from({ length: NN }, () => new Uint8Array(NN)), lawnM = Array.from({ length: NN }, () => new Uint8Array(NN));
-  if (mesh) {
+  // Dyshemeja e shtëpisë së re është një SEGMENT i veçantë (mesh_2) → e marrim drejtpërdrejt,
+  // pa hamendësuar nga lartësia. Kjo e bën maskën e brendshme shumë më të saktë.
+  for (const mesh of meshes) {
+    const meshName = mesh.name || "";
+    if (meshName !== "mesh_2") continue;
     const pos = mesh.geometry.attributes.position, idx = mesh.geometry.index, mw = mesh.matrixWorld;
     const a = new THREE.Vector3(), b2 = new THREE.Vector3(), c2 = new THREE.Vector3(), nrm = new THREE.Vector3(), ab = new THREE.Vector3(), ac = new THREE.Vector3();
     const total = idx ? idx.count : pos.count;
@@ -11226,7 +11235,8 @@ function computeHouseColliders(root) {
       ab.subVectors(b2, a); ac.subVectors(c2, a); nrm.crossVectors(ab, ac).normalize();
       if (nrm.y < 0.7) continue;
       const cy = (a.y + b2.y + c2.y) / 3;
-      const M = Math.abs(cy) < 0.15 ? floorM : (cy < -0.05 && cy > -0.7 ? lawnM : null); if (!M) continue;
+      if (cy > 0.25) continue;   // vetëm sipërfaqja e sipërme e dyshemesë
+      const M = floorM;
       const steps = Math.max(2, Math.ceil(Math.max(a.distanceTo(b2), b2.distanceTo(c2), a.distanceTo(c2)) / (cell * 0.8)));
       for (let u = 0; u <= steps; u++) for (let v = 0; u + v <= steps; v++) { const w = steps - u - v; markM(M, (a.x * u + b2.x * v + c2.x * w) / steps, (a.z * u + b2.z * v + c2.z * w) / steps); }
     }
@@ -11642,7 +11652,7 @@ async function init(container, api) {
     // KAMERA në stil "Sims": diagonale nga lart (≈42° mbi horizont, 45° anash), e përqendruar te DHOMA
     // (jo te pandaja), 360° rrotullim i lirë + zoom. Muret e pasme janë njëanëshe → nga pas bëhen të padukshme
     // vetvetiu (efekti "cutaway" i Sims), kështu s'bllokojnë kurrë pamjen.
-    const CAM_HOME = { dist: 26, polar: 0.72, azim: Math.PI / 4, target: new THREE.Vector3(0, 0.3, 0) };   // si te Sims: nga lart-diagonalisht, e gjithë shtëpia në pamje
+    const CAM_HOME = { dist: 27, polar: 0.70, azim: Math.PI / 4, target: new THREE.Vector3(0, 0.4, 0) };   // si te Sims: nga lart-diagonalisht, e gjithë shtëpia në pamje
     const placeCam = (dist, polar, azim) => {
       camera.position.set(CAM_HOME.target.x + dist * Math.sin(polar) * Math.sin(azim), CAM_HOME.target.y + dist * Math.cos(polar), CAM_HOME.target.z + dist * Math.sin(polar) * Math.cos(azim));
     };
