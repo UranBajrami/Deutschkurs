@@ -11121,12 +11121,12 @@ const ASSETS = {
   burger: { glb: "models/food/burger.glb", textures: { map: "models/food/burger_basecolor.jpg" } },
   wings: { glb: "models/food/wings.glb", textures: { map: "models/food/wings_basecolor.jpg", normalMap: "models/food/wings_normal.jpg", roughnessMap: "models/food/wings_roughness.jpg" } },
   taco: { glb: "models/food/taco.glb", textures: { map: "models/food/taco_basecolor.jpg", normalMap: "models/food/taco_normal.jpg", roughnessMap: "models/food/taco_roughness.jpg" } },
-  salad: { glb: "models/food/salad.glb", textures: { map: "models/food/salad_basecolor.jpg", normalMap: "models/food/salad_normal.jpg", roughnessMap: "models/food/salad_roughness.jpg" } },
+  salad: { glb: "models/food/salad.glb", textures: { map: "models/food/salad_basecolor.jpg", normalMap: "models/food/salad_normal.jpg", roughnessMap: "models/food/salad_roughness.jpg" }, texFlipY: false },
   milk: { glb: "models/food/milkshake.glb", textures: { map: "models/food/milkshake_basecolor.jpg", normalMap: "models/food/milkshake_normal.jpg", roughnessMap: "models/food/milkshake_roughness.jpg" } },
   icecoffee: { glb: "models/food/icecoffee.glb", textures: { map: "models/food/icecoffee_basecolor.jpg", normalMap: "models/food/icecoffee_normal.jpg", roughnessMap: "models/food/icecoffee_roughness.jpg" } },
-  fries: { glb: "models/food/fries.glb", textures: { map: "models/food/fries_basecolor.jpg" } },
-  cake: { glb: "models/food/cake.glb", textures: { map: "models/food/cake_basecolor.jpg", normalMap: "models/food/cake_normal.jpg" } },
-  juice: { glb: "models/food/juice.glb", textures: { map: "models/food/juice_basecolor.jpg", normalMap: "models/food/juice_normal.jpg" } },
+  fries: { glb: "models/food/fries.glb", textures: { map: "models/food/fries_basecolor.jpg" }, texFlipY: false },
+  cake: { glb: "models/food/cake.glb", textures: { map: "models/food/cake_basecolor.jpg", normalMap: "models/food/cake_normal.jpg" }, texFlipY: false },
+  juice: { glb: "models/food/juice.glb", textures: { map: "models/food/juice_basecolor.jpg", normalMap: "models/food/juice_normal.jpg" }, texFlipY: false },
   water: { glb: null },
   // ===== SHTËPIA: e zbrazët për momentin =====
   // Për të vendosur një shtëpi të re, mjafton të plotësohet kjo hyrje dhe të vendosen skedarët:
@@ -11218,7 +11218,8 @@ function plasterTexture(color) {
 /* ---------- Normalizim i modeleve GLB të mobilieve/ushqimit: përshtat madhësinë dhe vendos në dysheme ---------- */
 async function applyAssetTextures(root, id) {
   const tx = ASSETS[id] && ASSETS[id].textures; if (!tx) return;
-  const [map, normalMap, roughnessMap] = await Promise.all([tx.map ? loadTex(tx.map, true) : null, tx.normalMap ? loadTex(tx.normalMap, false) : null, tx.roughnessMap ? loadTex(tx.roughnessMap, false) : null]);
+  const fy = ASSETS[id] && ASSETS[id].texFlipY;   // undefined → true (sjellja e vjetër)
+  const [map, normalMap, roughnessMap] = await Promise.all([tx.map ? loadTex(tx.map, true, fy) : null, tx.normalMap ? loadTex(tx.normalMap, false, fy) : null, tx.roughnessMap ? loadTex(tx.roughnessMap, false, fy) : null]);
   root.traverse(o => { if (o.isMesh) o.material = new THREE.MeshStandardMaterial({ map, normalMap, roughnessMap, roughness: 1, metalness: 0, normalScale: new THREE.Vector2(0.7, 0.7) }); });
 }
 function normalizeFurnitureModel(root, id) {
@@ -11252,10 +11253,12 @@ const RIG_ONCE = new Set(["greeting", "cheer", "stomp", "help", "surprised"]);
 const RIG_SPEED = () => ({ walk: 0.9 * (S.moveTempo || 1), run: 0.9 * (S.moveTempo || 1) });
 const texLoader = new THREE.TextureLoader();
 
-function loadTex(url, srgb) {
-  // KUJDES: për modele glTF/GLB flipY duhet të jetë FALSE. Me true, çdo trekëndësh merr pjesën e
-  // gabuar të atlasit → tekstura del si "njolla" pa kuptim. (Ky ishte shkaku i ushqimeve të prishura.)
-  return new Promise((res) => texLoader.load(url, (t) => { if (!t) return res(null); t.flipY = false; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; res(t); }, undefined, () => res(null)));
+function loadTex(url, srgb, flipY) {
+  // flipY varet nga BURIMI i modelit:
+  //   • modele të konvertuara nga FBX (panda, mobiljet, pjesa e ushqimeve) → true  (si më parë)
+  //   • modele origjinale glTF/GLB (sallata, patatet, torta, lëngu)        → false
+  // Prandaj e marrim si parametër, jo si vlerë fikse për të gjithë.
+  return new Promise((res) => texLoader.load(url, (t) => { if (!t) return res(null); t.flipY = (flipY !== false); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; res(t); }, undefined, () => res(null)));
 }
 
 
