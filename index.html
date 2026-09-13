@@ -11034,8 +11034,13 @@ const ASSETS = {
   milk: { glb: "models/food/milkshake.glb", textures: { map: "models/food/milkshake_basecolor.jpg", normalMap: "models/food/milkshake_normal.jpg", roughnessMap: "models/food/milkshake_roughness.jpg" } },
   icecoffee: { glb: "models/food/icecoffee.glb", textures: { map: "models/food/icecoffee_basecolor.jpg", normalMap: "models/food/icecoffee_normal.jpg", roughnessMap: "models/food/icecoffee_roughness.jpg" } },
   bamboo: { glb: null }, cake: { glb: null }, salad: { glb: null }, water: { glb: null }, juice: { glb: null }, milk: { glb: null },
-  house:    { glb: "models/house/house.glb", textures: { map: "models/house/house_basecolor.jpg", normalMap: "models/house/house_normal.jpg", roughnessMap: "models/house/house_roughness.jpg" } },   // GLB e përdoruesit, e ndarë në: roof / walls / floor
-  garden:   { glb: "models/garden/garden.glb", textures: { map: "models/garden/garden_basecolor.jpg", normalMap: "models/garden/garden_normal.jpg", roughnessMap: "models/garden/garden_roughness.jpg" } },
+  // ===== SHTËPIA: e zbrazët për momentin =====
+  // Për të vendosur një shtëpi të re, mjafton të plotësohet kjo hyrje dhe të vendosen skedarët:
+  //   house: { glb: "models/house/house.glb", textures: { map: "...basecolor.jpg", normalMap: "...", roughnessMap: "..." } }
+  // Modeli duhet të ketë tre pjesë me këta emra: "roof" (çatia), "walls" (muret), "floor" (dyshemeja).
+  // Pastaj përshtat HOUSE_SCALE dhe HOUSE_INNER më poshtë. Pa shtëpi, loja punon mbi një dysheme bazë.
+  house:    { glb: "models/house/house.glb", textures: { map: "models/house/house_basecolor.jpg", normalMap: "models/house/house_normal.jpg", roughnessMap: "models/house/house_roughness.jpg" } },   // GLB e përdoruesit: "walls" + "floor" (pa çati — dhomë e hapur)
+  garden:   { glb: null },
   kitchen:    { glb: "models/furniture/kitchen.glb",    textures: { map: "models/furniture/kitchen_basecolor.jpg",    normalMap: "models/furniture/kitchen_normal.jpg",    roughnessMap: "models/furniture/kitchen_roughness.jpg" } },
   livingroom: { glb: "models/furniture/livingroom.glb", textures: { map: "models/furniture/livingroom_basecolor.jpg", normalMap: "models/furniture/livingroom_normal.jpg", roughnessMap: "models/furniture/livingroom_roughness.jpg" } },
   bathroom:   { glb: "models/furniture/bathroom.glb",   textures: { map: "models/furniture/bathroom_basecolor.jpg",   normalMap: "models/furniture/bathroom_normal.jpg",   roughnessMap: "models/furniture/bathroom_roughness.jpg" } },
@@ -11057,12 +11062,12 @@ const ASSETS = {
   teddy:    { glb: null, placeholder: "PLACEHOLDER_TEDDY" }
 };
 
-const ROOM = { w: 16.0, d: 19.5, h: 7.4 };   // përmasat e shtëpisë së përdoruesit
-const HOUSE_SCALE = 10.263;                  // GLB e përdoruesit → 19.5 njësi loje
+const ROOM = { w: 19.0, d: 16.9, h: 5.8 };   // përmasat e shtëpisë së përdoruesit
+const HOUSE_SCALE = 9.989;                   // GLB e përdoruesit → 19 njësi loje
 // Kufijtë e murit të jashtëm brenda modelit (matur nga rrjeta e skanimit të grundrissit):
 // muret e jashtme bien rreth 5%–95% të gjerësisë; brenda kësaj pandaja lëviz lirshëm.
 // Kufijtë e VËRTETË të dyshemesë së banimit, matur me rreze nga lart (jo lëndina përreth):
-const HOUSE_INNER = { minX: -8.0, maxX: 8.0, minZ: -9.7, maxZ: 9.7 };   // kufijtë e shtëpisë së re
+const HOUSE_INNER = { minX: -9.3, maxX: 9.3, minZ: -8.2, maxZ: 8.2 };   // kufijtë e lëvizjes brenda shtëpisë
 // DERA KRYESORE: e vetmja pikë ku pandaja mund të dalë nga shtëpia në lëndinë. null = shtëpia e mbyllur.
 // Vendoset si {x, z, r} (r = rreze e hapjes në njësi). Përditësohet sapo dera identifikohet në model.
 const MAIN_DOOR = null;
@@ -11151,10 +11156,29 @@ function loadTex(url, srgb) {
 }
 
 
+// Dysheme bazë (pa shtëpi): sipërfaqe e thjeshtë + ndriçim, që pandaja të ketë ku ecë.
+function buildBaseFloor(scene) {
+  const g = new THREE.Group(); g.name = "BASE_FLOOR";
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(ROOM.w, ROOM.d),
+    new THREE.MeshStandardMaterial({ color: 0xe6d9c5, roughness: 0.92 })
+  );
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; floor.name = "floor";
+  g.add(floor);
+  // buzë e lehtë, që të duket ku mbaron sipërfaqja
+  const edge = new THREE.Mesh(
+    new THREE.RingGeometry(Math.min(ROOM.w, ROOM.d) / 2 - 0.06, Math.min(ROOM.w, ROOM.d) / 2, 64),
+    new THREE.MeshBasicMaterial({ color: 0xc9b79c, side: THREE.DoubleSide, transparent: true, opacity: 0.5 })
+  );
+  edge.rotation.x = -Math.PI / 2; edge.position.y = 0.01; g.add(edge);
+  scene.add(g);
+}
+
 // Ngarkon SHTËPINË reale (modeli i përdoruesit) në vend të dhomës së ndërtuar me kod.
 async function buildRoom(scene) {
   const a = ASSETS.house;
-  if (!a || !a.glb) { console.error("Modeli i shtëpisë mungon."); return; }
+  // PA SHTËPI: ndërtojmë një dysheme bazë, që loja të punojë normalisht derisa të vendoset modeli i ri.
+  if (!a || !a.glb) { buildBaseFloor(scene); return null; }
   try {
     const g = await new Promise((res, rej) => loader.load(a.glb, res, undefined, rej));
     await applyAssetTextures(g.scene, "house");
@@ -11734,7 +11758,7 @@ async function init(container, api) {
     // KAMERA në stil "Sims": diagonale nga lart (≈42° mbi horizont, 45° anash), e përqendruar te DHOMA
     // (jo te pandaja), 360° rrotullim i lirë + zoom. Muret e pasme janë njëanëshe → nga pas bëhen të padukshme
     // vetvetiu (efekti "cutaway" i Sims), kështu s'bllokojnë kurrë pamjen.
-    const CAM_HOME = { dist: 27, polar: 0.70, azim: Math.PI / 4, target: new THREE.Vector3(0, 0.4, 0) };   // si te Sims: nga lart-diagonalisht, e gjithë shtëpia në pamje
+    const CAM_HOME = { dist: 25, polar: 0.72, azim: Math.PI / 4, target: new THREE.Vector3(0, 0.4, 0) };   // si te Sims; përshtate distancën kur të vijë shtëpia e re
     const placeCam = (dist, polar, azim) => {
       camera.position.set(CAM_HOME.target.x + dist * Math.sin(polar) * Math.sin(azim), CAM_HOME.target.y + dist * Math.cos(polar), CAM_HOME.target.z + dist * Math.sin(polar) * Math.cos(azim));
     };
@@ -11742,7 +11766,7 @@ async function init(container, api) {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.copy(CAM_HOME.target);
     controls.enableDamping = true; controls.dampingFactor = 0.08;
-    controls.minDistance = 4; controls.maxDistance = 40;
+    controls.minDistance = 3; controls.maxDistance = 40;
     controls.minPolarAngle = 0.25; controls.maxPolarAngle = 1.25;   // nga pothuaj-lart deri ~18° mbi dysheme, kurrë nën të
     controls.screenSpacePanning = false; controls.panSpeed = 0.6; controls.rotateSpeed = 0.7;
     S._camHome = CAM_HOME; S._placeCam = placeCam;
