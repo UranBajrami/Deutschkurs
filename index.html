@@ -10024,8 +10024,8 @@ const PANDA_ITEMS = [
   // TRE GRUPE MOBILJESH (modelet e përdoruesit) — zëvendësojnë copat e vjetra një-nga-një:
   { id:"kitchen",    cat:"furniture", emoji:"🍳", cost:2500, placed:true, size:2.5, use:"food" },
   { id:"livingroom", cat:"furniture", emoji:"📺", cost:3000, placed:true, size:3.4, use:"rest" },
-  { id:"bathroom",   cat:"furniture", emoji:"🚿", cost:3500, placed:true, size:2.5, use:"bath", use2:"toilet" },
-  { id:"bed",     cat:"furniture", emoji:"🛏️", cost:4000, placed:true, size:2.6, use:"sleep" },
+  { id:"bathroom",   cat:"furniture", emoji:"🚿", cost:3500, placed:true, size:2.5, use:"bath", use2:"toilet", builtin:true },
+  { id:"bed",     cat:"furniture", emoji:"🛏️", cost:4000, placed:true, size:2.6, use:"sleep", builtin:true },
   // 🌱 Dekor (të vendosshme)
   { id:"plant",   cat:"deco",  emoji:"🌱", cost:250,  placed:true, size:0.5, comfort:2 },
   { id:"lamp",    cat:"deco",  emoji:"💡", cost:280,  placed:true, size:0.4, comfort:2 },
@@ -10044,7 +10044,12 @@ const PANDA_DEFAULT = () => ({
   name: "Panda", level: 1, xp: 0,
   hunger: 80, thirst: 80, energy: 85, mood: 75, hygiene: 85, toilet: 20, affection: 60, health: 90, weight: 50,
   inventory: {},            // { itemId: count } — edhe mobiliet e blera, derisa të vendosen
-  placed: [],               // [{ id:"sofa_001", type:"sofa", position:{x,y,z}, rotation:{x,y,z}, scale:{x,y,z} }]
+  // BANJA dhe DHOMA E GJUMIT janë aty që nga fillimi: pa to pandaja s'do të mund të flinte,
+  // të shkonte në tualet apo të bënte dush. Prandaj nuk shiten më te dyqani.
+  placed: [
+    { id: "bathroom_001", type: "bathroom", position: { x: 6.2, y: 0, z: -6.0 }, rotation: { x: 0, y: -Math.PI / 2, z: 0 } },
+    { id: "bed_001",      type: "bed",      position: { x: -6.0, y: 0, z: -5.6 }, rotation: { x: 0, y: 0, z: 0 } }
+  ],
   pos: { x: 0, y: 0, z: 0.5 }, rotY: 0, anim: "idle", emotion: "neutral",   // transform-i i pandës
   learnMinutesTotal: 0, learnStreak: 0, lastLearnDay: null, lastUpdated: Date.now(),
   daily: { day: null, tasks: {} },
@@ -10060,6 +10065,13 @@ function ensurePanda() {
   // Migrim: "bamboo" u zëvendësua me "fries" (patate të skuqura). Ruajmë sasitë e blera më parë,
   // që lojtari të mos humbasë artikujt nga inventari apo nga objektet e vendosura në dhomë.
   if (p.inventory && p.inventory.bamboo) { p.inventory.fries = (p.inventory.fries || 0) + p.inventory.bamboo; delete p.inventory.bamboo; }
+  // Sigurohu që banja dhe dhoma e gjumit ekzistojnë gjithmonë (edhe në lojërat e vjetra)
+  if (!Array.isArray(p.placed)) p.placed = [];
+  const BUILTIN = [
+    { id: "bathroom_001", type: "bathroom", position: { x: 6.2, y: 0, z: -6.0 }, rotation: { x: 0, y: -Math.PI / 2, z: 0 } },
+    { id: "bed_001",      type: "bed",      position: { x: -6.0, y: 0, z: -5.6 }, rotation: { x: 0, y: 0, z: 0 } }
+  ];
+  for (const b of BUILTIN) if (!p.placed.some(f => f && f.type === b.type)) p.placed.push(JSON.parse(JSON.stringify(b)));
   if (Array.isArray(p.placed)) p.placed.forEach(f => { if (f && f.type === "bamboo") f.type = "fries"; });
   // Migrim nga formati i vjetër {tip:{x,z,rot}} → listë instancash me transform të plotë
   if (p.furniture && typeof p.furniture === "object") {
@@ -10633,7 +10645,7 @@ function renderPandaShop() {
   tabs.innerHTML = PANDA_CATS.map(c => `<button class="pshop-tab ${c === pandaShopCat ? "active" : ""}" data-cat="${c}">${names[c]}</button>`).join("");
   tabs.querySelectorAll("[data-cat]").forEach(b => b.addEventListener("click", () => { pandaShopCat = b.dataset.cat; closeShopPreview(); }));
   const list = document.getElementById("pandaShopList");
-  list.innerHTML = PANDA_ITEMS.filter(i => i.cat === pandaShopCat).map(it => {
+  list.innerHTML = PANDA_ITEMS.filter(i => i.cat === pandaShopCat && !i.builtin).map(it => {
     const inRoom = it.placed ? p.placed.filter(f => f.type === it.id).length : 0;
     const can = stats.farmCoins >= it.cost;
     return `<div class="farm-shop-item ${inRoom ? "built" : ""}">
@@ -10645,11 +10657,11 @@ function renderPandaShop() {
   list.querySelectorAll("[data-buy]:not([disabled])").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); pandaBuy(b.dataset.buy); }));
   // Klik mbi rreshtin (jo mbi butonin "Bli") → hap pamjen paraprake me modelin që rrotullohet
   list.querySelectorAll(".farm-shop-item").forEach((row, i) => {
-    const it = PANDA_ITEMS.filter(x => x.cat === pandaShopCat)[i]; if (!it) return;
+    const it = PANDA_ITEMS.filter(x => x.cat === pandaShopCat && !x.builtin)[i]; if (!it) return;
     row.addEventListener("click", () => openShopPreview(it.id));
   });
   if (shopPreviewId) {
-    const items = PANDA_ITEMS.filter(x => x.cat === pandaShopCat);
+    const items = PANDA_ITEMS.filter(x => x.cat === pandaShopCat && !x.builtin);
     const idx = items.findIndex(x => x.id === shopPreviewId);
     if (idx >= 0) list.children[idx] && list.children[idx].classList.add("selected");
   }
@@ -11121,7 +11133,9 @@ const ASSETS = {
   burger: { glb: "models/food/burger.glb", textures: { map: "models/food/burger_basecolor.jpg" } },
   wings: { glb: "models/food/wings.glb", textures: { map: "models/food/wings_basecolor.jpg", normalMap: "models/food/wings_normal.jpg", roughnessMap: "models/food/wings_roughness.jpg" } },
   taco: { glb: "models/food/taco.glb", textures: { map: "models/food/taco_basecolor.jpg", normalMap: "models/food/taco_normal.jpg", roughnessMap: "models/food/taco_roughness.jpg" } },
-  salad: { glb: "models/food/salad.glb", textures: { map: "models/food/salad_basecolor.jpg", normalMap: "models/food/salad_normal.jpg", roughnessMap: "models/food/salad_roughness.jpg" }, texFlipY: false },
+  // Sallata: ngjyrat janë "pjekur" në vetë modelin (vertex colors) — modeli ishte tepër i copëtuar
+  // për të ruajtur UV-të gjatë thjeshtimit. Prandaj PA teksturë të jashtme.
+  salad: { glb: "models/food/salad.glb" },
   milk: { glb: "models/food/milkshake.glb", textures: { map: "models/food/milkshake_basecolor.jpg", normalMap: "models/food/milkshake_normal.jpg", roughnessMap: "models/food/milkshake_roughness.jpg" } },
   icecoffee: { glb: "models/food/icecoffee.glb", textures: { map: "models/food/icecoffee_basecolor.jpg", normalMap: "models/food/icecoffee_normal.jpg", roughnessMap: "models/food/icecoffee_roughness.jpg" } },
   fries: { glb: "models/food/fries.glb", textures: { map: "models/food/fries_basecolor.jpg" }, texFlipY: false },
