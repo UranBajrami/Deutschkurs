@@ -11035,6 +11035,7 @@ const ASSETS = {
   icecoffee: { glb: "models/food/icecoffee.glb", textures: { map: "models/food/icecoffee_basecolor.jpg", normalMap: "models/food/icecoffee_normal.jpg", roughnessMap: "models/food/icecoffee_roughness.jpg" } },
   bamboo: { glb: null }, cake: { glb: null }, salad: { glb: null }, water: { glb: null }, juice: { glb: null }, milk: { glb: null },
   house:    { glb: "models/house/house.glb" },   // shtëpia e re (me segmente: mesh_2=dysheme, mesh_3=mure, mesh_1=çati)
+  garden:   { glb: "models/garden/garden.glb", textures: { map: "models/garden/garden_basecolor.jpg", normalMap: "models/garden/garden_normal.jpg", roughnessMap: "models/garden/garden_roughness.jpg" } },
   kitchen:    { glb: "models/furniture/kitchen.glb",    textures: { map: "models/furniture/kitchen_basecolor.jpg",    normalMap: "models/furniture/kitchen_normal.jpg",    roughnessMap: "models/furniture/kitchen_roughness.jpg" } },
   livingroom: { glb: "models/furniture/livingroom.glb", textures: { map: "models/furniture/livingroom_basecolor.jpg", normalMap: "models/furniture/livingroom_normal.jpg", roughnessMap: "models/furniture/livingroom_roughness.jpg" } },
   bathroom:   { glb: "models/furniture/bathroom.glb",   textures: { map: "models/furniture/bathroom_basecolor.jpg",   normalMap: "models/furniture/bathroom_normal.jpg",   roughnessMap: "models/furniture/bathroom_roughness.jpg" } },
@@ -11166,6 +11167,23 @@ async function buildRoom(scene) {
     root.position.set(-c.x, -0.79, -c.z);
     root.traverse(o => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = true; if (o.material) o.material.side = THREE.DoubleSide; } });
     root.name = "HOUSE"; scene.add(root);
+    setupRoofCutaway(root);   // efekti "Sims": pjesa e çatisë para kamerës bëhet e tejdukshme
+    // KOPSHTI nën shtëpi (lëndina me teksturë) — shtëpia e re s'ka lëndinë vetë
+    try {
+      const ga = ASSETS.garden;
+      if (ga && ga.glb) {
+        const gg = await new Promise((res2, rej2) => loader.load(ga.glb, res2, undefined, rej2));
+        await applyAssetTextures(gg.scene, "garden");
+        const gRoot = gg.scene;
+        const gbb = new THREE.Box3().setFromObject(gRoot); const gsz = gbb.getSize(new THREE.Vector3());
+        const gScale = 30 / Math.max(gsz.x, gsz.z);            // lëndinë më e gjerë se shtëpia
+        gRoot.scale.setScalar(gScale);
+        const gbb2 = new THREE.Box3().setFromObject(gRoot); const gc = gbb2.getCenter(new THREE.Vector3());
+        gRoot.position.set(-gc.x, -gbb2.max.y - 0.02, -gc.z);  // sipërfaqja e lëndinës pak nën dyshemenë
+        gRoot.traverse(o => { if (o.isMesh) { o.receiveShadow = true; o.castShadow = false; } });
+        gRoot.name = "GARDEN"; scene.add(gRoot);
+      }
+    } catch (e) { console.warn("Kopshti nuk u ngarkua:", e); }
     // KUJDES: ndriçimin e vendos init() (Hemisphere 1.1 + Diell 1.6). Mos shto drita këtu —
     // përndryshe skena "digjet" krejt e bardhë nga ndriçimi i dyfishtë.
     // KUJDES: këtu S ende NUK ekziston (krijohet më poshtë në init), prandaj e kthejmë rezultatin
@@ -11179,6 +11197,68 @@ async function buildRoom(scene) {
     scene.add(new THREE.HemisphereLight(0xdff0ff, 0xe8dcc8, 1.2));
     const s2 = new THREE.DirectionalLight(0xfff6e8, 1.2); s2.position.set(6, 12, 6); scene.add(s2);
     return null;
+  }
+}
+
+/* ---------- EFEKTI "SIMS" I ÇATISË ----------
+   Çatia NUK fshihet e tëra. Në vend të kësaj, materiali i saj merr një shader që, për çdo piksel,
+   llogarit sa "para kamerës" ndodhet ai pikël dhe e bën TRANSPARENT vetëm atë pjesë:
+     • u_cutCenter  = pika ku kamera shikon (qendra e prerjes), lëviz bashkë me kamerën
+     • u_cutRadius  = sa e gjerë është zona e prerjes
+     • u_edgeKeep   = sa afër skajit të çatisë mbetet gjithnjë e dukshme (buza s'zhduket kurrë)
+   Kur kamera rrotullohet, qendra e prerjes lëviz → ana tjetër e çatisë rishfaqet vetvetiu. */
+let ROOF_MESHES = [];
+function setupRoofCutaway(root) {
+  ROOF_MESHES = [];
+  const bb = new THREE.Box3().setFromObject(root);
+  const ctr = bb.getCenter(new THREE.Vector3());
+  const halfX = (bb.max.x - bb.min.x) / 2, halfZ = (bb.max.z - bb.min.z) / 2;
+  root.traverse(o => {
+    if (!o.isMesh || o.name !== "mesh_1") return;   // vetëm segmenti i çatisë
+    const mat = o.material;
+    mat.transparent = true;
+    mat.depthWrite = true;
+    mat.onBeforeCompile = (shader) => {
+      shader.uniforms.u_cutCenter = { value: new THREE.Vector3(0, 0, 0) };
+      shader.uniforms.u_cutRadius = { value: 11.0 };
+      shader.uniforms.u_edgeKeep  = { value: 0.88 };
+      shader.uniforms.u_houseCtr  = { value: new THREE.Vector2(ctr.x, ctr.z) };
+      shader.uniforms.u_houseHalf = { value: new THREE.Vector2(halfX, halfZ) };
+      shader.vertexShader = shader.vertexShader
+        .replace("#include <common>", "#include <common>\nvarying vec3 vWorldPos;")
+        .replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\n  vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;");
+      shader.fragmentShader = shader.fragmentShader
+        .replace("#include <common>", `#include <common>
+          varying vec3 vWorldPos;
+          uniform vec3 u_cutCenter; uniform float u_cutRadius; uniform float u_edgeKeep;
+          uniform vec2 u_houseCtr; uniform vec2 u_houseHalf;`)
+        .replace("#include <dithering_fragment>", `#include <dithering_fragment>
+          // 1) Sa larg jemi nga qendra e prerjes (në rrafshin XZ)?
+          float dCut = distance(vWorldPos.xz, u_cutCenter.xz);
+          float cut = 1.0 - smoothstep(u_cutRadius * 0.45, u_cutRadius, dCut);   // 1 = prerje e plotë
+          // 2) BUZA e çatisë mbetet GJITHNJË e dukshme: sa afër skajit të shtëpisë jemi?
+          vec2 rel = abs(vWorldPos.xz - u_houseCtr) / max(u_houseHalf, vec2(0.001));
+          float edge = max(rel.x, rel.y);                     // 0 = qendër, 1 = skaj
+          float keepEdge = smoothstep(u_edgeKeep, 1.0, edge); // 1 = jemi te buza
+          float alphaCut = 1.0 - cut * (1.0 - keepEdge);
+          gl_FragColor.a *= clamp(alphaCut, 0.0, 1.0);
+          if (gl_FragColor.a < 0.02) discard;`);
+      mat.userData.shader = shader;
+    };
+    mat.needsUpdate = true;
+    ROOF_MESHES.push(o);
+  });
+}
+// Thirret në çdo kuadër: qendra e prerjes ndjek pikën ku shikon kamera, pak përpara saj.
+function updateRoofCutaway() {
+  if (!ROOF_MESHES.length || !S || !S.controls) return;
+  const t = S.controls.target;
+  const camDir = new THREE.Vector3().subVectors(t, S.camera.position); camDir.y = 0; camDir.normalize();
+  // qendra e prerjes: pak përtej objektivit, në drejtimin e shikimit → hapet ana nga shohim
+  const center = new THREE.Vector3(t.x + camDir.x * 2.2, 0, t.z + camDir.z * 2.2);
+  for (const m of ROOF_MESHES) {
+    const sh = m.material.userData.shader; if (!sh) continue;
+    sh.uniforms.u_cutCenter.value.copy(center);
   }
 }
 
@@ -12139,6 +12219,7 @@ function loop() {
     const r = S.renderer.domElement.getBoundingClientRect();
     b.style.left = ((v.x + 1) / 2 * r.width) + "px"; b.style.top = ((1 - v.y) / 2 * r.height) + "px";
   }
+  updateRoofCutaway();   // qendra e prerjes së çatisë ndjek kamerën
   S.renderer.render(S.scene, S.camera);
 }
 function syncState() { flush(); }
