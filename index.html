@@ -9970,14 +9970,14 @@ const PANDA_ITEMS = [
   // të kërkojë përpjekje reale mësimi, jo vetëm disa minuta.
   { id:"salad",   cat:"food",  emoji:"🥗", cost:180,  placed:true, consumable:true, size:0.42, effect:{hunger:+40, mood:+2, health:+3}, weight:+0.5 },
   { id:"fries",   cat:"food",  emoji:"🍟", cost:180,  placed:true, consumable:true, size:0.40, effect:{hunger:+40, mood:+6}, weight:+1.0 },
-  { id:"cake",    cat:"food",  emoji:"🍰", cost:400,  placed:true, consumable:true, size:0.35, effect:{hunger:+60, mood:+16}, weight:+3.0 },
+  { id:"cake",    cat:"food",  emoji:"🍰", cost:400,  placed:true, consumable:true, size:0.45, effect:{hunger:+60, mood:+16}, weight:+3.0 },
   { id:"apple",   cat:"food",  emoji:"🍕", cost:800,  placed:true, consumable:true, size:0.45, effect:{hunger:+80, mood:+20}, weight:+4.0 },
   { id:"burger",  cat:"food",  emoji:"🍔", cost:800,  placed:true, consumable:true, size:0.42, effect:{hunger:+80, mood:+20}, weight:+4.0 },
   { id:"wings",   cat:"food",  emoji:"🍗", cost:400,  placed:true, consumable:true, size:0.45, effect:{hunger:+60, mood:+16}, weight:+3.0 },
   { id:"taco",    cat:"food",  emoji:"🌮", cost:180,  placed:true, consumable:true, size:0.40, effect:{hunger:+40, mood:+8},  weight:+1.5 },
   // 🥤 Pije
   { id:"water",   cat:"drink", emoji:"💧", cost:20,   placed:true, consumable:true, size:0.30, effect:{thirst:+10} },
-  { id:"juice",   cat:"drink", emoji:"🧃", cost:180,  placed:true, consumable:true, size:0.30, effect:{thirst:+40, mood:+8}, weight:+0.5 },
+  { id:"juice",   cat:"drink", emoji:"🧃", cost:180,  placed:true, consumable:true, size:0.32, effect:{thirst:+40, mood:+8}, weight:+0.5 },
   { id:"milk",    cat:"drink", emoji:"🥤", cost:400,  placed:true, consumable:true, size:0.30, effect:{thirst:+60, mood:+14}, weight:+2.0 },
   { id:"icecoffee",cat:"drink",emoji:"🧋", cost:800,  placed:true, consumable:true, size:0.32, effect:{thirst:+80, mood:+18, energy:+10}, weight:+2.5 },
   // 🧼 Kujdes
@@ -11039,7 +11039,9 @@ const ASSETS = {
   milk: { glb: "models/food/milkshake.glb", textures: { map: "models/food/milkshake_basecolor.jpg", normalMap: "models/food/milkshake_normal.jpg", roughnessMap: "models/food/milkshake_roughness.jpg" } },
   icecoffee: { glb: "models/food/icecoffee.glb", textures: { map: "models/food/icecoffee_basecolor.jpg", normalMap: "models/food/icecoffee_normal.jpg", roughnessMap: "models/food/icecoffee_roughness.jpg" } },
   fries: { glb: "models/food/fries.glb", textures: { map: "models/food/fries_basecolor.jpg" } },
-  cake: { glb: null }, salad: { glb: null }, water: { glb: null }, juice: { glb: null }, milk: { glb: null },
+  cake: { glb: "models/food/cake.glb", textures: { map: "models/food/cake_basecolor.jpg", normalMap: "models/food/cake_normal.jpg" } },
+  juice: { glb: "models/food/juice.glb", textures: { map: "models/food/juice_basecolor.jpg", normalMap: "models/food/juice_normal.jpg" } },
+  water: { glb: null },
   // ===== SHTËPIA: e zbrazët për momentin =====
   // Për të vendosur një shtëpi të re, mjafton të plotësohet kjo hyrje dhe të vendosen skedarët:
   //   house: { glb: "models/house/house.glb", textures: { map: "...basecolor.jpg", normalMap: "...", roughnessMap: "..." } }
