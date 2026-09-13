@@ -1079,6 +1079,26 @@
     pointer-events: none; white-space: normal; line-height: 1.3;
   }
   .panda-bubble::after { content: ""; position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #fff; border-bottom: 0; }
+  /* Pamja paraprake e dyqanit: panel që rrëshqet lart nga fundi */
+  .shop-preview { max-height: 0; opacity: 0; overflow: hidden; transition: max-height .28s ease, opacity .2s ease, margin .28s ease;
+    display: flex; gap: 14px; align-items: center; border-radius: 16px; background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.08); position: relative; }
+  .shop-preview.open { max-height: 260px; opacity: 1; margin-top: 12px; padding: 14px; }
+  .sp-close { position: absolute; top: 6px; right: 8px; width: 28px; height: 28px; border-radius: 8px; border: none;
+    background: rgba(255,255,255,.08); color: #fff; font-size: .85rem; cursor: pointer; }
+  .sp-stage { position: relative; width: 116px; height: 116px; flex: 0 0 116px; border-radius: 14px;
+    background: radial-gradient(circle at 50% 35%, rgba(255,255,255,.12), rgba(0,0,0,.18)); overflow: hidden; }
+  .sp-stage canvas { width: 100%; height: 100%; display: block; }
+  .sp-emoji { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; font-size: 3.2rem; }
+  .sp-info { flex: 1; min-width: 0; }
+  .sp-name { font-weight: 800; font-size: 1.05rem; margin-bottom: 4px; }
+  .sp-effects { font-size: .84rem; opacity: .85; line-height: 1.5; margin-bottom: 10px; }
+  .sp-row { display: flex; align-items: center; gap: 10px; }
+  .sp-cost { font-weight: 800; color: var(--gold); }
+  .sp-buy { padding: 9px 18px; font-size: .92rem; }
+  .sp-buy:disabled { opacity: .45; }
+  .farm-shop-item { cursor: pointer; }
+  .farm-shop-item.selected { outline: 2px solid var(--accent, #7c9cff); outline-offset: 1px; }
   .panda-cam { position: absolute; right: 8px; top: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 4; }
   .cam-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18); background: rgba(20,22,40,.55); color: #fff; font-size: 1.05rem; font-weight: 800; cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; }
   .cam-btn:active { transform: scale(.94); background: rgba(255,200,87,.35); }
@@ -2010,6 +2030,17 @@
     <h3 data-i18n="panda.shop.title">🛍️ Dyqani</h3>
     <div id="pandaShopTabs" class="pshop-tabs"></div>
     <div id="pandaShopList"></div>
+    <!-- Pamja paraprake 3D: hapet kur zgjidhet një artikull, modeli rrotullohet ngadalë -->
+    <div id="shopPreview" class="shop-preview">
+      <button class="sp-close" id="spClose" aria-label="Mbyll">✕</button>
+      <div class="sp-stage"><canvas id="spCanvas"></canvas><div class="sp-emoji" id="spEmoji"></div></div>
+      <div class="sp-info">
+        <div class="sp-name" id="spName"></div>
+        <div class="sp-effects" id="spEffects"></div>
+        <div class="sp-row"><span class="sp-cost" id="spCost"></span>
+        <button class="btn btn-primary sp-buy" id="spBuy"></button></div>
+      </div>
+    </div>
   </div>
 
   <div class="auth-card hidden" id="pandaDebug">
@@ -10600,7 +10631,7 @@ function renderPandaShop() {
   const tabs = document.getElementById("pandaShopTabs");
   const names = PANDA_CAT_NAMES[menuLang] || PANDA_CAT_NAMES.sq;
   tabs.innerHTML = PANDA_CATS.map(c => `<button class="pshop-tab ${c === pandaShopCat ? "active" : ""}" data-cat="${c}">${names[c]}</button>`).join("");
-  tabs.querySelectorAll("[data-cat]").forEach(b => b.addEventListener("click", () => { pandaShopCat = b.dataset.cat; renderPandaShop(); }));
+  tabs.querySelectorAll("[data-cat]").forEach(b => b.addEventListener("click", () => { pandaShopCat = b.dataset.cat; closeShopPreview(); }));
   const list = document.getElementById("pandaShopList");
   list.innerHTML = PANDA_ITEMS.filter(i => i.cat === pandaShopCat).map(it => {
     const inRoom = it.placed ? p.placed.filter(f => f.type === it.id).length : 0;
@@ -10611,7 +10642,61 @@ function renderPandaShop() {
       <div class="fsi-cost">${it.cost} 🪙</div></div>
       <button class="fsi-btn" data-buy="${it.id}" ${!can ? "disabled" : ""}>${uiText("panda.buy")}</button></div>`;
   }).join("");
-  list.querySelectorAll("[data-buy]:not([disabled])").forEach(b => b.addEventListener("click", () => pandaBuy(b.dataset.buy)));
+  list.querySelectorAll("[data-buy]:not([disabled])").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); pandaBuy(b.dataset.buy); }));
+  // Klik mbi rreshtin (jo mbi butonin "Bli") → hap pamjen paraprake me modelin që rrotullohet
+  list.querySelectorAll(".farm-shop-item").forEach((row, i) => {
+    const it = PANDA_ITEMS.filter(x => x.cat === pandaShopCat)[i]; if (!it) return;
+    row.addEventListener("click", () => openShopPreview(it.id));
+  });
+  if (shopPreviewId) {
+    const items = PANDA_ITEMS.filter(x => x.cat === pandaShopCat);
+    const idx = items.findIndex(x => x.id === shopPreviewId);
+    if (idx >= 0) list.children[idx] && list.children[idx].classList.add("selected");
+  }
+}
+
+// Cilat efekte ka artikulli, në gjuhën e ndërfaqes
+function shopEffectText(it) {
+  const L = { hunger: { sq: "Uria", de: "Hunger", en: "Hunger" }, thirst: { sq: "Etja", de: "Durst", en: "Thirst" },
+    energy: { sq: "Energjia", de: "Energie", en: "Energy" }, mood: { sq: "Humori", de: "Laune", en: "Mood" },
+    hygiene: { sq: "Higjiena", de: "Hygiene", en: "Hygiene" }, health: { sq: "Shëndeti", de: "Gesundheit", en: "Health" } };
+  const lang = menuLang || "sq"; const out = [];
+  if (it.effect) for (const k in it.effect) { const n = L[k] ? (L[k][lang] || L[k].sq) : k; out.push(`${n} ${it.effect[k] > 0 ? "+" : ""}${it.effect[k]}`); }
+  if (it.use) { const U = { food: { sq: "Për të ngrënë", de: "Zum Essen", en: "For eating" }, water: { sq: "Për të pirë", de: "Zum Trinken", en: "For drinking" },
+    sleep: { sq: "Për të fjetur", de: "Zum Schlafen", en: "For sleeping" }, rest: { sq: "Për pushim", de: "Zum Ausruhen", en: "For resting" },
+    bath: { sq: "Për dush", de: "Zum Duschen", en: "For showering" }, toilet: { sq: "Tualet", de: "Toilette", en: "Toilet" } };
+    if (U[it.use]) out.push(U[it.use][lang] || U[it.use].sq); }
+  if (it.weight) out.push((lang === "de" ? "Gewicht " : lang === "en" ? "Weight " : "Pesha ") + (it.weight > 0 ? "+" : "") + it.weight);
+  return out.join(" · ");
+}
+
+let shopPreviewId = null;
+async function openShopPreview(id) {
+  const it = PANDA_ITEMS.find(x => x.id === id); if (!it) return;
+  shopPreviewId = id;
+  const panel = document.getElementById("shopPreview"); if (!panel) return;
+  document.getElementById("spName").textContent = pandaItemName(it);
+  document.getElementById("spEffects").textContent = shopEffectText(it);
+  document.getElementById("spCost").textContent = it.cost + " 🪙";
+  const buy = document.getElementById("spBuy");
+  const can = stats.farmCoins >= it.cost;
+  buy.textContent = uiText("panda.buy"); buy.disabled = !can;
+  buy.onclick = () => { pandaBuy(id); openShopPreview(id); };
+  panel.classList.add("open");
+  // modeli 3D; nëse artikulli s'ka model, tregojmë emoji-n
+  const cv = document.getElementById("spCanvas"), em = document.getElementById("spEmoji");
+  const ok = window.Panda3D && window.Panda3D.previewShow ? await window.Panda3D.previewShow(cv, id) : false;
+  cv.style.display = ok ? "block" : "none";
+  em.style.display = ok ? "none" : "flex";
+  em.textContent = it.emoji;
+  renderPandaShop();
+  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+function closeShopPreview() {
+  shopPreviewId = null;
+  const panel = document.getElementById("shopPreview"); if (panel) panel.classList.remove("open");
+  if (window.Panda3D && window.Panda3D.previewStop) window.Panda3D.previewStop();
+  renderPandaShop();
 }
 
 function renderPandaDaily() {
@@ -10728,6 +10813,7 @@ function renderPandaDebugInfo() {
   on("camZoomIn", () => { if (window.Panda3D) window.Panda3D.camZoom(0.8); });
   on("camZoomOut",() => { if (window.Panda3D) window.Panda3D.camZoom(1.25); });
   on("camReset",  () => { if (window.Panda3D) window.Panda3D.camReset(); });
+  on("spClose", () => closeShopPreview());
   on("btnPandaDelete", () => { if (window.Panda3D) { const id = window.Panda3D.getSelected(); if (id) { window.Panda3D.selectInstance(null); pandaRemove(id); } } });
   on("btnPandaDone", () => { if (window.Panda3D) window.Panda3D.selectInstance(null); });
   on("pandaName", () => {
@@ -12333,7 +12419,55 @@ function camReset() {
   S.camera.position.set(px + H2.dist * Math.sin(H2.polar) * Math.sin(H2.azim), 0.9 + H2.dist * Math.cos(H2.polar), pz + H2.dist * Math.sin(H2.polar) * Math.cos(H2.azim));
   S.controls.update(); S._camDirty = true;
 }
-window.Panda3D = { init, syncFurniture, findFreeSpot, findSpotNearPanda, doAction, goUse, hearts, setGrowth, rotateSelected, syncState, flush, restorePanda, selectInstance, getSelected, camRotate, camZoom, camReset };
+/* ---------- PAMJA PARAPRAKE 3D E DYQANIT ----------
+   Një skenë e VOGËL, krejt e ndarë nga dhoma kryesore: ngarkon modelin e artikullit të zgjedhur,
+   e përqendron dhe e rrotullon ngadalë. Nëse artikulli s'ka model (p.sh. uji), kthen false dhe
+   ndërfaqja tregon emoji-n në vend të tij. Renderi ndalet sapo paneli mbyllet (pa harxhim baterie). */
+let PV = null;
+async function previewShow(canvas, itemId) {
+  try {
+    if (!PV) {
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 100);
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x6b7280, 1.35));
+      const d1 = new THREE.DirectionalLight(0xffffff, 1.5); d1.position.set(2.5, 4, 3); scene.add(d1);
+      const d2 = new THREE.DirectionalLight(0xbfd4ff, 0.5); d2.position.set(-3, 1.5, -2); scene.add(d2);
+      const pivot = new THREE.Group(); scene.add(pivot);
+      PV = { scene, camera, renderer, pivot, obj: null, raf: 0, cache: new Map() };
+    }
+    const { scene, camera, renderer, pivot } = PV;
+    const w = canvas.clientWidth || 116, hh = canvas.clientHeight || 116;
+    renderer.setSize(w, hh, false); camera.aspect = w / hh; camera.updateProjectionMatrix();
+    if (PV.obj) { pivot.remove(PV.obj); PV.obj = null; }
+    // modeli: nga cache ose i ngarkuar tani
+    let model = PV.cache.get(itemId);
+    if (!model) {
+      const a = ASSETS[itemId];
+      if (!a || !a.glb) return false;                       // s'ka model → emoji
+      const g = await new Promise((res, rej) => loader.load(a.glb, res, undefined, rej));
+      await applyAssetTextures(g.scene, itemId);
+      model = g.scene; PV.cache.set(itemId, model);
+    }
+    const obj = model.clone(true);
+    // përqendro dhe shkallëzo që të mbushë kuadratin njësoj për çdo artikull
+    const bb = new THREE.Box3().setFromObject(obj); const sz = bb.getSize(new THREE.Vector3()); const ctr = bb.getCenter(new THREE.Vector3());
+    const s = 1.6 / Math.max(sz.x, sz.y, sz.z, 0.001);
+    obj.scale.setScalar(s);
+    obj.position.set(-ctr.x * s, -ctr.y * s, -ctr.z * s);
+    pivot.add(obj); PV.obj = obj; pivot.rotation.y = 0;
+    camera.position.set(0, 0.75, 2.9); camera.lookAt(0, 0, 0);
+    if (PV.raf) cancelAnimationFrame(PV.raf);
+    const spin = () => { PV.raf = requestAnimationFrame(spin); pivot.rotation.y += 0.012; renderer.render(scene, camera); };
+    spin();
+    return true;
+  } catch (e) { console.warn("Pamja paraprake dështoi:", e); return false; }
+}
+function previewStop() { if (PV && PV.raf) { cancelAnimationFrame(PV.raf); PV.raf = 0; } }
+
+window.Panda3D = { init, syncFurniture, previewShow, previewStop, findFreeSpot, findSpotNearPanda, doAction, goUse, hearts, setGrowth, rotateSelected, syncState, flush, restorePanda, selectInstance, getSelected, camRotate, camZoom, camReset };
 </script>
 
 </body>
