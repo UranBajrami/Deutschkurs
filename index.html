@@ -11039,7 +11039,11 @@ const ASSETS = {
   //   house: { glb: "models/house/house.glb", textures: { map: "...basecolor.jpg", normalMap: "...", roughnessMap: "..." } }
   // Modeli duhet të ketë tre pjesë me këta emra: "roof" (çatia), "walls" (muret), "floor" (dyshemeja).
   // Pastaj përshtat HOUSE_SCALE dhe HOUSE_INNER më poshtë. Pa shtëpi, loja punon mbi një dysheme bazë.
-  house:    { glb: "models/house/house.glb", textures: { map: "models/house/house_basecolor.jpg", normalMap: "models/house/house_normal.jpg", roughnessMap: "models/house/house_roughness.jpg" } },   // GLB e përdoruesit: "walls" + "floor" (pa çati — dhomë e hapur)
+  // GLB e përdoruesit: "walls" + "floor" (pa çati — dhomë e hapur).
+  // PA TEKSTURË ME QËLLIM: atlasi i Meshy-t është i copëtuar në mijëra fragmente të vogla; pas
+  // thjeshtimit të rrjetës fragmentet s'përputhen më dhe dhoma del "llucë". Ngjyrat e pastra
+  // (mure të bardha, dysheme gri) janë pikërisht si te pamja origjinale.
+  house:    { glb: "models/house/house.glb" },
   garden:   { glb: null },
   kitchen:    { glb: "models/furniture/kitchen.glb",    textures: { map: "models/furniture/kitchen_basecolor.jpg",    normalMap: "models/furniture/kitchen_normal.jpg",    roughnessMap: "models/furniture/kitchen_roughness.jpg" } },
   livingroom: { glb: "models/furniture/livingroom.glb", textures: { map: "models/furniture/livingroom_basecolor.jpg", normalMap: "models/furniture/livingroom_normal.jpg", roughnessMap: "models/furniture/livingroom_roughness.jpg" } },
