@@ -11279,6 +11279,26 @@ function setupRoofCutaway(root) {
     ROOF_MESHES.push(o);
   });
 }
+/* ---------- KAMERA QË NDJEK PANDANË ----------
+   Qendra e kamerës (controls.target) rrëshqet BUTË te pozicioni i pandës në çdo kuadër.
+   Përdoruesi vazhdon të rrotullojë dhe të bëjë zoom lirshëm — ndryshon vetëm PIKA QË NDIQET,
+   jo këndi apo distanca që ka zgjedhur ai. Zhvendosja (pan) është e çaktivizuar, që kamera
+   të mos "humbasë" pandanë. */
+let CAM_FOLLOW = true;
+function updateCameraFollow(dt) {
+  if (!CAM_FOLLOW || !S || !S.controls || !S.panda) return;
+  const t = S.controls.target;
+  const px = S.panda.position.x, py = S.panda.position.y + 0.9, pz = S.panda.position.z;
+  // Ndjekje e butë: sa më e madhe k, aq më shpejt e arrin pandanë (0.06 ≈ e qetë, pa dridhje)
+  const k = 1 - Math.pow(0.001, Math.min(0.05, dt || 0.016));
+  const nx = t.x + (px - t.x) * k, ny = t.y + (py - t.y) * k, nz = t.z + (pz - t.z) * k;
+  if (Math.abs(nx - t.x) + Math.abs(ny - t.y) + Math.abs(nz - t.z) < 0.0004) return;   // pa lëvizje → mos e prek
+  // Zhvendos edhe kamerën me të njëjtën sasi: këndi dhe distanca e përdoruesit mbeten të pacenuara
+  S.camera.position.x += nx - t.x; S.camera.position.y += ny - t.y; S.camera.position.z += nz - t.z;
+  t.set(nx, ny, nz);
+  S.controls.update(); S._camDirty = true;
+}
+
 // Thirret në çdo kuadër: qendra e prerjes ndjek pikën ku shikon kamera, pak përpara saj.
 function updateRoofCutaway() {
   if (!ROOF_MESHES.length || !S || !S.controls) return;
@@ -11762,7 +11782,7 @@ async function init(container, api) {
     // KAMERA në stil "Sims": diagonale nga lart (≈42° mbi horizont, 45° anash), e përqendruar te DHOMA
     // (jo te pandaja), 360° rrotullim i lirë + zoom. Muret e pasme janë njëanëshe → nga pas bëhen të padukshme
     // vetvetiu (efekti "cutaway" i Sims), kështu s'bllokojnë kurrë pamjen.
-    const CAM_HOME = { dist: 25, polar: 0.72, azim: Math.PI / 4, target: new THREE.Vector3(0, 0.4, 0) };   // si te Sims; përshtate distancën kur të vijë shtëpia e re
+    const CAM_HOME = { dist: 9, polar: 0.80, azim: Math.PI / 4, target: new THREE.Vector3(0, 0.9, 0) };   // kamera NDJEK pandanë: më afër dhe pak mbi të
     const placeCam = (dist, polar, azim) => {
       camera.position.set(CAM_HOME.target.x + dist * Math.sin(polar) * Math.sin(azim), CAM_HOME.target.y + dist * Math.cos(polar), CAM_HOME.target.z + dist * Math.sin(polar) * Math.cos(azim));
     };
@@ -11770,11 +11790,11 @@ async function init(container, api) {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.copy(CAM_HOME.target);
     controls.enableDamping = true; controls.dampingFactor = 0.08;
-    controls.minDistance = 3; controls.maxDistance = 40;
+    controls.minDistance = 2.5; controls.maxDistance = 22;   // nga afër te pandaja deri te pamja e gjithë dhomës
     controls.minPolarAngle = 0.25; controls.maxPolarAngle = 1.25;   // nga pothuaj-lart deri ~18° mbi dysheme, kurrë nën të
-    controls.screenSpacePanning = false; controls.panSpeed = 0.6; controls.rotateSpeed = 0.7;
+    controls.screenSpacePanning = false; controls.enablePan = false; controls.rotateSpeed = 0.7;   // pa zhvendosje: vetëm rrotullim + zoom, qendra mbetet pandaja
     S._camHome = CAM_HOME; S._placeCam = placeCam;
-    controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+    controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_ROTATE };   // një gisht = rrotullim, dy gishta = zoom
     controls.addEventListener("change", () => { S._camDirty = true; });
     S.controls = controls;
     resize(); window.addEventListener("resize", resize);
@@ -12249,6 +12269,7 @@ function loop() {
     const r = S.renderer.domElement.getBoundingClientRect();
     b.style.left = ((v.x + 1) / 2 * r.width) + "px"; b.style.top = ((1 - v.y) / 2 * r.height) + "px";
   }
+  updateCameraFollow(dt);   // kamera ndjek pandanë
   updateRoofCutaway();   // qendra e prerjes së çatisë ndjek kamerën
   S.renderer.render(S.scene, S.camera);
 }
@@ -12269,7 +12290,12 @@ function camZoom(factor) {
 }
 function camReset() {
   if (!S || !S.controls || !S._camHome) return;
-  S.controls.target.copy(S._camHome.target); S._placeCam(S._camHome.dist, S._camHome.polar, S._camHome.azim); S.controls.update(); S._camDirty = true;
+  CAM_FOLLOW = true;
+  const px = S.panda ? S.panda.position.x : 0, pz = S.panda ? S.panda.position.z : 0;
+  S.controls.target.set(px, 0.9, pz);
+  const H2 = S._camHome;
+  S.camera.position.set(px + H2.dist * Math.sin(H2.polar) * Math.sin(H2.azim), 0.9 + H2.dist * Math.cos(H2.polar), pz + H2.dist * Math.sin(H2.polar) * Math.cos(H2.azim));
+  S.controls.update(); S._camDirty = true;
 }
 window.Panda3D = { init, syncFurniture, findFreeSpot, findSpotNearPanda, doAction, goUse, hearts, setGrowth, rotateSelected, syncState, flush, restorePanda, selectInstance, getSelected, camRotate, camZoom, camReset };
 </script>
