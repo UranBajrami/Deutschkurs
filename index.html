@@ -10633,7 +10633,7 @@ function pandaAutoTalk() {
 // Kohëzgjatja e ngrënies/pirjes rritet me çmimin e artikullit — sa më i shtrenjtë, aq më gjatë.
 // Shkalla llogaritet DINAMIKISHT nga çmimet e artikujve aktualë (min→20s, max→60s), që artikujt
 // e rinj (të shtuar më vonë) të përshtaten automatikisht pa pasur nevojë për rregullim manual.
-const CONSUME_MIN_SEC = 5, CONSUME_MAX_SEC = 14;   // më parë 20–60 s: dukej sikur loja "ngrinte"
+const CONSUME_MIN_SEC = 20, CONSUME_MAX_SEC = 60;   // sa më i shtrenjtë artikulli, aq më gjatë ha/pi
 function consumeDurationForCost(cost) {
   const costs = PANDA_ITEMS.filter(i => i.consumable).map(i => i.cost);
   const minC = Math.min(...costs), maxC = Math.max(...costs);
@@ -11151,7 +11151,10 @@ const RIG_TEX = { map: "models/panda/panda_basecolor.jpg", normalMap: "models/pa
 const RIG_STATE_CLIPS = { hungry: "stomp", angry: "stomp", lonely: "help", sad: "help" };   // emocion → klip reagimi (herë pas here)
 // gjendje e lojës → emri i klipit (nëse gjendja s'ka klip me të njëjtin emër)
 const RIG_STATE_ALIAS = { play: "dance", rest: "sit", tired: "sit" };
-const RIG_ONCE = new Set(["greeting", "cheer", "sit", "stomp", "help", "surprised"]);   // luhen një herë; të tjerat në lak
+// Klipe që luhen NJË HERË. KUJDES: "sit" u hoq nga kjo listë — përdoret te tualeti (12 s),
+// pushimi (8 s) dhe tryeza; i luajtur një herë ngrinte në kuadrin e fundit dhe dukej sikur
+// loja "u var". Tani luhet në LAK sa zgjat veprimi, si ngrënia dhe pirja.
+const RIG_ONCE = new Set(["greeting", "cheer", "stomp", "help", "surprised"]);
 const RIG_SPEED = () => ({ walk: 0.9 * (S.moveTempo || 1), run: 0.9 * (S.moveTempo || 1) });
 const texLoader = new THREE.TextureLoader();
 
@@ -11308,14 +11311,19 @@ function updateCameraFollow(dt) {
   if (!CAM_FOLLOW || !S || !S.controls || !S.panda) return;
   const t = S.controls.target;
   const px = S.panda.position.x, py = S.panda.position.y + 0.9, pz = S.panda.position.z;
-  // Ndjekje e butë: sa më e madhe k, aq më shpejt e arrin pandanë (0.06 ≈ e qetë, pa dridhje)
+  const dx = px - t.x, dy = py - t.y, dz = pz - t.z;
+  // KUJDES: kur pandaja rri në vend (p.sh. duke ngrënë 60 s), largësia është ~0. Në atë rast NUK
+  // e prekim fare kamerën — përndryshe controls.update() thirrej 60×/s dhe e NDËRPRISTE gjestin e
+  // rrotullimit të lojtarit, që dukej sikur loja "ngrihej" gjatë ngrënies/pirjes/tualetit.
+  const far = Math.abs(dx) + Math.abs(dy) + Math.abs(dz);
+  if (far < 0.02) return;                       // pandaja praktikisht në vend → mos ndërhy
   const k = 1 - Math.pow(0.001, Math.min(0.05, dt || 0.016));
-  const nx = t.x + (px - t.x) * k, ny = t.y + (py - t.y) * k, nz = t.z + (pz - t.z) * k;
-  if (Math.abs(nx - t.x) + Math.abs(ny - t.y) + Math.abs(nz - t.z) < 0.0004) return;   // pa lëvizje → mos e prek
-  // Zhvendos edhe kamerën me të njëjtën sasi: këndi dhe distanca e përdoruesit mbeten të pacenuara
+  const nx = t.x + dx * k, ny = t.y + dy * k, nz = t.z + dz * k;
+  // Zhvendos vetëm POZICIONIN e kamerës dhe qendrën; pa controls.update(), që gjesti i lojtarit
+  // të vazhdojë i paprekur. OrbitControls e rifreskon vetë në kuadrin e radhës.
   S.camera.position.x += nx - t.x; S.camera.position.y += ny - t.y; S.camera.position.z += nz - t.z;
   t.set(nx, ny, nz);
-  S.controls.update(); S._camDirty = true;
+  S._camDirty = true;
 }
 
 // Thirret në çdo kuadër: qendra e prerjes ndjek pikën ku shikon kamera, pak përpara saj.
@@ -12215,7 +12223,7 @@ function arrive(use) {
     return;
   }
   const anims = { toilet: "sit", bath: "bath", rest: "sit", desk: "sit", toy: "play" };
-  setAnim(anims[use] || "idle"); ai.state = "busy"; ai.timer = use === "rest" ? 6 : use === "desk" ? 6 : use === "toy" ? 8 : use === "bath" ? 7 : use === "toilet" ? 5 : 3;
+  setAnim(anims[use] || "idle"); ai.state = "busy"; ai.timer = use === "rest" ? 8 : use === "desk" ? 8 : use === "toy" ? 20 : use === "bath" ? 18 : use === "toilet" ? 12 : 3;
   if (["toilet", "food", "water", "bath"].includes(use)) S.api.onArrive(use);
 }
 function goUse(use) { const st = S.api.getState(); const t = targetFor(use, st); if (t) { S.ai.state = "seek"; S.ai.use = use; S.ai.target = t; } else doAction(use === "bath" ? "bath" : "sit"); }
